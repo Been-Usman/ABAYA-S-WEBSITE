@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin — NAKOWA ABAYAS COLLECTIONS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="admin.css" />
+    <!-- ============================================================
+         Shared image fallback.
+         ROOT-CAUSE FIX: broken images used to fall back to
+         https://via.placeholder.com — that host is dead (TLS handshake
+         fails / 403), so the onerror handler re-assigned the same dead
+         URL, which fired onerror again, looping forever and flooding the
+         console with red errors. The fallback is now a local data-URI
+         (no network request possible) applied exactly once per <img>.
+         ============================================================ -->
+    <script>
+        window.FALLBACK_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20viewBox%3D%220%200%20400%20400%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%3Crect%20width%3D%22400%22%20height%3D%22400%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%22200%22%20y%3D%22200%22%20fill%3D%22%23d4af37%22%20font-family%3D%22Poppins%2CArial%2Csans-serif%22%20font-size%3D%2256%22%20font-weight%3D%22700%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3ENAKOWA%3C%2Ftext%3E%3C%2Fsvg%3E";
+        window.imgFallback = function (img) {
+            if (!img || img.dataset.fbApplied === '1') return; // hard guard: never loop
+            img.dataset.fbApplied = '1';
+            img.onerror = null;
+            img.src = window.FALLBACK_IMG;
+        };
+    </script>
+</head>
+<body>
+
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-overlay"></div>
+        <div class="login-box">
+            <img src="../images/profile.jpg" alt="Admin" class="login-profile" onerror="imgFallback(this)" />
+            <h2>Admin Access</h2>
+            <p>Enter your credentials to continue</p>
+            <input type="text" id="loginUsername" placeholder="Username" autocomplete="username" />
+            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" />
+            <button id="loginBtn" class="btn-gold">Login</button>
+            <div id="loginError" class="login-error"></div>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="dashboard" style="display:none;">
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="../images/profile.jpg" alt="Admin" class="sidebar-profile" onerror="imgFallback(this)" />
+                <h3>ADMIN PANEL</h3>
+                <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>
+            </div>
+            <ul>
+                <li class="active" data-section="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</li>
+                <li data-section="products"><i class="fas fa-box"></i> Products</li>
+                <li data-section="orders"><i class="fas fa-shopping-bag"></i> Orders</li>
+                <li data-section="customers"><i class="fas fa-users"></i> Customers</li>
+                <li data-section="settings"><i class="fas fa-cog"></i> Settings</li>
+                <li data-section="users"><i class="fas fa-user-shield"></i> Users</li>
+                <li data-section="changepassword"><i class="fas fa-key"></i> Change Password</li>
+                <li class="logout-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="topbar">
+                <button class="hamburger-admin" id="hamburgerAdmin"><i class="fas fa-bars"></i></button>
+                <h2 id="pageTitle">Dashboard</h2>
+                <div class="topbar-right">
+                    <span class="topbar-date" id="topbarDate"></span>
+                </div>
+            </div>
+            <div id="contentArea"></div>
+            <div class="admin-footer">
+                <p>Powered by <a href="https://been-usman.github.io/MY-PROFILE/" target="_blank" class="powered-link">Manu's Smart Web Developer</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast">
+        <span class="toast-icon">✅</span>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- ===== CONFIRM MODAL ===== -->
+    <div id="confirmModal" class="modal-overlay-admin">
+        <div class="modal-box-admin">
+            <h3 id="confirmTitle">Are you sure?</h3>
+            <p id="confirmMessage" style="color:rgba(255,255,255,0.7);margin-bottom:20px;"></p>
+            <div style="display:flex;gap:10px;">
+                <button id="confirmCancel" class="btn-outline-gold" style="flex:1;">Cancel</button>
+                <button id="confirmOk" class="btn-danger" style="flex:1;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== IMAGE VIEWER ===== -->
+    <div id="imageViewer" class="modal-overlay-admin">
+        <div class="modal-box-admin image-viewer-box">
+            <button class="close-modal-admin" id="closeImageViewer">&times;</button>
+            <img id="imageViewerImg" src="" alt="" />
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
