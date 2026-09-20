@@ -1,36 +1,27 @@
-/* ============================================================
-   NAKOWA ABAYAS COLLECTIONS — Public Script (v4 — SUPABASE ONLY)
-   ============================================================
-   v4 MIGRATION NOTE
-   -----------------
-   Legacy backends have been removed completely. Both the database and
-   the image storage live on Supabase, and every read/write goes through
-   the official supabase-js client:
-
-     • legacy get/post helpers (old JSON API)  → sb.from(...)
-     • legacy third-party uploads               → Supabase Storage
-     • legacy CDN URL rewriting                 → no-op
+﻿/* ============================================================
+   NAKOWA ABAYAS COLLECTIONS â€” Public Script (v3 â€” FINAL)
    ============================================================ */
 
 // ============================================================
-// SUPABASE — the SAME client instance as admin/admin.js
+// CONFIGURATION
 // ============================================================
-const SUPABASE_URL = 'https://yntkbjzvmizssrxwzuoi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_CFyA2zonltT81jFRMyAQpg_kx5vLA_u';
-const SUPABASE_BUCKET = 'product-images';
+const API_URL = 'https://script.google.com/macros/s/AKfycbx-edW1RqonhzFc8n1XWXv0iIvxbIrPflv3TT7z9hYi1HLSZ2OL9uS_HBxjKoOiEx8T/exec';
 
-// The CDN <script> in index.html defines window.supabase. The guard keeps the
-// page alive (and prints the exact cause) if that request is blocked.
-const sb = (window.supabase && typeof window.supabase.createClient === 'function')
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-    : null;
+const CLOUDINARY = {
+    cloudName: 'Idtixrva',
+    uploadPreset: 'NAKOWA-ABAYAS',
+    folder: 'ABAYAS-VIDEO-IMGS',
+    baseUrl: 'https://api.cloudinary.com/v1_1/Idtixrva'
+};
 
-if (!sb) {
-    console.error('[Supabase] Client unavailable — the supabase-js CDN script ' +
-        '(https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2) did not load.');
-}
+const SUPABASE = {
+    url: 'https://yntkbjzvmizssrxwzuoi.supabase.co',
+    key: 'sb_publishable_CFyA2zonltT81jFRMyAQpg_kx5vLA_u',
+    bucket: 'product-images',
+    threshold: 200
+};
 
-const DEFAULT_WHATSAPP = '2348001234567';
+const DEFAULT_WHATSAPP = '201500766295';
 
 // ============================================================
 // STATE
@@ -42,116 +33,26 @@ let currentCountryFilter = 'all';
 let currentPriceFilter = 'all';
 
 // ============================================================
-// DATA ACCESS — Supabase only (no legacy backends)
+// API
 // ============================================================
-
-// Map one `orders` row (snake_case) to the camelCase shape the UI uses.
-function mapOrderRow(r) {
-    return {
-        orderId: r.order_id,
-        customerName: r.customer_name,
-        customerPhone: r.customer_phone,
-        customerAddress: r.customer_address,
-        productName: r.product_name,
-        productCode: r.product_code,
-        colorName: r.color_name,
-        colorValue: r.color_value,
-        size: r.size,
-        quantity: r.quantity,
-        price: parseFloat(r.price) || 0,
-        total: parseFloat(r.total) || 0,
-        productImage: r.product_image,
-        status: r.status,
-        notes: r.notes,
-        date: r.date,
-        time: r.time,            // "HH:MM", matching the old sheet format
-        createdAt: r.created_at
-    };
+async function apiGet(action) {
+    const res = await fetch(`${API_URL}?action=${action}`);
+    return res.json();
 }
 
-// Map one `settings` row ({key, value}) back to the flat object the UI uses.
-function mapSettingsRows(rows) {
-    const out = {};
-    (rows || []).forEach(r => { if (r && r.key != null) out[r.key] = r.value; });
-    return out;
-}
-
-// ============================================================
-// DATA ACCESS — Supabase only (no legacy fetch providers).
-// Direct sb.from(...) calls. There are deliberately no legacy fetch
-// wrappers: every read below is a Supabase client call you can grep.
-// ============================================================
-async function fetchProductsActive() {
-    if (!sb) throw new Error('Supabase client not loaded');
-    const { data, error } = await sb.from('products')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data || [];
-}
-
-async function fetchOrdersLive() {
-    // The tracking modal looks orders up by their public `order_id`
-    // (the human-readable id returned by save_order), newest first.
-    if (!sb) throw new Error('Supabase client not loaded');
-    const { data, error } = await sb.from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data || []).map(mapOrderRow);
-}
-
-async function fetchSettings() {
-    if (!sb) throw new Error('Supabase client not loaded');
-    const { data, error } = await sb.from('settings').select('*');
-    if (error) throw error;
-    return mapSettingsRows(data);
-}
-
-// save_order() is a Postgres function that generates the order id, inserts the
-// order, updates sales_log and upserts the customer — one single round-trip.
-async function saveOrderViaRpc(order) {
-    if (!sb) throw new Error('Supabase client not loaded');
-
-    // p_order is jsonb: send snake_case so a `row_to_json(orders)`-style
-    // implementation and a key-by-key one both resolve every column.
-    const payload = {
-        order_id: order.orderId,
-        customer_name: order.customerName,
-        customer_phone: order.customerPhone,
-        customer_address: order.customerAddress,
-        product_name: order.productName,
-        product_code: order.productCode,
-        color_name: order.colorName,
-        color_value: order.colorValue,
-        size: order.size,
-        quantity: order.quantity,
-        price: order.price,
-        total: order.total,
-        product_image: order.productImage,
-        status: 'pending',
-        notes: order.notes,
-        date: order.date,
-        time: order.time
-    };
-
-    const { data: result, error } = await sb.rpc('save_order', { p_order: payload });
-    if (error) throw error;
-
-    let orderId = null;
-    if (result && typeof result === 'object') orderId = result.orderId || result.order_id;
-    else if (typeof result === 'string') orderId = result;
-
-    if (!orderId) throw new Error('save_order did not return an order id');
-    return { success: true, orderId };
+async function apiPost(action, data = {}) {
+    const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action, ...data })
+    });
+    return res.json();
 }
 
 // ============================================================
 // HELPERS
 // ============================================================
 // Local, network-free image fallback. ROOT-CAUSE FIX: the old fallback
-// host is dead, so assigning it inside an
+// (https://via.placeholder.com) is dead, so assigning it inside an
 // onerror handler re-triggered onerror in an endless loop and flooded
 // the console. This data-URI can never fail, and imgFallback() is
 // guarded so it runs at most once per <img>.
@@ -175,19 +76,12 @@ function escapeHtml(str) {
 
 function optimizeImage(url, width = 500, height = 500) {
     if (!url) return DEFAULT_IMG;
-    // Legacy third-party URLs are still served untouched (no rewriting):
-    // that CDN transform syntax is retired now that storage lives on Supabase.
-    return url;
-}
-
-// Supabase Storage public URLs accept `?width=&height=&resize=cover` for the
-// built-in image renderer, which keeps storefront payloads small.
-function resolveImage(url, width = 500, height = 500) {
-    if (!url) return DEFAULT_IMG;
-    if (url.startsWith('data:')) return url;
-    if (url.includes('/storage/v1/object/public/')) {
-        const base = url.split('?')[0];
-        return `${base}?width=${width}&height=${height}&resize=cover`;
+    if (url.includes('res.cloudinary.com')) {
+        const parts = url.split('/upload/');
+        if (parts.length === 2) {
+            const transform = `c_fill,g_center,ar_1:1,w_${width},h_${height},q_auto,f_auto`;
+            return `${parts[0]}/upload/${transform}/${parts[1]}`;
+        }
     }
     return url;
 }
@@ -233,7 +127,7 @@ function hideSplash() {
 // ============================================================
 // TOAST
 // ============================================================
-function showToast(message, icon = '✅') {
+function showToast(message, icon = 'âœ…') {
     const toast = document.getElementById('toast');
     if (!toast) return;
     document.getElementById('toastMessage').textContent = message;
@@ -281,7 +175,7 @@ function updateCartUI() {
         cartCount.classList.toggle('hidden', count === 0);
     }
     if (mobileCount) mobileCount.textContent = count;
-    if (cartTotal) cartTotal.textContent = '₦' + total.toLocaleString();
+    if (cartTotal) cartTotal.textContent = 'â‚¦' + total.toLocaleString();
 
     const container = document.getElementById('cartItems');
     if (!container) return;
@@ -296,8 +190,8 @@ function updateCartUI() {
             <img src="${item.image || DEFAULT_IMG}" alt="${escapeHtml(item.name)}" onerror="imgFallback(this)" />
             <div class="cart-item-info">
                 <h4>${escapeHtml(item.name)}</h4>
-                <p>₦${item.price.toLocaleString()} × ${item.qty}</p>
-                <div class="cart-item-meta">Size: ${escapeHtml(item.size)} · Color: ${escapeHtml(item.colorName)}</div>
+                <p>â‚¦${item.price.toLocaleString()} Ã— ${item.qty}</p>
+                <div class="cart-item-meta">Size: ${escapeHtml(item.size)} Â· Color: ${escapeHtml(item.colorName)}</div>
             </div>
             <button class="remove-item" data-idx="${idx}"><i class="fas fa-times"></i></button>
         </div>
@@ -310,7 +204,7 @@ function updateCartUI() {
             cart.splice(idx, 1);
             saveCart();
             updateCartUI();
-            showToast(`Removed ${removed.name}`, '🗑️');
+            showToast(`Removed ${removed.name}`, 'ðŸ—‘ï¸');
         });
     });
 }
@@ -350,7 +244,7 @@ function addToCart(product, variant, size, qty = 1) {
     }
     saveCart();
     updateCartUI();
-    showToast(`Added ${product.name} (${variant.colorName}) to cart!`, '🛒');
+    showToast(`Added ${product.name} (${variant.colorName}) to cart!`, 'ðŸ›’');
 }
 
 // ============================================================
@@ -388,7 +282,7 @@ function rebuildCountryFilters() {
         <button class="filter-btn ${active === 'all' ? 'active' : ''}" data-country="all">All</button>
         ${countries.map(c => `
             <button class="filter-btn ${active === c ? 'active' : ''}" data-country="${escapeHtml(c)}">
-                ${c === 'Egypt' ? '🇪🇬 ' : ''}${escapeHtml(c)}
+                ${c === 'Egypt' ? 'ðŸ‡ªðŸ‡¬ ' : ''}${escapeHtml(c)}
             </button>
         `).join('')}
     `;
@@ -430,7 +324,7 @@ function renderProducts() {
     if (display) display.textContent = filtered.length;
 
     if (filtered.length === 0) {
-        grid.innerHTML = '<div class="empty-state">✨ No Abayas found — try another filter.</div>';
+        grid.innerHTML = '<div class="empty-state">âœ¨ No Abayas found â€” try another filter.</div>';
         return;
     }
 
@@ -441,7 +335,6 @@ function renderProducts() {
 
 function renderProductCard(p) {
     const variants = (p.variants && Array.isArray(p.variants)) ? p.variants : [];
-    console.log('Product:', p.name, '| Variants:', variants);
     const firstVariant = variants[0] || {
         image: getFirstImage(p),
         colorName: 'Default',
@@ -453,7 +346,7 @@ function renderProductCard(p) {
     const mainImage = optimizeImage(firstVariant.image, 500, 500);
     const firstVideo = (p.videos && Array.isArray(p.videos) && p.videos.length > 0) ? p.videos[0] : null;
     const country = p.country || 'Egypt';
-    const flag = country === 'Egypt' ? '🇪🇬' : '';
+    const flag = country === 'Egypt' ? 'ðŸ‡ªðŸ‡¬' : '';
     const sizes = Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : []);
 
     let colorCirclesHTML = '';
@@ -492,11 +385,11 @@ function renderProductCard(p) {
             <div class="product-info">
                 <div class="product-name">${escapeHtml(p.name)}</div>
                 <div class="product-code">${escapeHtml(firstVariant.code || p.code || '')}</div>
-                <div class="product-price" data-product-id="${escapeHtml(p.id)}">₦${parseFloat(firstVariant.price || 0).toLocaleString()}</div>
+                ${colorCirclesHTML}
+                <div class="product-price" data-product-id="${escapeHtml(p.id)}">â‚¦${parseFloat(firstVariant.price || 0).toLocaleString()}</div>
                 <div class="product-sizes">
                     ${sizes.map(s => `<span>${escapeHtml(s)}</span>`).join('')}
                 </div>
-                ${colorCirclesHTML}
                 <button class="btn-order" data-id="${escapeHtml(p.id)}">
                     <i class="fas fa-shopping-cart"></i> Order Now
                 </button>
@@ -534,7 +427,7 @@ function attachProductListeners() {
                 if (nameEl) nameEl.textContent = newColorName;
 
                 const priceEl = document.querySelector(`.product-price[data-product-id="${productId}"]`);
-                if (priceEl && newPrice) priceEl.textContent = '₦' + parseFloat(newPrice).toLocaleString();
+                if (priceEl && newPrice) priceEl.textContent = 'â‚¦' + parseFloat(newPrice).toLocaleString();
 
                 const codeEl = card.querySelector('.product-code');
                 if (codeEl && newCode) codeEl.textContent = newCode;
@@ -638,9 +531,9 @@ function openQuickView(product) {
         <h3>${escapeHtml(product.name)}</h3>
         <div class="modal-details">
             <p><strong>Code:</strong> <span id="qvCode">${escapeHtml(firstVariant.code || product.code || '')}</span></p>
-            <p><strong>Country:</strong> ${product.country === 'Egypt' ? '🇪🇬' : ''} ${escapeHtml(product.country || 'Egypt')}</p>
-            <p><strong>Price:</strong> <span id="qvPrice">₦${parseFloat(firstVariant.price || 0).toLocaleString()}</span></p>
-            <p><strong>Sizes:</strong> ${sizes.map(escapeHtml).join(' · ') || '—'}</p>
+            <p><strong>Country:</strong> ${product.country === 'Egypt' ? 'ðŸ‡ªðŸ‡¬' : ''} ${escapeHtml(product.country || 'Egypt')}</p>
+            <p><strong>Price:</strong> <span id="qvPrice">â‚¦${parseFloat(firstVariant.price || 0).toLocaleString()}</span></p>
+            <p><strong>Sizes:</strong> ${sizes.map(escapeHtml).join(' Â· ') || 'â€”'}</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
             <select id="qvSize" style="flex:1;min-width:120px;padding:10px;border-radius:8px;border:1px solid var(--border-gold);background:rgba(255,255,255,0.06);color:#fff;">
@@ -689,7 +582,7 @@ function openQuickView(product) {
                 const selColorNameEl = document.getElementById('qvSelectedColor');
                 if (selColorNameEl) selColorNameEl.textContent = this.dataset.colorName;
                 const qvPriceEl = document.getElementById('qvPrice');
-                if (qvPriceEl) qvPriceEl.textContent = '₦' + parseFloat(this.dataset.price).toLocaleString();
+                if (qvPriceEl) qvPriceEl.textContent = 'â‚¦' + parseFloat(this.dataset.price).toLocaleString();
                 const qvCodeEl = document.getElementById('qvCode');
                 if (qvCodeEl) qvCodeEl.textContent = this.dataset.code;
             });
@@ -699,7 +592,7 @@ function openQuickView(product) {
     document.getElementById('qvAddToCart').addEventListener('click', () => {
         const size = document.getElementById('qvSize').value;
         const qty = parseInt(document.getElementById('qvQty').value) || 1;
-        if (!size) { showToast('Please select a size', '⚠️'); return; }
+        if (!size) { showToast('Please select a size', 'âš ï¸'); return; }
         addToCart(product, selectedVariant, size, qty);
         modal.classList.remove('open');
     });
@@ -707,7 +600,7 @@ function openQuickView(product) {
     document.getElementById('qvOrderNow').addEventListener('click', () => {
         const size = document.getElementById('qvSize').value;
         const qty = parseInt(document.getElementById('qvQty').value) || 1;
-        if (!size) { showToast('Please select a size', '⚠️'); return; }
+        if (!size) { showToast('Please select a size', 'âš ï¸'); return; }
         modal.classList.remove('open');
         setTimeout(() => {
             openOrderModal(product, selectedVariant, size, qty);
@@ -749,9 +642,9 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             <div class="form-group"><label>Notes (optional)</label><textarea id="orderNotes" placeholder="Any special requests..."></textarea></div>
         </form>
         <div class="order-summary">
-            <p><strong>Price:</strong> <span id="sumPrice">₦${price.toLocaleString()}</span></p>
+            <p><strong>Price:</strong> <span id="sumPrice">â‚¦${price.toLocaleString()}</span></p>
             <p><strong>Qty:</strong> <span id="sumQty">${presetQty}</span></p>
-            <p class="total">Total: ₦<span id="sumTotal">${(price * presetQty).toLocaleString()}</span></p>
+            <p class="total">Total: â‚¦<span id="sumTotal">${(price * presetQty).toLocaleString()}</span></p>
         </div>
         <button class="btn-gold" style="width:100%;" id="confirmOrderBtn">
             <i class="fab fa-whatsapp"></i> Confirm Order via WhatsApp
@@ -806,7 +699,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing order...';
 
         try {
-            const res = await saveOrderViaRpc(order);
+            const res = await apiPost('saveOrder', { order });
             if (!res.success) throw new Error(res.error || 'Order failed');
 
             const orderId = res.orderId;
@@ -817,7 +710,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
 
             const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
             const waLines = [
-                '🛍️ *New Order — NAKOWA ABAYAS COLLECTIONS*',
+                'ðŸ›ï¸ *New Order â€” NAKOWA ABAYAS COLLECTIONS*',
                 '',
                 'Order ID: ' + orderId,
                 '',
@@ -825,9 +718,9 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
                 'Color: ' + order.colorName,
                 'Code: ' + order.productCode,
                 'SELECTED SIZES: ' + sizes.join(', '),
-                'Price: ₦' + price.toLocaleString(),
+                'Price: â‚¦' + price.toLocaleString(),
                 'Quantity: ' + qty,
-                'Total: ₦' + (price * qty).toLocaleString(),
+                'Total: â‚¦' + (price * qty).toLocaleString(),
                 '',
                 'Customer Name: ' + name,
                 'Phone: ' + phone,
@@ -842,7 +735,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             this.innerHTML = '<i class="fas fa-check"></i> Order placed!';
             this.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
 
-            showToast('Order placed successfully!', '✅');
+            showToast('Order placed successfully!', 'âœ…');
 
             setTimeout(() => {
                 modal.classList.remove('open');
@@ -852,7 +745,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
 
         } catch (err) {
             console.error(err);
-            showToast('Failed to place order: ' + err.message, '❌');
+            showToast('Failed to place order: ' + err.message, 'âŒ');
             this.disabled = false;
             this.innerHTML = '<i class="fab fa-whatsapp"></i> Confirm Order via WhatsApp';
         }
@@ -903,7 +796,7 @@ async function openTrackingModal() {
     }
 
     try {
-        const allOrders = await fetchOrdersLive();
+        const allOrders = await apiGet('orders');
         const trackingList = document.getElementById('trackingList');
 
         trackingList.innerHTML = myOrders.map(myOrder => {
@@ -919,7 +812,7 @@ async function openTrackingModal() {
                     <div class="tracking-item-header">
                         <div class="tracking-order-id">
                             ${escapeHtml(displayId.code)}
-                            <span class="order-date">${escapeHtml(displayId.date)}${displayId.serial ? ' · ' + escapeHtml(displayId.serial) : ''}</span>
+                            <span class="order-date">${escapeHtml(displayId.date)}${displayId.serial ? ' Â· ' + escapeHtml(displayId.serial) : ''}</span>
                         </div>
                         <span class="tracking-status ${currentStatus}">${escapeHtml(currentStatus)}</span>
                     </div>
@@ -929,14 +822,14 @@ async function openTrackingModal() {
                             <div class="tp-name">${escapeHtml(myOrder.productName)}</div>
                             <div class="tp-meta">
                                 Code: <strong>${escapeHtml(myOrder.productCode)}</strong><br>
-                                Color: <strong>${escapeHtml(myOrder.colorName)}</strong> · Size: ${escapeHtml(myOrder.size)}<br>
+                                Color: <strong>${escapeHtml(myOrder.colorName)}</strong> Â· Size: ${escapeHtml(myOrder.size)}<br>
                                 Qty: ${myOrder.quantity}
                             </div>
                         </div>
                     </div>
                     <div class="tracking-total">
                         <span>Total</span>
-                        <span>₦${(myOrder.total || 0).toLocaleString()}</span>
+                        <span>â‚¦${(myOrder.total || 0).toLocaleString()}</span>
                     </div>
                 </div>
             `;
@@ -959,12 +852,12 @@ async function openTrackingModal() {
                         <img src="${optimizeImage(myOrder.productImage, 100, 100)}" alt="" class="tracking-product-img" onerror="imgFallback(this)" />
                         <div class="tracking-product-info">
                             <div class="tp-name">${escapeHtml(myOrder.productName)}</div>
-                            <div class="tp-meta">Code: ${escapeHtml(myOrder.productCode)} · Color: ${escapeHtml(myOrder.colorName)}</div>
+                            <div class="tp-meta">Code: ${escapeHtml(myOrder.productCode)} Â· Color: ${escapeHtml(myOrder.colorName)}</div>
                         </div>
                     </div>
                     <div class="tracking-total">
                         <span>Total</span>
-                        <span>₦${(myOrder.total || 0).toLocaleString()}</span>
+                        <span>â‚¦${(myOrder.total || 0).toLocaleString()}</span>
                     </div>
                 </div>
             `;
@@ -997,18 +890,18 @@ function formatOrderIdDisplay(orderId, adminCode) {
 }
 
 // ============================================================
-// CART CHECKOUT → WhatsApp
+// CART CHECKOUT â†’ WhatsApp
 // ============================================================
 async function checkoutCart() {
     if (cart.length === 0) {
-        showToast('Your cart is empty!', '⚠️');
+        showToast('Your cart is empty!', 'âš ï¸');
         return;
     }
 
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
     const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
 
-    let lines = ['🛍️ *Cart Order — NAKOWA ABAYAS COLLECTIONS*', ''];
+    let lines = ['ðŸ›ï¸ *Cart Order â€” NAKOWA ABAYAS COLLECTIONS*', ''];
 
     for (let i = 0; i < cart.length; i++) {
         const item = cart[i];
@@ -1018,12 +911,12 @@ async function checkoutCart() {
         lines.push('Color: ' + item.colorName);
         lines.push('Size: ' + item.size);
         lines.push('Qty: ' + item.qty);
-        lines.push('Price: ₦' + item.price.toLocaleString());
-        lines.push('Subtotal: ₦' + (item.price * item.qty).toLocaleString());
+        lines.push('Price: â‚¦' + item.price.toLocaleString());
+        lines.push('Subtotal: â‚¦' + (item.price * item.qty).toLocaleString());
         lines.push('');
     }
 
-    lines.push('*GRAND TOTAL:* ₦' + total.toLocaleString());
+    lines.push('*GRAND TOTAL:* â‚¦' + total.toLocaleString());
     lines.push('');
     lines.push('Please provide your delivery details.');
 
@@ -1063,7 +956,7 @@ async function loadProducts() {
     }
 
     try {
-        const data = await fetchProductsActive();
+        const data = await apiGet('products');
         products = Array.isArray(data) ? data : [];
         renderProducts();
         try {
@@ -1072,14 +965,14 @@ async function loadProducts() {
     } catch (err) {
         console.error('Load products error:', err);
         if (products.length === 0) {
-            grid.innerHTML = '<div class="empty-state">❌ Could not load products. Please refresh.</div>';
+            grid.innerHTML = '<div class="empty-state">âŒ Could not load products. Please refresh.</div>';
         }
     }
 }
 
 async function loadSettings() {
     try {
-        const data = await fetchSettings();
+        const data = await apiGet('settings');
         settings = data && typeof data === 'object' ? data : {};
         applySettings(settings);
     } catch (err) {
@@ -1165,7 +1058,7 @@ function setupSearch() {
         if (display) display.textContent = filtered.length;
 
         if (filtered.length === 0) {
-            grid.innerHTML = '<div class="empty-state">✨ No results found.</div>';
+            grid.innerHTML = '<div class="empty-state">âœ¨ No results found.</div>';
             return;
         }
 
@@ -1180,7 +1073,7 @@ function setupSearch() {
 }
 
 // ============================================================
-// LOGO 5x → Admin
+// LOGO 5x â†’ Admin
 // ============================================================
 function setupLogoTrigger() {
     const logo = document.getElementById('logoTrigger');
@@ -1346,12 +1239,12 @@ function setupNewsletter() {
         const email = document.getElementById('newsletterEmail').value.trim();
         const msg = document.getElementById('newsletterMsg');
         if (!email.includes('@')) {
-            msg.textContent = '❌ Please enter a valid email.';
+            msg.textContent = 'âŒ Please enter a valid email.';
             msg.style.display = 'block';
             msg.style.color = '#e74c3c';
             return;
         }
-        msg.textContent = '✅ Thank you for subscribing!';
+        msg.textContent = 'âœ… Thank you for subscribing!';
         msg.style.display = 'block';
         msg.style.color = 'var(--gold)';
         form.reset();
