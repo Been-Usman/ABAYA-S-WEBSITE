@@ -1736,7 +1736,9 @@ footer {
     overflow: hidden;
     position: relative;
     background: var(--black);
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 
@@ -1910,7 +1912,7 @@ footer {
     flex-direction: column;
     background: var(--black);
     border: 1.5px solid var(--border-gold);
-    box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 24px -14px rgba(0, 0, 0, 0.4);
     cursor: pointer;
     transition: var(--transition);
     position: relative;
@@ -1939,10 +1941,21 @@ footer {
 }
 
 @media (min-width: 900px) {
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    width: 100%;
-}
+    .about-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
