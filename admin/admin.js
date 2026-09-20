@@ -1341,62 +1341,26 @@ function updateSaveProgress(completed, total) {
 async function saveBatch() {
     if (!currentBatch.length) { showToast('No files selected', '⚠️'); return; }
     const saveBtn = $('saveBatchBtn');
-    if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...'; }
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; }
 
     try {
-        await resolveSupabaseBucket();
-        if (!supabaseInitialCount) supabaseInitialCount = await getSupabaseImageCount();
-
-        console.log('[Batch] Starting', currentBatch.length, 'file(s).');
-
-        const settled = await uploadWithConcurrencyLimit(
-            currentBatch,
-            async (v, i) => {
-                const url = await uploadOne(v.file, v.isVideo, i);
-                return { ...v, url };
-            },
-            6,
-            updateSaveProgress
-        );
-
-        const uploaded = [];
-        const failedItems = [];
-        settled.forEach((result, i) => {
-            if (result.status === 'fulfilled') uploaded.push(result.value);
-            else failedItems.push({ index: i, reason: result.reason?.message || String(result.reason) });
-        });
-
-        let allFailed = false;
-        if (uploaded.length === 0) {
-            allFailed = true;
-            const fallbackSrc = window.FALLBACK_IMG || DEFAULT_IMG;
-            currentBatch.forEach(v => uploaded.push({ ...v, url: v.isVideo ? '' : fallbackSrc }));
-        } else if (failedItems.length > 0) {
-            showToast(`${failedItems.length} file(s) failed — saving the other ${uploaded.length}`, '⚠️');
-        }
-
-        const imageVariants = uploaded.filter(u => !u.isVideo);
-        const videos = uploaded.filter(u => u.isVideo).map(u => u.url).filter(Boolean);
-
-        const firstCode = (imageVariants[0] && imageVariants[0].code) || (uploaded[0] && uploaded[0].code) || 'NAK-000';
+        const firstCode = (currentBatch[0] && currentBatch[0].code) || '000';
         const productId = generateId('P');
 
-        let variants = imageVariants.map(v => ({
-            image: v.url,
+        // Build variants with LOCAL blob URLs (instant display)
+        const imageVariants = currentBatch.filter(v => !v.isVideo).map(v => ({
+            image: URL.createObjectURL(v.file),
             colorName: v.colorName,
             colorValue: v.colorValue,
             price: v.price,
-            code: normalizeProductCode(v.code)
+            code: (v.code || '').toString().trim(),
+            _pending: true
         }));
-        if (variants.length === 0 && videos.length > 0) {
-            variants = [{
-                image: (window.FALLBACK_IMG || DEFAULT_IMG),
-                colorName: 'Default',
-                colorValue: '#D4AF37',
-                price: uploaded[0].price,
-                code: normalizeProductCode(uploaded[0].code)
-            }];
-        }
+
+        const videoItems = currentBatch.filter(v => v.isVideo).map(v => ({
+            blobUrl: URL.createObjectURL(v.file),
+            _pending: true
+        }));
 
         const product = {
             id: productId,
@@ -1404,37 +1368,113 @@ async function saveBatch() {
             code: firstCode,
             country: 'Egypt',
             sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-            variants: variants,
-            images: imageVariants.map(v => v.url),
-            videos: videos,
+            variants: imageVariants,
+            images: imageVariants.map(v => v.image),
+            videos: videoItems.map(v => v.blobUrl),
             stock: 10,
             status: 'active',
-            createdAt: new Date().toISOString().split('T')[0]
+            createdAt: new Date().toISOString().split('T')[0],
+            _pending: true
         };
 
-        const res = await apiPost('saveProductsBatch', {
-            token: authToken,
-            products: [product]
-        });
-        if (!res.success) throw new Error(res.message || res.error || 'Save failed');
-
+        // Save to admin cache
         if (!cachedProducts) cachedProducts = [];
         cachedProducts.push(product);
 
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All'; }
+        // Save to public cache (instant display on public website)
+        try {
+            const pub = JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]');
+            pub.push(product);
+            localStorage.setItem('nakowa_pending_products', JSON.stringify(pub));
+        } catch (e) {}
 
-        if (allFailed) {
-            showToast('Saved with placeholder — fix bucket, then re-upload.', '⚠️');
-        } else if (failedItems.length > 0) {
-            showToast(`Saved (${failedItems.length} skipped)`, '⚠️');
-        } else {
-            showToast('Product saved!', '✅');
-        }
+        // ⭐ Show "done" IMMEDIATELY
+        showToast('Saved! Uploading in background...', '✅');
         loadSection('products');
+
+        // Start background upload — user doesn't wait
+        runBackgroundUpload(productId, currentBatch.slice());
     } catch (err) {
         logOnce('batch-fatal-' + err.message, '[Batch] Failed: ' + err.message);
-        showToast('Upload failed: ' + err.message.substring(0, 140), '❌');
+        showToast('Save failed: ' + err.message.substring(0, 140), '❌');
         if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All'; }
+    }
+}
+
+async function runBackgroundUpload(productId, batch) {
+    try {
+        await resolveSupabaseBucket();
+        if (!supabaseInitialCount) supabaseInitialCount = await getSupabaseImageCount();
+
+        const settled = await uploadWithConcurrencyLimit(
+            batch,
+            async (v, i) => {
+                const url = await uploadOne(v.file, v.isVideo, i);
+                return Object.assign({}, v, { url: url });
+            },
+            6,
+            (completed, total) => {
+                console.log('[BG Upload] ' + completed + '/' + total);
+            }
+        );
+
+        const uploaded = settled.filter(r => r.status === 'fulfilled').map(r => r.value);
+
+        // Update product with real URLs
+        const idx = cachedProducts.findIndex(p => p.id === productId);
+        if (idx < 0) return;
+
+        const imageVariants = uploaded.filter(u => !u.isVideo);
+        const videoUrls = uploaded.filter(u => u.isVideo).map(u => u.url).filter(Boolean);
+
+        cachedProducts[idx].variants = imageVariants.map(v => ({
+            image: v.url,
+            colorName: v.colorName,
+            colorValue: v.colorValue,
+            price: v.price,
+            code: (v.code || '').toString().trim()
+        }));
+        cachedProducts[idx].images = imageVariants.map(v => v.url);
+        cachedProducts[idx].videos = videoUrls;
+        delete cachedProducts[idx]._pending;
+
+        // Update pending list — remove if all done
+        try {
+            const pub = JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]');
+            const pIdx = pub.findIndex(p => p.id === productId);
+            if (pIdx >= 0) {
+                if (uploaded.length === batch.length) {
+                    // All uploaded — remove from pending (backend will now handle it)
+                    pub.splice(pIdx, 1);
+                } else {
+                    pub[pIdx] = cachedProducts[idx];
+                }
+                localStorage.setItem('nakowa_pending_products', JSON.stringify(pub));
+            }
+        } catch (e) {}
+
+        // Save to backend
+        const res = await apiPost('saveProductsBatch', {
+            token: authToken,
+            products: [cachedProducts[idx]]
+        });
+
+        if (res.success) {
+            showToast('Background upload complete!', '✅');
+            try {
+                const pub = JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]');
+                const pIdx = pub.findIndex(p => p.id === productId);
+                if (pIdx >= 0) {
+                    pub.splice(pIdx, 1);
+                    localStorage.setItem('nakowa_pending_products', JSON.stringify(pub));
+                }
+            } catch (e) {}
+            const products = await apiGet('products');
+            if (products) cachedProducts = products;
+        }
+    } catch (err) {
+        console.error('[BG Upload] Failed:', err);
+        showToast('Background upload failed — retry later', '⚠️');
     }
 }
 

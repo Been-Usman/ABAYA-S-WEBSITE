@@ -1066,7 +1066,10 @@ async function loadProducts() {
 
     try {
         const data = await apiGet('products');
-        products = Array.isArray(data) ? data : [];
+        const apiProducts = Array.isArray(data) ? data : [];
+        const pending = JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]');
+        const pendingFiltered = pending.filter(p => !apiProducts.some(d => String(d.id) === String(p.id)));
+        products = [...apiProducts, ...pendingFiltered];
         renderProducts();
         try {
             localStorage.setItem('nakowa_products_cache', JSON.stringify(products));
