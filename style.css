@@ -1716,140 +1716,13 @@ footer {
         gap: 40px;
     }
 
-    
-}
-
-/* ============================================================
-   RESPONSIVE — Mobile adjustments
-   ============================================================ */
-@media (max-width: 768px) {
-    .nav-links { display: none; }
-    .hamburger { display: flex; }
-    .mobile-menu { display: block; }
-    .nav-search { display: none; }
-}
-
-@media (max-width: 500px) {
-    .brand-title { font-size: 0.85rem; letter-spacing: 1px; }
-    .nav-logo .logo-img { width: 42px; height: 42px; }
-    .theme-toggle { width: 36px; height: 36px; font-size: 1rem; }
-    .cart-icon-container i { font-size: 1.15rem; }
-    .hamburger span { width: 22px; }
-
-    
-
-    .color-circle {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    padding: 0;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-    outline: none;
-    background-clip: padding-box;
-}
-
-    
-}
-/* ============================================================
-   HERO BACKGROUND — Direct URL
-   ============================================================ */
-.hero {
-    background-image: url('https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1600&q=80') !important;
-}
-
-/* ============================================================
-   PRICE DISPLAY — actual + fake side by side
-   ============================================================ */
-.product-price,
-#qvPrice {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.price-actual {
-    color: var(--gold);
-    font-weight: 700;
-    font-size: 1.05rem;
-}
-
-.price-fake {
-    color: rgba(255, 255, 255, 0.4);
-    text-decoration: line-through;
-    font-weight: 400;
-    font-size: 0.9rem;
-}
-
-[data-theme="light"] .price-fake {
-    color: rgba(0, 0, 0, 0.4);
-}
-/* ============================================================
-   PRODUCT CARDS — USER'S EXACT CSS
-   ============================================================ */
-
-
-
-
-.product-image {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  position: relative;
-  background: var(--black);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.product-image img,
-.product-image video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-.product-content,
-
-
-@media (min-width: 640px) {
-  
-
-  
-
-  .product-content,
-  
-}
-/* ============================================================
-   PRODUCT CARDS — Reference layout, NAKOWA dark+gold theme
-   ============================================================ */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.product-card {
-  min-width: 0;
-  overflow: hidden;
-  border-radius: 18px;
-  display: flex;
-  flex-direction: column;
-  background: var(--black);
-  border: 1.5px solid var(--border-gold);
-  box-shadow: 0 8px 24px -14px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  transition: var(--transition);
-  position: relative;
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
 
 .product-card:hover {
@@ -1858,15 +1731,13 @@ footer {
 }
 
 .product-card .product-image {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  position: relative;
-  background: var(--black);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    position: relative;
+    background: var(--black);
+    display: block;
+    flex-shrink: 0;
 }
 
 .product-card .product-image img,
@@ -2025,12 +1896,25 @@ footer {
 
 @media (min-width: 640px) {
   .product-grid {
-    gap: 16px;
-  }
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
 
   .product-card {
-    border-radius: 22px;
-  }
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    background: var(--black);
+    border: 1.5px solid var(--border-gold);
+    box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
 
   .product-info,
   .product-content {
@@ -2056,7 +1940,9 @@ footer {
 
 @media (min-width: 900px) {
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-  }
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
 }
