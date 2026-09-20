@@ -1,4 +1,8 @@
-﻿const CACHE_NAME = 'nakowa-v2';
+/* ============================================================
+   NAKOWA ABAYAS — Service Worker (v3)
+   ============================================================ */
+
+const CACHE_NAME = 'nakowa-v3';
 const ASSETS = [
     './',
     './index.html',
@@ -14,10 +18,10 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', event => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(ASSETS))
-            .then(() => self.skipWaiting())
             .catch(err => console.warn('Cache install failed:', err))
     );
 });
@@ -43,7 +47,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    if (url.hostname.includes('cloudinary.com') || url.hostname.includes('supabase.co')) {
+    if (url.hostname.includes('cloudinary.com') || url.hostname.includes('supabase.co') || url.hostname.includes('unsplash.com')) {
         event.respondWith(
             caches.match(event.request).then(cached => {
                 return cached || fetch(event.request).then(response => {
