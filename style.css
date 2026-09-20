@@ -722,7 +722,7 @@ nav {
 
 .product-card .product-image {
     width: 100%;
-    height: 320px;
+    height: 240px;
     overflow: hidden;
     position: relative;
     background: var(--black);
@@ -836,7 +836,7 @@ nav {
    TEXT INSIDE PRODUCT CARD — LEFT-ALIGNED
    ============================================================ */
 .product-info {
-    padding: 18px 18px 22px;
+    padding: 12px 14px 16px;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -845,7 +845,7 @@ nav {
 
 .product-info .product-name {
     text-align: left;
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 700;
     margin-bottom: 4px;
     font-family: 'Playfair Display', serif;
@@ -864,9 +864,9 @@ nav {
    ============================================================ */
 .product-info .product-price {
     text-align: left;
-    margin: 8px 0 10px;
+    margin: 6px 0 8px;
     line-height: 1.3;
-    font-size: 1.4rem;
+    font-size: 1.15rem;
 }
 
 
@@ -874,9 +874,9 @@ nav {
 
 
 .product-info .product-sizes {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     opacity: 0.8;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
@@ -896,7 +896,7 @@ nav {
     margin-top: auto;
     background: var(--gold-gradient);
     border: none;
-    padding: 12px;
+    padding: 10px;
     font-weight: 700;
     border-radius: var(--radius-pill);
     color: var(--black);
@@ -1809,7 +1809,7 @@ footer {
     }
 
     .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 340px));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 240px));
         gap: 30px;
     }
 }
@@ -1831,7 +1831,7 @@ footer {
     .cart-icon-container i { font-size: 1.15rem; }
     .hamburger span { width: 22px; }
 
-    .product-card .product-image { height: 340px; }
+    .product-card .product-image { height: 240px; }
 
     .color-circle {
     width: 16px;
