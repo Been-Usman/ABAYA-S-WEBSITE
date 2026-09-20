@@ -2,10 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
     <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#f9e508" />
     <title>NAKOWA ABAYAS COLLECTIONS — Premium Imported Abayas</title>
     <meta name="description" content="Premium imported Abayas from Egypt. Elegance in every stitch." />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ABAYAS" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -121,30 +132,30 @@
                     <div class="about-image-wrapper">
                         <img src="images/About.jpg" alt="About NAKOWA ABAYAS" class="about-image" onerror="imgFallback(this)" />
                     </div>
-             <div class="about-text">
-    <h2 class="section-title">About <span class="gold-text">NAKOWA</span></h2>
+                    <div class="about-text">
+                        <h2 class="section-title">About <span class="gold-text">NAKOWA</span></h2>
 
-    <p>
-        <strong>WELCOME TO NAKOWA ABAYAS COLLECTIONS</strong> tana kawo muku
-        kyawawan Abaya daga <strong>Egypt 🇪🇬</strong> zuwa
-        <strong>Nigeria 🇳🇬</strong>. Muna da kaya masu
-        <strong>kyau, sauƙi da inganci</strong> domin ku samu
-        Abaya masu kyau cikin kwanciyar hankali Kuyi Order A Wajan Mu
-    </p>
+                        <p>
+                            <strong>WELCOME TO NAKOWA ABAYAS COLLECTIONS</strong> tana kawo muku
+                            kyawawan Abaya daga <strong>Egypt 🇪🇬</strong> zuwa
+                            <strong>Nigeria 🇳🇬</strong>. Muna da kaya masu
+                            <strong>kyau, sauƙi da inganci</strong> domin ku samu
+                            Abaya masu kyau cikin kwanciyar hankali Kuyi Order A Wajan Mu
+                        </p>
 
-    <p>
-        <strong>Yadda ake yin Order:</strong> Zaɓi kayan da kake so,
-        cike bayananka, sannan ka tura order ɗinka ta
-        <strong>WhatsApp</strong>. Za mu tura maka
-        <strong>account number</strong> ta WhatsApp domin biyan kuɗi.
-    </p>
+                        <p>
+                            <strong>Yadda ake yin Order:</strong> Zaɓi kayan da kake so,
+                            cike bayananka, sannan ka tura order ɗinka ta
+                            <strong>WhatsApp</strong>. Za mu tura maka
+                            <strong>account number</strong> ta WhatsApp domin biyan kuɗi.
+                        </p>
 
-    <p>
-        Da zarar mun tabbatar da biyan kuɗinka,
-        <strong>za mu shirya mu kawo maka kayan har gida Nigeria,
-        In Sha Allah</strong>, cikin kwanciyar hankali da aminci.
-    </p>
-</div>
+                        <p>
+                            Da zarar mun tabbatar da biyan kuɗinka,
+                            <strong>za mu shirya mu kawo maka kayan har gida Nigeria,
+                            In Sha Allah</strong>, cikin kwanciyar hankali da aminci.
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -160,7 +171,7 @@
 
                 <div class="filter-buttons" id="countryFilters">
                     <button class="filter-btn active" data-country="all">All</button>
-                    <button class="filter-btn" data-country="Egypt">Egypt</button>
+                    <button class="filter-btn" data-country="Egypt">🇪🇬 Egypt</button>
                 </div>
 
                 <div class="filter-buttons" id="priceFilters">
@@ -328,6 +339,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Service Worker Registration (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(reg) { console.log('SW registered:', reg.scope); })
+                    .catch(function(err) { console.warn('SW registration failed:', err); });
+            });
+        }
+    </script>
 
     <script src="script.js"></script>
 </body>
