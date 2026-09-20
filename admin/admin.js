@@ -1090,7 +1090,8 @@ function renderVariantStep() {
         </div>
     `;
 
-    attachCodeInputCleaner('vCode');`n`n    const colorPicker = $('colorPicker');
+    attachCodeInputCleaner('vCode');
+    const colorPicker = $('colorPicker');
     if (colorPicker) {
         colorPicker.querySelectorAll('.color-picker-circle').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1632,7 +1633,9 @@ async function editProduct(id) {
         </div>
     `;
 
-    attachCodeInputCleaner('editCode');`n    document.querySelectorAll('.edit-v-code').forEach(el => { if (!el._cleanerAttached) { el._cleanerAttached = true; el.addEventListener('input', function() { const c = this.value.replace(/^NAK-/i, '' ); if (c !== this.value) this.value = c; }); } });`n`n    $('cancelEditBtn').addEventListener('click', () => renderProductList('all'));
+    attachCodeInputCleaner('editCode');
+    document.querySelectorAll('.edit-v-code').forEach(el => { if (!el._cleanerAttached) { el._cleanerAttached = true; el.addEventListener('input', function() { const c = this.value.replace(/^NAK-/i, '' ); if (c !== this.value) this.value = c; }); } });
+    $('cancelEditBtn').addEventListener('click', () => renderProductList('all'));
 
     $('editForm').addEventListener('submit', async e => {
         e.preventDefault();
@@ -1808,7 +1811,21 @@ function renderOrdersTable(orders) {
                 if (res.success) {
                     const idx = cachedOrders.findIndex(o => o.orderId === orderId);
                     if (idx >= 0) cachedOrders[idx].status = newStatus;
-                    showToast('Status updated', '✅');
+
+                    // Open WhatsApp to notify customer
+                    if (customerPhone) {
+                        const cleanPhone = customerPhone.replace(/\D/g, '');
+                        if (cleanPhone) {
+                            const msg = `🛍️ *NAKOWA ABAYAS COLLECTIONS*\n\nYour order ${orderId} status is now: *${newStatus.toUpperCase()}*\n\nThank you for shopping with us!`;
+                            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+                            window.open(waUrl, '_blank');
+                            showToast('Status updated — WhatsApp opened to notify customer', '✅');
+                        } else {
+                            showToast('Status updated', '✅');
+                        }
+                    } else {
+                        showToast('Status updated', '✅');
+                    }
                 } else {
                     showToast(res.message || 'Failed', '❌');
                 }
