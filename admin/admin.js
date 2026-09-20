@@ -991,6 +991,18 @@ function startVariantSetup() {
     renderVariantStep();
 }
 
+
+// Auto-strip NAK- prefix from code input as user types
+function attachCodeInputCleaner(inputId) {
+    const el = document.getElementById(inputId);
+    if (!el || el._cleanerAttached) return;
+    el._cleanerAttached = true;
+    el.addEventListener('input', function() {
+        const cleaned = this.value.replace(/^NAK-/i, '');
+        if (cleaned !== this.value) this.value = cleaned;
+    });
+}
+
 function renderVariantStep() {
     const container = $('variantStepContainer');
     const v = currentBatch[currentVariantIndex];
@@ -1016,7 +1028,7 @@ function renderVariantStep() {
                 </div>
                 <div>
                     <label>Product Code <span style="color:#e74c3c;">*</span></label>
-                    <input type="text" id="vCode" placeholder="e.g. NAK-001" value="${escapeHtml(v.code)}" />
+                    <input type="text" id="vCode" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 001" value="${escapeHtml(v.code || '')}" autocomplete="off" spellcheck="false" />
                 </div>
                 ${!v.isVideo ? `
                     <div>
@@ -1046,7 +1058,7 @@ function renderVariantStep() {
         </div>
     `;
 
-    const colorPicker = $('colorPicker');
+    attachCodeInputCleaner('vCode');`n`n    const colorPicker = $('colorPicker');
     if (colorPicker) {
         colorPicker.querySelectorAll('.color-picker-circle').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1501,7 +1513,7 @@ async function editProduct(id) {
         </div>
     `;
 
-    $('cancelEditBtn').addEventListener('click', () => renderProductList('all'));
+    attachCodeInputCleaner('editCode');`n    document.querySelectorAll('.edit-v-code').forEach(el => { if (!el._cleanerAttached) { el._cleanerAttached = true; el.addEventListener('input', function() { const c = this.value.replace(/^NAK-/i, '' ); if (c !== this.value) this.value = c; }); } });`n`n    $('cancelEditBtn').addEventListener('click', () => renderProductList('all'));
 
     $('editForm').addEventListener('submit', async e => {
         e.preventDefault();
