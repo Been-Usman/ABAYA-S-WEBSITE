@@ -1438,7 +1438,7 @@ async function runBackgroundUpload(productId, batch) {
                 const url = await uploadWithRetry(() => uploadOne(v.file, v.isVideo, i), 2);
                 return Object.assign({}, v, { url: url });
             },
-            6,
+            12,
             (completed, total) => {
                 console.log('[BG Upload] ' + completed + '/' + total);
             }
