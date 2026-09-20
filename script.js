@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    NAKOWA ABAYAS COLLECTIONS — Public Script (v4 — FINAL)
    Features: Fake price, color circles (admin-only),
              abandoned cart tracking, product separation
@@ -814,24 +814,49 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             clearAbandonedCart();
 
             const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
-            const pad = (label, width = 13) => label.padEnd(width, ' ');
+            const L = '────────────────────────────────';
+            const pad = (label, value, width = 33) => {
+                const line = label + ' '.repeat(Math.max(1, width - label.length - String(value).length)) + value;
+                return line;
+            };
             const waLines = [
-                '🛍️ *New Order — NAKOWA ABAYAS COLLECTIONS*',
+                "NEW ORDER — NAKOWA ABAYA'S COLLECTIONS",
                 '',
-                pad('Order ID') + '│ ' + orderId,
-                pad('Code') + '│ ' + order.productCode,
-                pad('Color') + '│ ' + order.colorName,
-                pad('Size') + '│ ' + size,
-                pad('Price') + '│ ₦' + price.toLocaleString(),
-                pad('Quantity') + '│ ' + qty,
-                pad('Total') + '│ ₦' + (price * qty).toLocaleString(),
+                L,
+                pad('Order ID', orderId),
+                L,
+                pad('Code', order.productCode),
+                L,
+                pad('Color', order.colorName),
+                L,
+                pad('Size', size),
+                L,
+                pad('Price', '₦' + price.toLocaleString()),
+                L,
+                pad('Quantity', qty),
+                L,
+                pad('Total', '₦' + (price * qty).toLocaleString()),
                 '',
-                pad('Customer Name') + '│ ' + name,
-                pad('Phone') + '│ ' + phone,
-                pad('Address') + '│ ' + address,
-                pad('Date/Time') + '│ ' + dateStr + ' ' + order.time
+                L,
+                '',
+                'CUSTOMER DETAILS',
+                '',
+                pad('Name', name),
+                L,
+                pad('Phone', phone),
+                L,
+                pad('Address', address),
+                '',
+                L,
+                '',
+                pad('Date/Time', dateStr + ' | ' + order.time),
+                '',
+                L
             ];
-            if (notes) waLines.push(pad('Notes') + '│ ' + notes);
+            if (notes) {
+                waLines.push('');
+                waLines.push(pad('Notes', notes));
+            }
 
             const waMessage = waLines.join('\n');
             const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
