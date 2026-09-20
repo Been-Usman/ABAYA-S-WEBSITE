@@ -800,33 +800,51 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
 
         // Build WhatsApp message
         const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
-        const L = '────────────────────────────────';
-        const pad = (label, value, width) => {
-            width = width || 33;
-            return label + ' '.repeat(Math.max(1, width - label.length - String(value).length)) + value;
-        };
-        const waLines = [
-            "NEW ORDER — NAKOWA ABAYA'S COLLECTIONS", '',
-            L, pad('Order ID', tempOrderId), L,
-            pad('Code', order.productCode), L,
-            pad('Color', order.colorName), L,
-            pad('Size', size), L,
-            pad('Price', '₦' + price.toLocaleString()), L,
-            pad('Quantity', qty), L,
-            pad('Total', '₦' + (price * qty).toLocaleString()), '',
-            L, '', 'CUSTOMER DETAILS', '',
-            pad('Name', name), L,
-            pad('Phone', phone), L,
-            pad('Address', address), '',
-            L, '',
-            pad('Date/Time', dateStr + ' | ' + order.time), '',
-            L
-        ];
-        if (notes) {
-            waLines.push('');
-            waLines.push(pad('Notes', notes));
-        }
-        const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(waLines.join('\n'));
+            const L = '────────────────────────────────';
+            const pad = (label, value, width) => {
+                width = width || 33;
+                return label + ' '.repeat(Math.max(1, width - label.length - String(value).length)) + value;
+            };
+            const waLines = [
+                "NEW ORDER — NAKOWA ABAYA'S COLLECTIONS",
+                '',
+                L,
+                pad('Order ID', orderId),
+                L,
+                pad('Code', order.productCode),
+                L,
+                pad('Color', order.colorName),
+                L,
+                pad('Size', size),
+                L,
+                pad('Price', '₦' + price.toLocaleString()),
+                L,
+                pad('Quantity', qty),
+                L,
+                pad('Total', '₦' + (price * qty).toLocaleString()),
+                '',
+                L,
+                '',
+                'CUSTOMER DETAILS',
+                '',
+                pad('Name', name),
+                L,
+                pad('Phone', phone),
+                L,
+                pad('Address', address),
+                '',
+                L,
+                '',
+                pad('Date/Time', dateStr + ' | ' + order.time),
+                '',
+                L
+            ];
+            if (notes) {
+                waLines.push('');
+                waLines.push(pad('Notes', notes));
+            }
+            const waMessage = waLines.join('\n');
+            const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
 
         // ⭐ OPEN WHATSAPP IMMEDIATELY — do not wait for backend
         window.open(waUrl, '_blank');
@@ -1009,28 +1027,51 @@ async function checkoutCart() {
 
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
     const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
-
-    let lines = ['🛍️ *Cart Order — NAKOWA ABAYAS COLLECTIONS*', ''];
-
-    for (let i = 0; i < cart.length; i++) {
-        const item = cart[i];
-        lines.push(`*Item ${i + 1}:*`);
-        lines.push('Product: ' + item.name);
-        lines.push('Code: ' + item.code);
-        lines.push('Color: ' + item.colorName);
-        lines.push('Size: ' + item.size);
-        lines.push('Qty: ' + item.qty);
-        lines.push('Price: ₦' + item.price.toLocaleString());
-        lines.push('Subtotal: ₦' + (item.price * item.qty).toLocaleString());
-        lines.push('');
-    }
-
-    lines.push('*GRAND TOTAL:* ₦' + total.toLocaleString());
-    lines.push('');
-    lines.push('Please provide your delivery details.');
-
-    const waMessage = lines.join('\n');
-    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
+            const L = '────────────────────────────────';
+            const pad = (label, value, width) => {
+                width = width || 33;
+                return label + ' '.repeat(Math.max(1, width - label.length - String(value).length)) + value;
+            };
+            const waLines = [
+                "NEW ORDER — NAKOWA ABAYA'S COLLECTIONS",
+                '',
+                L,
+                pad('Order ID', orderId),
+                L,
+                pad('Code', order.productCode),
+                L,
+                pad('Color', order.colorName),
+                L,
+                pad('Size', size),
+                L,
+                pad('Price', '₦' + price.toLocaleString()),
+                L,
+                pad('Quantity', qty),
+                L,
+                pad('Total', '₦' + (price * qty).toLocaleString()),
+                '',
+                L,
+                '',
+                'CUSTOMER DETAILS',
+                '',
+                pad('Name', name),
+                L,
+                pad('Phone', phone),
+                L,
+                pad('Address', address),
+                '',
+                L,
+                '',
+                pad('Date/Time', dateStr + ' | ' + order.time),
+                '',
+                L
+            ];
+            if (notes) {
+                waLines.push('');
+                waLines.push(pad('Notes', notes));
+            }
+            const waMessage = waLines.join('\n');
+            const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
     window.open(waUrl, '_blank');
 }
 
