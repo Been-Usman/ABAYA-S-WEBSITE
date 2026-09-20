@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    NAKOWA ABAYAS COLLECTIONS — Public Styles
    Mobile-first, black + gold theme
    ============================================================ */
@@ -550,7 +550,7 @@ nav {
     align-items: center;
     position: relative;
     background-color: var(--black);
-    background-image: url('images/hero-1.jpg');
+    background-image: url('https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1600&q=80');
 }
 
 .hero-overlay {
