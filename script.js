@@ -118,7 +118,7 @@ function renderPrice(actualPrice) {
     const fake = actual + 5000;
     return `
         <span class="price-actual">₦${actual.toLocaleString()}</span>
-        <span class="price-fake">/₦${fake.toLocaleString()}/</span>
+        <span class="price-fake">₦${fake.toLocaleString()}</span>
     `;
 }
 
