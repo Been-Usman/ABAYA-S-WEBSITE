@@ -1808,21 +1808,7 @@ function renderOrdersTable(orders) {
                 if (res.success) {
                     const idx = cachedOrders.findIndex(o => o.orderId === orderId);
                     if (idx >= 0) cachedOrders[idx].status = newStatus;
-
-                    // Open WhatsApp to notify customer
-                    if (customerPhone) {
-                        const cleanPhone = customerPhone.replace(/\D/g, '');
-                        if (cleanPhone) {
-                            const msg = `🛍️ *NAKOWA ABAYAS COLLECTIONS*\n\nYour order ${orderId} status is now: *${newStatus.toUpperCase()}*\n\nThank you for shopping with us!`;
-                            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
-                            window.open(waUrl, '_blank');
-                            showToast('Status updated — WhatsApp opened to notify customer', '✅');
-                        } else {
-                            showToast('Status updated', '✅');
-                        }
-                    } else {
-                        showToast('Status updated', '✅');
-                    }
+                    showToast('Status updated', '✅');
                 } else {
                     showToast(res.message || 'Failed', '❌');
                 }
