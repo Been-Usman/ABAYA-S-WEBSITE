@@ -869,21 +869,9 @@ nav {
     font-size: 1.4rem;
 }
 
-.price-actual {
-    font-weight: 700;
-    color: var(--gold);
-    text-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
-    font-size: 1em;
-}
 
-.price-fake {
-    font-weight: 400;
-    color: rgba(255, 255, 255, 0.5);
-    text-decoration: line-through;
-    margin-left: 8px;
-    font-size: 0.85em;
-    opacity: 0.85;
-}
+
+
 
 .product-info .product-sizes {
     font-size: 0.8rem;
@@ -1859,11 +1847,39 @@ footer {
     background-clip: padding-box;
 }
 
-    .price-fake { font-size: 0.75em; margin-left: 6px; }
+    
 }
 /* ============================================================
    HERO BACKGROUND — Direct URL
    ============================================================ */
 .hero {
     background-image: url('https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1600&q=80') !important;
+}
+
+/* ============================================================
+   PRICE DISPLAY — actual + fake side by side
+   ============================================================ */
+.product-price,
+#qvPrice {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.price-actual {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.price-fake {
+    color: rgba(255, 255, 255, 0.4);
+    text-decoration: line-through;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+[data-theme="light"] .price-fake {
+    color: rgba(0, 0, 0, 0.4);
 }
