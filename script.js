@@ -800,27 +800,22 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
 
         // Build WhatsApp message (box style)
         const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
-        const L = '────────────────────────────────';
+        const L = '────────────────────────────';
         const pad = (label, value, width) => {
-            width = width || 33;
-            return label + ' '.repeat(Math.max(1, width - label.length - String(value).length)) + value;
+            width = width || 15;
+            return label + ' '.repeat(Math.max(1, width - label.length)) + value;
         };
         const waLines = [
             "NEW ORDER — NAKOWA ABAYA'S COLLECTIONS",
             '',
             L,
-            pad('Order ID', tempOrderId),
-            L,
+            '',
+            pad('Product', product.name),
             pad('Code', order.productCode),
-            L,
             pad('Color', order.colorName),
-            L,
             pad('Size', size),
-            L,
             pad('Price', '₦' + price.toLocaleString()),
-            L,
             pad('Quantity', qty),
-            L,
             pad('Total', '₦' + (price * qty).toLocaleString()),
             '',
             L,
@@ -828,14 +823,13 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             'CUSTOMER DETAILS',
             '',
             pad('Name', name),
-            L,
             pad('Phone', phone),
-            L,
             pad('Address', address),
             '',
             L,
             '',
             pad('Date/Time', dateStr + ' | ' + order.time),
+            pad('Order ID', tempOrderId),
             '',
             L
         ];
@@ -846,7 +840,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
         const waMessage = waLines.join('\n');
         const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(waMessage);
 
-        // ⭐ OPEN WHATSAPP NAN TAKE
+        // OPEN WHATSAPP IMMEDIATELY
         window.open(waUrl, '_blank');
 
         // Update UI immediately
