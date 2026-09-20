@@ -1732,7 +1732,7 @@ footer {
 
 .product-card .product-image {
     width: 100%;
-    aspect-ratio: 4 / 5;
+    aspect-ratio: 3 / 4;
     overflow: hidden;
     position: relative;
     background: var(--black);
@@ -1907,17 +1907,34 @@ footer {
 
 @media (min-width: 640px) {
     .product-grid {
-        gap: 14px;
-    }
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
 
     .product-card {
-        border-radius: 22px;
-    }
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    background: var(--black);
+    border: 1.5px solid var(--border-gold);
+    box-shadow: 0 8px 24px -14px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
 
     .product-info {
-        padding: 12px 14px;
-        gap: 4px;
-    }
+    padding: 10px;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+}
 
     .product-info .product-name {
         font-size: 1rem;
