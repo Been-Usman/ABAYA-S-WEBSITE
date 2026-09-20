@@ -1037,6 +1037,27 @@ async function checkoutCart() {
 // ============================================================
 // LOAD DATA
 // ============================================================
+
+// ============================================================
+// PENDING CLEANUP on public site
+// ============================================================
+function cleanupPendingOnPublic() {
+    try {
+        const pub = JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]');
+        if (pub.length === 0) return;
+        const fresh = JSON.parse(localStorage.getItem('nakowa_products_cache') || '[]');
+        if (!Array.isArray(fresh) || fresh.length === 0) return;
+        // Remove pending that now exist in backend cache
+        const stillPending = pub.filter(p =>
+            !fresh.some(f => String(f.id) === String(p.id))
+        );
+        if (stillPending.length !== pub.length) {
+            localStorage.setItem('nakowa_pending_products', JSON.stringify(stillPending));
+            console.log('[Public Pending] Cleaned: ' + (pub.length - stillPending.length) + ' removed');
+        }
+    } catch (e) {}
+}
+
 async function loadProducts() {
     const grid = document.getElementById('productGrid');
     if (!grid) return;
@@ -1074,6 +1095,7 @@ async function loadProducts() {
         try {
             localStorage.setItem('nakowa_products_cache', JSON.stringify(products));
         } catch (e) {}
+        cleanupPendingOnPublic();
         // After render, check abandoned cart
         setTimeout(checkAbandonedCart, 300);
     } catch (err) {

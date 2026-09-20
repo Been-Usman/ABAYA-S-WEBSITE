@@ -310,6 +310,35 @@ function checkAuth() {
     return localStorage.getItem('nakowa_admin_token') || '';
 }
 
+
+// ============================================================
+// On admin login — refresh products from backend and clear pending
+// ============================================================
+async function refreshAndClearPending() {
+    try {
+        const pending = getPendingCount();
+        if (pending === 0) return;
+        console.log('[Pending] Found ' + pending + ' pending product(s) on login');
+        // Fetch fresh from backend
+        const fresh = await apiGet('products');
+        if (!Array.isArray(fresh)) return;
+        // Check which pending products now exist in backend
+        const pub = JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]');
+        const stillPending = pub.filter(p =>
+            !fresh.some(f => String(f.id) === String(p.id))
+        );
+        if (stillPending.length === 0) {
+            clearAllPending();
+            console.log('[Pending] All pending products now in backend — cleared');
+        } else if (stillPending.length < pub.length) {
+            localStorage.setItem('nakowa_pending_products', JSON.stringify(stillPending));
+            console.log('[Pending] ' + (pub.length - stillPending.length) + ' cleared, ' + stillPending.length + ' remaining');
+        }
+    } catch (e) {
+        console.warn('[Pending] refresh failed:', e);
+    }
+}
+
 async function warmCache() {
     try {
         const [p, o, s] = await Promise.all([
@@ -320,6 +349,7 @@ async function warmCache() {
         cachedProducts = p || [];
         cachedOrders = o || [];
         cachedSettings = s || {};
+        refreshAndClearPending();
     } catch (e) {
         cachedProducts = cachedProducts || [];
         cachedOrders = cachedOrders || [];
@@ -1427,6 +1457,36 @@ async function saveBatch() {
     }
 }
 
+
+// ============================================================
+// PENDING CLEANUP — remove from localStorage when done
+// ============================================================
+function removePendingProduct(productId) {
+    try {
+        const pub = JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]');
+        const filtered = pub.filter(p => String(p.id) !== String(productId));
+        if (filtered.length !== pub.length) {
+            localStorage.setItem('nakowa_pending_products', JSON.stringify(filtered));
+            console.log('[Pending] Removed from localStorage:', productId);
+        }
+    } catch (e) {
+        console.warn('[Pending] cleanup failed:', e);
+    }
+}
+
+function clearAllPending() {
+    try {
+        localStorage.removeItem('nakowa_pending_products');
+        console.log('[Pending] Cleared ALL pending products');
+    } catch (e) {}
+}
+
+function getPendingCount() {
+    try {
+        return JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]').length;
+    } catch (e) { return 0; }
+}
+
 async function runBackgroundUpload(productId, batch) {
     try {
         await resolveSupabaseBucket();
@@ -1487,14 +1547,7 @@ async function runBackgroundUpload(productId, batch) {
 
         if (res.success) {
             showToast('Background upload complete!', '✅');
-            try {
-                const pub = JSON.parse(localStorage.getItem('nakowa_pending_products') || '[]');
-                const pIdx = pub.findIndex(p => p.id === productId);
-                if (pIdx >= 0) {
-                    pub.splice(pIdx, 1);
-                    localStorage.setItem('nakowa_pending_products', JSON.stringify(pub));
-                }
-            } catch (e) {}
+            removePendingProduct(productId);
             const products = await apiGet('products');
             if (products) cachedProducts = products;
         }
