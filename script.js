@@ -839,13 +839,13 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             this.innerHTML = '<i class="fas fa-check"></i> Order placed!';
             this.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
 
-            showToast('Order placed successfully!', '✅');
+            showToast('Order placed! Opening WhatsApp...', 'OK');
+
+            window.open(waUrl, '_blank');
 
             setTimeout(() => {
                 modal.classList.remove('open');
-                window.open(waUrl, '_blank');
-                showTrackingAfterOrder();
-            }, 600);
+            }, 300);
 
         } catch (err) {
             console.error(err);
@@ -1385,6 +1385,20 @@ function setupModalCloses() {
 }
 
 // ============================================================
+
+function checkAndShowTrackingOnReturn() {
+    try {
+        if (sessionStorage.getItem('tracking_shown')) return;
+        const myOrders = JSON.parse(localStorage.getItem('nakowa_my_orders') || '[]');
+        if (myOrders.length === 0) return;
+        sessionStorage.setItem('tracking_shown', 'true');
+        setTimeout(() => {
+            openTrackingModal();
+        }, 1500);
+    } catch (e) {
+        console.warn('Auto-tracking error:', e);
+    }
+}
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1412,4 +1426,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadProducts();
 
     setInterval(loadProducts, 60000);
-});
+})
+
+    checkAndShowTrackingOnReturn();;

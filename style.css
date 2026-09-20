@@ -809,6 +809,7 @@ nav {
     padding: 0;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
     outline: none;
+    background-clip: padding-box;
 }
 .color-circle:hover {
     transform: scale(1.2);
@@ -817,9 +818,9 @@ nav {
 .color-circle.selected {
     border-color: var(--gold);
     box-shadow: 0 0 0 1px var(--gold),
-                0 0 10px rgba(212, 175, 55, 0.7),
+                0 0 12px rgba(212, 175, 55, 0.8),
                 0 2px 8px rgba(0, 0, 0, 0.6);
-    transform: scale(1.15);
+    transform: scale(1.2);
 }
 
 /* SELECTED COLOR NAME — CENTERED */
@@ -1855,6 +1856,7 @@ footer {
     padding: 0;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
     outline: none;
+    background-clip: padding-box;
 }
 
     .price-fake { font-size: 0.75em; margin-left: 6px; }
