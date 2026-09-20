@@ -71,19 +71,24 @@ const USER_KEY = 'nakowa_admin_user';
 const OWNER_KEY = 'nakowa_admin_owner';
 
 function saveToken(token, username) {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(TOKEN_TIME_KEY, Date.now().toString());
-    localStorage.setItem(USER_KEY, username);
-    // Lock this device to this username forever (until cleared manually)
+    sessionStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.setItem(TOKEN_TIME_KEY, Date.now().toString());
+    sessionStorage.setItem(USER_KEY, username);
     if (!localStorage.getItem(OWNER_KEY)) {
         localStorage.setItem(OWNER_KEY, username);
     }
 }
 
 function getToken() {
-    const token = localStorage.getItem(TOKEN_KEY);
-    const time = parseInt(localStorage.getItem(TOKEN_TIME_KEY) || '0');
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    const time = parseInt(sessionStorage.getItem(TOKEN_TIME_KEY) || '0');
+    const user = sessionStorage.getItem(USER_KEY);
+    const owner = localStorage.getItem(OWNER_KEY);
     if (!token) return '';
+    if (user && owner && user !== owner) {
+        clearToken();
+        return '';
+    }
     if (Date.now() - time > TOKEN_LIFETIME_MS) {
         clearToken();
         return '';
@@ -92,14 +97,13 @@ function getToken() {
 }
 
 function clearToken() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(TOKEN_TIME_KEY);
-    localStorage.removeItem(USER_KEY);
-    // NOTE: OWNER_KEY is NOT removed — device stays locked to this admin
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_TIME_KEY);
+    sessionStorage.removeItem(USER_KEY);
 }
 
 function getTokenRemainingMs() {
-    const time = parseInt(localStorage.getItem(TOKEN_TIME_KEY) || '0');
+    const time = parseInt(sessionStorage.getItem(TOKEN_TIME_KEY) || '0');
     if (!time) return 0;
     return Math.max(0, TOKEN_LIFETIME_MS - (Date.now() - time));
 }
