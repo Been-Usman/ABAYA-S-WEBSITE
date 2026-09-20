@@ -798,63 +798,64 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             time: now.toLocaleTimeString('en-US', { hour12: false }).substring(0, 5)
         };
 
-        // Build WhatsApp message
+        // Build WhatsApp message (box style)
         const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
-            const L = '────────────────────────────────';
-            const pad = (label, value, width) => {
-                width = width || 33;
-                return label + ' '.repeat(Math.max(1, width - label.length - String(value).length)) + value;
-            };
-            const waLines = [
-                "NEW ORDER — NAKOWA ABAYA'S COLLECTIONS",
-                '',
-                L,
-                pad('Order ID', orderId),
-                L,
-                pad('Code', order.productCode),
-                L,
-                pad('Color', order.colorName),
-                L,
-                pad('Size', size),
-                L,
-                pad('Price', '₦' + price.toLocaleString()),
-                L,
-                pad('Quantity', qty),
-                L,
-                pad('Total', '₦' + (price * qty).toLocaleString()),
-                '',
-                L,
-                '',
-                'CUSTOMER DETAILS',
-                '',
-                pad('Name', name),
-                L,
-                pad('Phone', phone),
-                L,
-                pad('Address', address),
-                '',
-                L,
-                '',
-                pad('Date/Time', dateStr + ' | ' + order.time),
-                '',
-                L
-            ];
-            if (notes) {
-                waLines.push('');
-                waLines.push(pad('Notes', notes));
-            }
-            const waMessage = waLines.join('\n');
-            const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
+        const L = '────────────────────────────────';
+        const pad = (label, value, width) => {
+            width = width || 33;
+            return label + ' '.repeat(Math.max(1, width - label.length - String(value).length)) + value;
+        };
+        const waLines = [
+            "NEW ORDER — NAKOWA ABAYA'S COLLECTIONS",
+            '',
+            L,
+            pad('Order ID', tempOrderId),
+            L,
+            pad('Code', order.productCode),
+            L,
+            pad('Color', order.colorName),
+            L,
+            pad('Size', size),
+            L,
+            pad('Price', '₦' + price.toLocaleString()),
+            L,
+            pad('Quantity', qty),
+            L,
+            pad('Total', '₦' + (price * qty).toLocaleString()),
+            '',
+            L,
+            '',
+            'CUSTOMER DETAILS',
+            '',
+            pad('Name', name),
+            L,
+            pad('Phone', phone),
+            L,
+            pad('Address', address),
+            '',
+            L,
+            '',
+            pad('Date/Time', dateStr + ' | ' + order.time),
+            '',
+            L
+        ];
+        if (notes) {
+            waLines.push('');
+            waLines.push(pad('Notes', notes));
+        }
+        const waMessage = waLines.join('\n');
+        const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(waMessage);
 
-        // ⭐ OPEN WHATSAPP IMMEDIATELY — do not wait for backend
+        // ⭐ OPEN WHATSAPP NAN TAKE
         window.open(waUrl, '_blank');
 
+        // Update UI immediately
         this.innerHTML = '<i class="fas fa-check"></i> Sent to WhatsApp!';
         this.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
         showToast('Order sent! Opening WhatsApp...', '✅');
         modal.classList.remove('open');
 
-        // Save to backend in BACKGROUND — user does not wait
+        // Save to backend IN BACKGROUND
         try {
             const res = await apiPost('saveOrder', { order: order });
             const orderId = (res && res.success && res.orderId) ? res.orderId : tempOrderId;
@@ -863,13 +864,13 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             localStorage.setItem('nakowa_my_orders', JSON.stringify(myOrders.slice(0, 50)));
             clearAbandonedCart();
         } catch (err) {
-            console.error('Background order save failed:', err);
+            console.error('Background save failed:', err);
             const myOrders = JSON.parse(localStorage.getItem('nakowa_my_orders') || '[]');
             myOrders.unshift(Object.assign({}, order, { orderId: tempOrderId }));
             localStorage.setItem('nakowa_my_orders', JSON.stringify(myOrders.slice(0, 50)));
             clearAbandonedCart();
         }
-    });
+    });;
 
     // Clear abandoned cart if modal is closed via X
     modal.addEventListener('click', function(e) {
