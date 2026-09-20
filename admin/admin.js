@@ -140,6 +140,14 @@ let selectedProductIds = new Set();
 let productSearchQuery = '';
 
 // ============================================================
+// VIEW TOKEN — prevents stale async loads from hijacking the view
+// Bumped every time the user navigates to a section
+// ============================================================
+let viewToken = 0;
+function bumpViewToken() { viewToken++; return viewToken; }
+function isViewCurrent(token) { return token === viewToken; }
+
+// ============================================================
 // UTILITIES
 // ============================================================
 function $(id) { return document.getElementById(id); }
@@ -323,6 +331,7 @@ async function warmCache() {
 // ============================================================
 function loadSection(section) {
     currentSection = section;
+    const myToken = bumpViewToken();
 
     if (section !== 'dashboard' && salesChartInstance) {
         try { salesChartInstance.destroy(); } catch (e) {}
@@ -357,6 +366,7 @@ async function renderDashboard() {
     $('pageTitle').textContent = 'Dashboard';
     $('topbarDate').textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     currentSection = 'dashboard';
+    const myToken = viewToken;
 
     if (cachedProducts === null) cachedProducts = [];
     if (cachedOrders === null) cachedOrders = [];
@@ -369,6 +379,7 @@ async function renderDashboard() {
             apiGet('orders'),
             apiGet('settings')
         ]);
+        if (!isViewCurrent(myToken)) return;
         cachedProducts = p || [];
         cachedOrders = o || [];
         cachedSettings = s || {};
@@ -497,12 +508,14 @@ function drawDashboard() {
 async function renderProducts() {
     $('pageTitle').textContent = 'Products';
     currentSection = 'products';
+    const myToken = viewToken;
 
     if (cachedProducts === null) cachedProducts = [];
     drawProductsSection();
 
     try {
         const products = await apiGet('products');
+        if (!isViewCurrent(myToken)) return;
         cachedProducts = products || [];
         if (currentSection === 'products') drawProductsSection();
     } catch (e) {}
@@ -1558,12 +1571,14 @@ async function deleteProduct(id) {
 async function renderOrders() {
     $('pageTitle').textContent = 'Orders';
     currentSection = 'orders';
+    const myToken = viewToken;
 
     if (cachedOrders === null) cachedOrders = [];
     drawOrdersSection();
 
     try {
         const orders = await apiGet('orders');
+        if (!isViewCurrent(myToken)) return;
         cachedOrders = (orders || []).reverse();
         if (currentSection === 'orders') drawOrdersSection();
     } catch (e) {}
@@ -1790,12 +1805,14 @@ async function generateReceipt(orderId) {
 async function renderCustomers() {
     $('pageTitle').textContent = 'Customers';
     currentSection = 'customers';
+    const myToken = viewToken;
 
     if (cachedCustomers === null) cachedCustomers = [];
     drawCustomersSection();
 
     try {
         const customers = await apiGet('customers');
+        if (!isViewCurrent(myToken)) return;
         cachedCustomers = customers || [];
         if (currentSection === 'customers') drawCustomersSection();
     } catch (e) {}
@@ -1836,12 +1853,14 @@ function drawCustomersSection() {
 async function renderSettings() {
     $('pageTitle').textContent = 'Settings';
     currentSection = 'settings';
+    const myToken = viewToken;
 
     if (cachedSettings === null) cachedSettings = {};
     drawSettingsSection();
 
     try {
         const settings = await apiGet('settings');
+        if (!isViewCurrent(myToken)) return;
         cachedSettings = settings || {};
         if (currentSection === 'settings') drawSettingsSection();
     } catch (e) {}
@@ -1890,12 +1909,14 @@ function drawSettingsSection() {
 async function renderUsers() {
     $('pageTitle').textContent = 'Users';
     currentSection = 'users';
+    const myToken = viewToken;
 
     if (cachedUsers === null) cachedUsers = [];
     drawUsersSection();
 
     try {
         const users = await apiGet('users');
+        if (!isViewCurrent(myToken)) return;
         cachedUsers = users || [];
         if (currentSection === 'users') drawUsersSection();
     } catch (e) {}
