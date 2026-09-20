@@ -786,13 +786,16 @@ nav {
     transition: var(--transition);
 }
 
-/* ===== COLOR CIRCLES ===== */
+/* ============================================================
+   COLOR CIRCLES — CENTERED
+   ============================================================ */
 .color-circles {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin: 12px 0 8px;
-    justify-content: center;
+    margin: 10px 0 4px;
+    justify-content: center;   /* CENTER */
+    width: 100%;
 }
 
 .color-circle {
@@ -813,22 +816,28 @@ nav {
     transform: scale(1.1);
 }
 
+/* SELECTED COLOR NAME — CENTERED */
 .selected-color-name {
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.6);
-    text-align: center;
+    text-align: center;         /* CENTER */
     margin-bottom: 6px;
+    width: 100%;
 }
 
+/* ============================================================
+   TEXT INSIDE PRODUCT CARD — LEFT-ALIGNED
+   ============================================================ */
 .product-info {
     padding: 18px 18px 22px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    text-align: center;
+    text-align: left;           /* LEFT */
 }
 
 .product-info .product-name {
+    text-align: left;
     font-size: 1.15rem;
     font-weight: 700;
     margin-bottom: 4px;
@@ -836,12 +845,14 @@ nav {
     color: var(--white);
 }
 .product-info .product-code {
+    text-align: left;
     font-size: 0.75rem;
     opacity: 0.5;
     margin-bottom: 6px;
     letter-spacing: 1px;
 }
 .product-info .product-price {
+    text-align: left;
     font-weight: 700;
     font-size: 1.4rem;
     color: var(--gold);
@@ -855,7 +866,7 @@ nav {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;   /* LEFT */
 }
 .product-info .product-sizes span {
     background: rgba(212, 175, 55, 0.15);
@@ -865,8 +876,10 @@ nav {
     font-size: 0.75rem;
 }
 
+/* ORDER NOW BUTTON — FULL WIDTH, CENTERED TEXT */
 .btn-order {
     width: 100%;
+    margin-top: auto;
     background: var(--gold-gradient);
     border: none;
     padding: 12px;
@@ -878,7 +891,7 @@ nav {
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-top: auto;
+    text-align: center;
 }
 .btn-order:hover { transform: scale(1.02); box-shadow: var(--shadow-gold); }
 

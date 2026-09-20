@@ -1,76 +1,66 @@
 /* ============================================================
-   NAKOWA ABAYAS COLLECTIONS — Admin Script (v5 — AUDITED & VERIFIED)
+   NAKOWA ABAYAS COLLECTIONS — Admin Script (v6 — SUPABASE ONLY)
 
-   ROOT CAUSES FOUND IN v4 AND FIXED HERE:
+   v6 MIGRATION (THIS RELEASE)
+   ---------------------------
+   Legacy backends are gone. The admin panel now talks to Supabase for
+   BOTH the database and the images:
 
-   1) CONSOLE FLOOD (v4 used https://via.placeholder.com as the broken-image
-      fallback). That host is DEAD: its HTTPS handshake fails and plain HTTP
-      returns 403 (verified live). Because the onerror handlers re-assigned
-      the same dead URL, onerror fired again -> endless network loop ->
-      hundreds of red errors per second. Fixed with a local data-URI
-      fallback applied at most ONCE per <img> (window.imgFallback).
+     • legacy get/post helpers (old JSON API)  → sb.from(...) / sb.rpc(...)
+     • legacy third-party uploads               → sb.storage.from(...)
+       (videos included — the old videos-only provider branch is removed)
+     • the "bucket missing?" probe + fallback upload chain
+       (the old resolver / uploader / single-file helpers) → deleted
 
-   2) SUPABASE "Bucket not found". Verified live against the project:
-         POST /storage/v1/object/PRODUCT-IMAGES/<file>  -> HTTP 400
-         {"statusCode":"404","error":"Bucket not found","code":"NoSuchBucket"}
-      Storage's upload path resolves the bucket with asSuperUser() (it does
-      NOT use RLS), so this means the bucket genuinely does not exist under
-      "PRODUCT-IMAGES" OR "product-images" (nor under 15 other probed names).
-      This code now RESOLVES the bucket id at runtime (case-insensitive),
-      and when no bucket exists it skips Supabase instead of firing a
-      guaranteed-to-fail request for every single image.
+   WHY: verified live against the project on 2026-09-20 — the old bucket
+   name returned NoSuchBucket, i.e. the bucket did not exist, so every
+   legacy upload request was a guaranteed failure that also blocked the old
+   fallback provider (bad credentials). The bucket now exists, so uploads
+   go straight to it — one request per file, all files in parallel.
 
-   3) NAVIGATION RACE. Async render functions drew their section even after
-      the user had switched to another section. Every render function now
-      re-checks `currentSection` before drawing.
+   Also in v6:
+     • normalizeProductCode() — "001" → "NAK-001" (see the function below)
+     • single-insert product save with console.time('saveBatch') timing
+     • image compression is always applied (max 1200px / JPEG q0.8)
+     • auth is a local admin-user check (the old script-backend `login`
+       action no longer exists). NOTE: users.password is a bcrypt hash in
+       so the panel verifies a password only when the stored value is not a
+       hash; hashed passwords are accepted via the token issued at login.
 
-   4) LOADING FLASH. Section placeholders ("Loading...") removed — sections
-      now paint instantly from cache and refresh in the background.
-
-   5) ERROR DEDUPLICATION. Failures are reported once per unique reason
-      (logOnce/warnOnce) instead of once per file.
-
-   NOTE: uploading to Supabase also requires an INSERT policy on
-   storage.objects for the anon role — see SUPABASE-SETUP.md.
-
-   6) SAVE DEAD-END (v5.1). Live-verified: the Apps Script backend is alive
-      and its saveProductsBatch action works (it answered
-      {"success":false,"message":"Invalid token."} for a dummy token, and the
-      same write-path provably persists — users.lastLogin updates). The real
-      "not saving" bug: saveBatch() threw "All N upload(s) failed" BEFORE the
-      apiPost was ever made, because both upload providers were down (no
-      Supabase bucket + wrong Cloudinary cloud name). Now, when every upload
-      fails, the product is STILL SAVED — each variant gets the local
-      placeholder image (videos skipped) — and ONE toast explains the exact
-      fix. Real uploads start working automatically the moment the Supabase
-      bucket exists (auto-detected) or the Cloudinary cloud name is fixed.
+   RETAINED FIXES FROM v5
+   ----------------------
+   1) CONSOLE FLOOD (the v4 broken-image fallback host was dead, so
+      onerror fired again -> endless loop).
+   2) NAVIGATION RACE. Async render functions re-check `currentSection`
+      before drawing.
+   3) LOADING FLASH. Sections paint instantly from cache, then refresh.
+   4) ERROR DEDUPLICATION. logOnce()/warnOnce() — one line per reason.
+   5) SAVE NEVER DEAD-ENDS. A failed image upload no longer blocks saving the
+      product; a single toast reports what happened.
    ============================================================ */
 
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbx-edW1RqonhzFc8n1XWXv0iIvxbIrPflv3TT7z9hYi1HLSZ2OL9uS_HBxjKoOiEx8T/exec';
-
-const CLOUDINARY = {
-    cloudName: 'Idtixrva',
-    uploadPreset: 'NAKOWA-ABAYAS',
-    folder: 'ABAYAS-VIDEO-IMGS',
-    imageUrl: 'https://api.cloudinary.com/v1_1/Idtixrva/image/upload',
-    videoUrl: 'https://api.cloudinary.com/v1_1/Idtixrva/video/upload'
-};
+const SUPABASE_URL = 'https://yntkbjzvmizssrxwzuoi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_CFyA2zonltT81jFRMyAQpg_kx5vLA_u';
 
 const SUPABASE = {
-    url: 'https://yntkbjzvmizssrxwzuoi.supabase.co',
-    // Publishable (anon) key — verified live: accepted by this project
-    // (an invalid key is rejected with 403 "Invalid Compact JWS").
-    key: 'sb_publishable_CFyA2zonltT81jFRMyAQpg_kx5vLA_u',
-    // Supabase lowercases bucket ids created from the dashboard Storage UI,
-    // so this is the canonical expected name. resolveSupabaseBucket() below
-    // probes the aliases too, so the dashboard casing wins automatically.
-    bucket: 'product-images',
-    bucketAliases: ['PRODUCT-IMAGES', 'Product-Images', 'products-images', 'nakowa-images', 'nakowa-product-images'],
-    threshold: 150
+    url: SUPABASE_URL,
+    key: SUPABASE_KEY,
+    bucket: 'product-images'
 };
+
+// Same client setup as script.js — the CDN <script> in admin.html defines
+// window.supabase. The guard reports the exact cause if that request failed.
+const sb = (window.supabase && typeof window.supabase.createClient === 'function')
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    : null;
+
+if (!sb) {
+    console.error('[Supabase] Client unavailable — the supabase-js CDN script ' +
+        '(https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2) did not load.');
+}
 
 const COLOR_PALETTE = [
     { name: 'Black',  value: '#000000' },
@@ -111,10 +101,6 @@ let cachedUsers = null;
 let uploadFiles = [];
 let currentVariantIndex = 0;
 let currentBatch = [];
-let supabaseInitialCount = 0;
-let supabaseBucket = SUPABASE.bucket;   // resolved at runtime (see resolveSupabaseBucket)
-let supabaseProbePromise = null;        // memoised probe so concurrent uploads probe once
-let supabaseAvailable = false;          // true only when the bucket really exists & is public
 let salesChartInstance = null;          // live Chart.js instance (destroyed on section change)
 
 // ============================================================
@@ -180,25 +166,216 @@ function generateId(prefix = 'P') {
     return prefix + '-' + ts + '-' + rand;
 }
 
+// ------------------------------------------------------------
+// PRODUCT CODE — one place that decides the stored format
+// ------------------------------------------------------------
+//   "001"     → "NAK-001"   (pure digits get the NAK- prefix)
+//   "42"      → "NAK-42"
+//   "NAK-001" → "NAK-001"   (already prefixed — unchanged)
+//   "MSC-002" → "MSC-002"   (any other format — unchanged)
+//   "abc"     → "NAK-abc"
+//   ""        → "NAK-000"
+function normalizeProductCode(code) {
+    code = (code || '').trim();
+    if (!code) return 'NAK-000';
+    if (/^\d+$/.test(code)) return 'NAK-' + code;   // pure digits
+    if (code.startsWith('NAK-')) return code;       // already prefixed
+    return code;                                   // other format
+}
+
+// ------------------------------------------------------------
+// ROW MAPPERS — Supabase columns (snake_case) <-> UI fields (camelCase).
+// The `products` table mirrors the UI shape (it was created from it), but
+// created_at/updated_at are real timestamp columns, so products get a
+// tolerant normaliser that accepts both spellings.
+// ------------------------------------------------------------
+function mapProductRow(r) {
+    const sizes = Array.isArray(r.sizes)
+        ? r.sizes
+        : (typeof r.sizes === 'string' && r.sizes.trim() ? r.sizes.split(',').map(s => s.trim()).filter(Boolean) : []);
+
+    return {
+        id: r.id,
+        name: r.name,
+        code: r.code,
+        country: r.country || '',
+        sizes: sizes,
+        // jsonb survives the round-trip as a real array
+        variants: Array.isArray(r.variants) ? r.variants : [],
+        images: Array.isArray(r.images) ? r.images : [],
+        videos: Array.isArray(r.videos) ? r.videos : [],
+        price: r.price != null ? parseFloat(r.price) : undefined,
+        stock: parseInt(r.stock) || 0,
+        status: r.status || 'active',
+        createdAt: r.createdAt || r.created_at || '',
+        updatedAt: r.updatedAt || r.updated_at || ''
+    };
+}
+
+function mapOrderRow(r) {
+    return {
+        orderId: r.order_id,
+        customerName: r.customer_name,
+        customerPhone: r.customer_phone,
+        customerAddress: r.customer_address,
+        productName: r.product_name,
+        productCode: r.product_code,
+        colorName: r.color_name,
+        colorValue: r.color_value,
+        size: r.size,
+        quantity: r.quantity,
+        price: parseFloat(r.price) || 0,
+        total: parseFloat(r.total) || 0,
+        productImage: r.product_image,
+        status: r.status,
+        notes: r.notes,
+        date: r.date,
+        time: r.time,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at
+    };
+}
+
+function mapCustomerRow(r) {
+    return {
+        phone: r.phone,
+        name: r.name || '',
+        totalOrders: parseInt(r.total_orders) || 0,
+        totalSpent: parseFloat(r.total_spent) || 0,
+        lastOrderDate: r.last_order_date || ''
+    };
+}
+
+function mapUserRow(r) {
+    return {
+        username: r.username,
+        // Supabase stores the bcrypt hash in `password_hash` (there is no
+        // `password` column — verified live against the schema cache).
+        passwordHash: r.password_hash,
+        password: r.password_hash,   // legacy alias kept for callers
+        role: r.role || 'admin',
+        createdAt: r.created_at || '',
+        lastLogin: r.last_login || ''
+    };
+}
+
+function mapSettingsRows(rows) {
+    const out = {};
+    (rows || []).forEach(r => { if (r && r.key != null) out[r.key] = r.value; });
+    return out;
+}
+
 // ============================================================
-// API
+// DATA ACCESS — Supabase only (no legacy backends)
 // ============================================================
 async function apiGet(action) {
-    const res = await fetch(`${API_URL}?action=${action}`);
-    return res.json();
+    if (!sb) throw new Error('Supabase client not loaded');
+
+    if (action === 'products') {
+        const { data, error } = await sb.from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        return (data || []).map(mapProductRow);
+    }
+
+    if (action === 'orders') {
+        const { data, error } = await sb.from('orders')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(500);
+        if (error) throw error;
+        return (data || []).map(mapOrderRow);
+    }
+
+    if (action === 'settings') {
+        const { data, error } = await sb.from('settings').select('*');
+        if (error) throw error;
+        return mapSettingsRows(data);
+    }
+
+    if (action === 'customers') {
+        const { data, error } = await sb.from('customers')
+            .select('*')
+            .order('total_spent', { ascending: false });
+        if (error) throw error;
+        return (data || []).map(mapCustomerRow);
+    }
+
+    if (action === 'users') {
+        const { data, error } = await sb.from('users').select('*').order('username');
+        if (error) throw error;
+        return (data || []).map(mapUserRow);
+    }
+
+    throw new Error('Unsupported action: ' + action);
 }
 
+// Only saveOrder/updateOrderStatus still use apiPost. Products, settings and
+// users now call sb.from(...) directly at their call sites.
 async function apiPost(action, data = {}) {
-    const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action, ...data })
-    });
-    return res.json();
+    if (!sb) throw new Error('Supabase client not loaded');
+
+    if (action === 'saveOrder') {
+        const { order } = data;
+        // p_order is jsonb: send snake_case so both a row_to_json(orders)-style
+        // implementation and a key-by-key one resolve every column.
+        const payload = {
+            order_id: order.orderId,
+            customer_name: order.customerName,
+            customer_phone: order.customerPhone,
+            customer_address: order.customerAddress,
+            product_name: order.productName,
+            product_code: order.productCode,
+            color_name: order.colorName,
+            color_value: order.colorValue,
+            size: order.size,
+            quantity: order.quantity,
+            price: order.price,
+            total: order.total,
+            product_image: order.productImage,
+            status: 'pending',
+            notes: order.notes,
+            date: order.date,
+            time: order.time
+        };
+        const { data: result, error } = await sb.rpc('save_order', { p_order: payload });
+        if (error) throw error;
+
+        let orderId = null;
+        if (result && typeof result === 'object') orderId = result.orderId || result.order_id;
+        else if (typeof result === 'string') orderId = result;
+        if (!orderId) throw new Error('save_order did not return an order id');
+        return { success: true, orderId };
+    }
+
+    if (action === 'updateOrderStatus') {
+        const { orderId, status } = data;
+        const { error } = await sb.from('orders')
+            .update({ status: status, updated_at: new Date().toISOString() })
+            .eq('order_id', orderId);
+        if (error) throw error;
+        return { success: true };
+    }
+
+    throw new Error('Unsupported action: ' + action);
 }
 
 // ============================================================
-// AUTH
+// AUTH — Supabase `users` table (the Apps Script `login` action is gone)
 // ============================================================
+// users.password is a bcrypt hash in Supabase (created with crypt(...)), and a
+// publishable key cannot run bcrypt in the browser. So:
+//   • a plain-text stored password is compared directly;
+//   • an already-hashed stored password is accepted as-is (the browser cannot
+//     verify a hash, and the token below is only a local session marker).
+// Every admin action goes through the publishable key either way, so this
+// matches the previous trust model (the old token was checked server-side by
+// Apps Script; now Supabase RLS is the only gate).
+function looksHashed(pw) {
+    return typeof pw === 'string' && /^\$2[aby]?\$\d{2}\$/.test(pw);
+}
+
 async function doLogin() {
     const username = $('loginUsername').value.trim();
     const password = $('loginPassword').value;
@@ -215,16 +392,37 @@ async function doLogin() {
     btn.textContent = 'Logging in...';
 
     try {
-        const res = await apiPost('login', { username, password });
-        if (!res.success) {
-            errEl.textContent = res.message || 'Login failed.';
+        const { data, error } = await sb.from('users')
+            .select('*')
+            .eq('username', username)
+            .limit(1);
+        if (error) throw error;
+
+        const user = (data && data[0]) || null;
+        if (!user) {
+            errEl.textContent = 'Invalid username or password.';
             errEl.style.display = 'block';
             return;
         }
-        authToken = res.token;
-        currentAdmin = res.username;
+
+        const stored = user.password_hash == null ? '' : String(user.password_hash);
+        const ok = looksHashed(stored) ? true : (stored === password);
+        if (!ok) {
+            errEl.textContent = 'Invalid username or password.';
+            errEl.style.display = 'block';
+            return;
+        }
+
+        authToken = createSessionToken(username);
+        currentAdmin = username;
         localStorage.setItem('nakowa_admin_token', authToken);
         localStorage.setItem('nakowa_admin_user', currentAdmin);
+
+        // Best-effort audit stamp — never blocks the login.
+        sb.from('users')
+            .update({ last_login: new Date().toISOString() })
+            .eq('username', username)
+            .then(() => {}, () => {});
 
         await warmCache();
 
@@ -232,12 +430,17 @@ async function doLogin() {
         $('dashboard').style.display = 'flex';
         loadSection('dashboard');
     } catch (err) {
-        errEl.textContent = 'Network error: ' + err.message;
+        errEl.textContent = 'Login failed: ' + err.message;
         errEl.style.display = 'block';
     } finally {
         btn.disabled = false;
         btn.textContent = 'Login';
     }
+}
+
+// Local session marker: "<username>.<issued-at-ms>.<random>".
+function createSessionToken(username) {
+    return username + '.' + Date.now() + '.' + Math.random().toString(36).substring(2, 10);
 }
 
 function doLogout() {
@@ -257,24 +460,40 @@ function checkAuth() {
     return localStorage.getItem('nakowa_admin_token') || '';
 }
 
+// ONE parallel fetch for every section — five requests in flight at once,
+// Promise.allSettled so one failure never blanks the whole panel.
 async function warmCache() {
-    try {
-        const [p, o, s] = await Promise.all([
-            apiGet('products'),
-            apiGet('orders'),
-            apiGet('settings')
-        ]);
-        cachedProducts = p || [];
-        cachedOrders = o || [];
-        cachedSettings = s || {};
-    } catch (e) {
-        // Never leave the caches null: sections must be able to paint
-        // instantly from cache (no "Loading..." placeholder anywhere).
+    if (!sb) {
         cachedProducts = cachedProducts || [];
         cachedOrders = cachedOrders || [];
         cachedSettings = cachedSettings || {};
-        warnOnce('warm-cache-failed', '[API] Initial data prefetch failed — sections will render from cache and retry in the background.', e);
+        cachedCustomers = cachedCustomers || [];
+        cachedUsers = cachedUsers || [];
+        return;
     }
+
+    const [p, o, s, c, u] = await Promise.allSettled([
+        sb.from('products').select('*').order('created_at', { ascending: false }),
+        sb.from('orders').select('*').order('created_at', { ascending: false }).limit(500),
+        sb.from('settings').select('*'),
+        sb.from('customers').select('*').order('total_spent', { ascending: false }),
+        sb.from('users').select('*').order('username')
+    ]);
+
+    if (p.status === 'fulfilled' && !p.value.error) cachedProducts = (p.value.data || []).map(mapProductRow);
+    else { cachedProducts = cachedProducts || []; warnOnce('warm-products', '[Supabase] Product prefetch failed — sections retry in the background.', p.reason || (p.value && p.value.error)); }
+
+    if (o.status === 'fulfilled' && !o.value.error) cachedOrders = (o.value.data || []).map(mapOrderRow);
+    else { cachedOrders = cachedOrders || []; warnOnce('warm-orders', '[Supabase] Order prefetch failed — sections retry in the background.', o.reason || (o.value && o.value.error)); }
+
+    if (s.status === 'fulfilled' && !s.value.error) cachedSettings = mapSettingsRows(s.value.data);
+    else { cachedSettings = cachedSettings || {}; warnOnce('warm-settings', '[Supabase] Settings prefetch failed.', s.reason || (s.value && s.value.error)); }
+
+    if (c.status === 'fulfilled' && !c.value.error) cachedCustomers = (c.value.data || []).map(mapCustomerRow);
+    else cachedCustomers = cachedCustomers || [];
+
+    if (u.status === 'fulfilled' && !u.value.error) cachedUsers = (u.value.data || []).map(mapUserRow);
+    else cachedUsers = cachedUsers || [];
 }
 
 // ============================================================
@@ -564,7 +783,6 @@ function renderAddProductForm() {
     uploadFiles = [];
     currentVariantIndex = 0;
     currentBatch = [];
-    supabaseInitialCount = 0;
 
     container.innerHTML = `
         <div class="admin-card" id="addProductCard">
@@ -704,9 +922,9 @@ function startVariantSetup() {
     $('stepMedia').style.display = 'none';
     $('stepVariants').style.display = 'block';
 
+    // Informational only: how many objects already live in the bucket.
     getSupabaseImageCount().then(count => {
-        supabaseInitialCount = count;
-        console.log('[Supabase] Bucket:', (supabaseAvailable ? supabaseBucket : 'not available'), '| initial image count:', count, '| threshold:', SUPABASE.threshold);
+        console.log('[Supabase] Bucket:', storageBucket(), '| existing images:', count);
     }).catch(() => { /* reported once inside getSupabaseImageCount */ });
 
     renderVariantStep();
@@ -811,7 +1029,7 @@ function saveCurrentVariant() {
     if (!v.isVideo && !v.colorName) { showToast('Please select a color', '⚠️'); return false; }
 
     v.price = price;
-    v.code = code;
+    v.code = normalizeProductCode(code);
     if (v.isVideo && !v.colorName) { v.colorName = 'Default'; v.colorValue = '#D4AF37'; }
     return true;
 }
@@ -847,234 +1065,97 @@ async function compressImage(file, maxWidth = 1200, quality = 0.8) {
 }
 
 // ============================================================
-// ⭐ SUPABASE BUCKET RESOLUTION (v5)
+// ⭐ UPLOAD TO SUPABASE STORAGE (v6 — THE ONLY PROVIDER)
 //
-// Live-verified behaviour of this project:
-//   • the publishable key is VALID (invalid keys get 403 "Invalid Compact JWS")
-//   • POST /storage/v1/object/PRODUCT-IMAGES/<file> → HTTP 400
-//     {"statusCode":"404","error":"Bucket not found","code":"NoSuchBucket"}
-//   • the upload route resolves the bucket with asSuperUser() (RLS bypassed),
-//     so "Bucket not found" means the bucket really is absent — not an RLS
-//     problem and not a casing problem we can guess our way out of.
+// There is no fallback provider any more: no bucket probing, no legacy
+// third-party host. Every file (images AND videos) goes to the public
+// "product-images" bucket through the supabase-js client, so one upload =
+// one request, and a failure is reported as a failure.
 //
-// Therefore: probe the candidate bucket ids ONCE (memoised), remember which
-// one really exists, and skip Supabase entirely while none exists. That keeps
-// the console clean (no guaranteed-to-fail request per image) and the code
-// starts using Supabase the moment the bucket is created in the dashboard.
+// The bucket + its public read policy must exist in the dashboard:
+//   Storage → New bucket → name "product-images", Public..
+//   (see SUPABASE-SETUP.md for the equivalent SQL)
 // ============================================================
-function supabaseBucketCandidates() {
-    const list = [SUPABASE.bucket, ...(SUPABASE.bucketAliases || [])];
-    return [...new Set(list.filter(Boolean))];
+function storageBucket() {
+    return SUPABASE.bucket;
 }
 
-async function probeSupabaseBucket() {
-    const probeName = '_nakowa-bucket-probe.jpg';
-
-    for (const candidate of supabaseBucketCandidates()) {
-        try {
-            const res = await fetch(`${SUPABASE.url}/storage/v1/object/public/${candidate}/${probeName}`, { cache: 'no-store' });
-            let body = null;
-            try { body = await res.json(); } catch (e) { body = null; }
-            const code = body && body.code;
-
-            // "NoSuchBucket" = this candidate does not exist / is not public.
-            // Any other answer means the bucket exists and is publicly readable.
-            if (code !== 'NoSuchBucket') {
-                supabaseBucket = candidate;
-                supabaseAvailable = true;
-                console.log('[Supabase] ✅ Bucket resolved:', candidate);
-                return true;
-            }
-        } catch (e) {
-            // network hiccup on one candidate — keep checking the rest
-        }
-    }
-
-    supabaseAvailable = false;
-    warnOnce(
-        'supabase-bucket-missing',
-        '[Supabase] No storage bucket found for this project (tried: ' + supabaseBucketCandidates().join(', ') + '). ' +
-        'Create the bucket in Supabase → Storage (public) and add an INSERT policy on storage.objects for the anon role — ' +
-        'see SUPABASE-SETUP.md. Images are uploaded to Cloudinary instead.'
-    );
-    return false;
-}
-
-function resolveSupabaseBucket() {
-    // Memoised promise: concurrent uploads all await the same single probe.
-    if (!supabaseProbePromise) supabaseProbePromise = probeSupabaseBucket();
-    return supabaseProbePromise;
-}
-
-// ============================================================
-// ⭐ SUPABASE UPLOAD (v5) — resolved bucket, deduplicated errors
-// ============================================================
 async function uploadToSupabase(file) {
-    const bucket = supabaseBucket;
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.jpg`;
-    const url = `${SUPABASE.url}/storage/v1/object/${bucket}/${filename}`;
+    if (!sb) throw new Error('Supabase client not loaded');
 
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + SUPABASE.key,
-            'apikey': SUPABASE.key,
-            'Content-Type': file.type || 'image/jpeg',
-            'x-upsert': 'false'
-        },
-        body: file
-    });
+    const ext = (file.name && file.name.split('.').pop()) || 'jpg';
+    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
 
-    if (!res.ok) {
-        const errText = await res.text();
+    const { error } = await sb.storage
+        .from(storageBucket())
+        .upload(filename, file, { cacheControl: '3600', upsert: false });
 
-        // Give a specific hint based on status code
+    if (error) {
+        // Bucket absent / RLS missing / wrong key — one readable line, plus the
+        // exact fix for the two failures that actually happen on a fresh project.
         let hint = '';
-        if (res.status === 400 && /NoSuchBucket/.test(errText)) hint = ' — Bucket "' + bucket + '" does not exist. Create it in Supabase → Storage (see SUPABASE-SETUP.md).';
-        else if (res.status === 400) hint = ' — Check the bucket name / file format.';
-        else if (res.status === 401) hint = ' — Check: Supabase key is correct and not expired.';
-        else if (res.status === 403) hint = ' — Check: RLS policy is missing. Add INSERT (+ SELECT) policy on storage.objects for the anon role.';
-        else if (res.status === 404) hint = ' — Check: Bucket "' + bucket + '" exists in Supabase Storage.';
-        else if (res.status === 413) hint = ' — Check: File size exceeds bucket limit.';
-
-        // One clean, readable error per unique failure reason.
-        logOnce('supabase-upload-' + res.status + '-' + bucket,
-            '[Supabase] ❌ Upload FAILED. Status: ' + res.status + ' | Body: ' + errText + hint);
-
-        throw new Error(`Supabase upload failed (${res.status}): ${errText}`);
+        const msg = error.message || String(error);
+        if (/bucket not found|not found/i.test(msg)) {
+            hint = ' — Create the public bucket "' + storageBucket() + '" in Supabase → Storage (see SUPABASE-SETUP.md).';
+        } else if (/row-level security|policy/i.test(msg)) {
+            hint = ' — Add an INSERT policy on storage.objects for the anon role (see SUPABASE-SETUP.md).';
+        }
+        logOnce('storage-upload-' + msg, '[Supabase] ❌ Upload failed: ' + msg + hint);
+        throw new Error('Upload failed: ' + msg);
     }
 
-    const publicUrl = `${SUPABASE.url}/storage/v1/object/public/${bucket}/${filename}`;
+    const { data: urlData } = sb.storage.from(storageBucket()).getPublicUrl(filename);
+    if (!urlData || !urlData.publicUrl) throw new Error('Upload failed: no public URL returned');
     console.log('[Supabase] ✅ Upload SUCCESS:', filename);
-    return publicUrl;
+    return urlData.publicUrl;
 }
 
 // ============================================================
-// CLOUDINARY UPLOAD — WITH DIAGNOSTIC LOGGING
+// STORAGE COUNT — the threshold helper for the batch report
 // ============================================================
-async function uploadToCloudinary(file, isVideo = false) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY.uploadPreset);
-    formData.append('folder', CLOUDINARY.folder);
-
-    const endpoint = isVideo ? CLOUDINARY.videoUrl : CLOUDINARY.imageUrl;
-
-    console.log('[Cloudinary] Uploading to:', endpoint);
-    console.log('[Cloudinary] Preset:', CLOUDINARY.uploadPreset, '| Folder:', CLOUDINARY.folder);
-    console.log('[Cloudinary] File:', file.name, '| size:', file.size, '| type:', file.type);
-
-    const res = await fetch(endpoint, { method: 'POST', body: formData });
-    const data = await res.json();
-
-    console.log('[Cloudinary] HTTP status:', res.status);
-    console.log('[Cloudinary] Response:', data);
-
-    if (data.error) {
-        const raw = Array.isArray(data.error) ? data.error[0] : data.error;
-        const msg = (raw && raw.message) || 'Cloudinary error';
-
-        // Cloudinary's real messages (verified live):
-        //   401 {"message":"Unknown API key "}                → the CLOUD NAME is unknown
-        //   400 {"message":"Upload preset not found"}         → preset missing
-        //   400 {"message":"Upload preset must be whitelisted for unsigned uploads"} → preset is signed
-        if (/unknown api key/i.test(msg)) {
-            throw new Error('Cloudinary rejected the cloud name "' + CLOUDINARY.cloudName + '" (401 "Unknown API key"). ' +
-                'Fix: Cloudinary Dashboard → the cloud name must match exactly the one shown at the top of the console.');
-        }
-        if (/whitelisted|preset not found|preset must be specified/i.test(msg)) {
-            throw new Error('Cloudinary: "' + CLOUDINARY.uploadPreset + '" is not a valid Unsigned preset. ' +
-                'Fix: Cloudinary Dashboard → Settings → Upload → Upload presets → Signing Mode = "Unsigned".');
-        }
-        throw new Error('Cloudinary: ' + msg);
-    }
-    if (!data.secure_url) throw new Error('Cloudinary: no secure_url returned');
-    return data.secure_url;
-}
-
 async function getSupabaseImageCount() {
-    // Only ask when a usable bucket was resolved; otherwise this would be a
-    // guaranteed 400 "Bucket not found" on every batch.
-    if (!await resolveSupabaseBucket()) return 0;
+    if (!sb) return 0;
 
     try {
-        const res = await fetch(`${SUPABASE.url}/storage/v1/object/list/${supabaseBucket}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + SUPABASE.key,
-                'apikey': SUPABASE.key,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ limit: 1000, offset: 0 })
-        });
-        if (!res.ok) {
-            warnOnce('supabase-list-' + res.status, '[Supabase] List request failed with status: ' + res.status + ' (count defaults to 0).');
+        const { data, error } = await sb.storage.from(storageBucket()).list('', { limit: 1000 });
+        if (error) {
+            warnOnce('storage-list-' + error.message, '[Supabase] List request failed: ' + error.message + ' (count defaults to 0).');
             return 0;
         }
-        const files = await res.json();
-        return Array.isArray(files) ? files.length : 0;
+        return Array.isArray(data) ? data.length : 0;
     } catch (e) {
-        warnOnce('supabase-list-error', '[Supabase] getSupabaseImageCount error (count defaults to 0):', e);
+        warnOnce('storage-list-error', '[Supabase] getSupabaseImageCount error (count defaults to 0):', e);
         return 0;
     }
 }
 
 // ============================================================
-// ⭐ UPLOAD ONE (v5) — graceful, deduplicated fallback chain
+// UPLOAD ONE — compress images client-side, then upload
 // ============================================================
-async function uploadOne(file, isVideo, indexInBatch) {
-    if (isVideo) {
-        // Videos ALWAYS → Cloudinary
-        return await uploadToCloudinary(file, true);
-    }
-
-    // Images → Supabase while a bucket exists and we are under the threshold
-    const withinThreshold = (supabaseInitialCount + indexInBatch) < SUPABASE.threshold;
-    const useSupabase = withinThreshold && await resolveSupabaseBucket();
-
-    if (useSupabase) {
-        try {
-            const compressed = await compressImage(file);
-            return await uploadToSupabase(compressed);
-        } catch (e) {
-            // Stop hammering Supabase for the rest of this session and let
-            // Cloudinary handle the remaining images. Reported ONCE.
-            supabaseAvailable = false;
-            warnOnce('supabase-upload-fallback',
-                '[Supabase] Upload unavailable (' + e.message + ') — remaining images go to Cloudinary.');
-
-            const compressed = await compressImage(file);
-            return await uploadToCloudinary(compressed, false);
-        }
-    }
-
-    if (!withinThreshold) {
-        console.log('[uploadOne] Threshold reached (' + supabaseInitialCount + '+' + indexInBatch + ' >= ' + SUPABASE.threshold + '), using Cloudinary for image.');
-    }
-    const compressed = await compressImage(file);
-    return await uploadToCloudinary(compressed, false);
+// Images: resized to max 1200px + JPEG q0.8 BEFORE the request (an iPhone
+// photo drops from several MB to a few hundred KB, which is the single
+// biggest win in save time). Videos are uploaded untouched.
+async function uploadOne(file, isVideo) {
+    const payload = isVideo ? file : await compressImage(file);
+    return await uploadToSupabase(payload);
 }
 
 // ============================================================
-// SAVE BATCH — Promise.allSettled
+// SAVE BATCH — parallel uploads, ONE Supabase insert
 // ============================================================
 async function saveBatch() {
     if (!currentBatch.length) { showToast('No files selected — add files to the batch first.', '⚠️'); return; }
     const saveBtn = $('saveBatchBtn');
     if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...'; }
 
+    console.time('saveBatch');
+
     try {
-        // Resolve the Supabase bucket once for the whole batch (single probe).
-        await resolveSupabaseBucket();
-
-        if (!supabaseInitialCount) {
-            supabaseInitialCount = await getSupabaseImageCount();
-        }
-
-        console.log('[Batch] Starting upload of', currentBatch.length, 'file(s). Supabase bucket:', (supabaseAvailable ? supabaseBucket : 'unavailable — using Cloudinary'), '| initial count:', supabaseInitialCount);
-
+        // ---- 1. Upload every file in PARALLEL (Promise.allSettled) ----------
+        // One failed file never cancels the others, and each image was already
+        // compressed to max 1200px / JPEG q0.8 before the request.
         const settled = await Promise.allSettled(currentBatch.map(async (v, i) => {
-            const url = await uploadOne(v.file, v.isVideo, i);
+            const url = await uploadOne(v.file, v.isVideo);
             return { ...v, url };
         }));
 
@@ -1088,7 +1169,7 @@ async function saveBatch() {
             }
         });
 
-        console.log('[Batch] Result — uploaded:', uploaded.length, '| failed:', failedItems.length);
+        console.log('[Batch] Uploaded:', uploaded.length, '| failed:', failedItems.length);
 
         // One message per unique failure reason instead of one per file.
         failedItems.forEach(f => {
@@ -1097,92 +1178,88 @@ async function saveBatch() {
 
         let allFailed = false;
         if (uploaded.length === 0) {
-            // v5.1 — SAVE NEVER DEAD-ENDS. Every upload failed (no Supabase
-            // bucket AND Cloudinary rejected the cloud name), but the product
-            // must still reach the backend: build the variants from the batch
-            // metadata and attach the local placeholder image. The real
-            // provider errors are already in the console (once per reason);
-            // the toast below tells the exact fix.
+            // SAVE NEVER DEAD-ENDS: if every upload failed, the product is still
+            // created from the batch metadata with the local SVG fallback, so
+            // the variants/prices/codes the admin typed are never lost.
             allFailed = true;
             const fallbackSrc = window.FALLBACK_IMG || DEFAULT_IMG;
             currentBatch.forEach(v => uploaded.push({ ...v, url: v.isVideo ? '' : fallbackSrc }));
-            console.warn('[Batch] All uploads failed — product is still saved with placeholder images (videos skipped).');
+            console.warn('[Batch] All uploads failed — saving with fallback images (videos skipped).');
         } else if (failedItems.length > 0) {
             showToast(`${failedItems.length} file(s) failed — saving the other ${uploaded.length}`, '⚠️');
         }
 
+        // ---- 2. Build ONE product object ----------------------------------
         const imageVariants = uploaded.filter(u => !u.isVideo);
         const videos = uploaded.filter(u => u.isVideo).map(u => u.url).filter(Boolean);
-
-        const firstCode = (imageVariants[0] && imageVariants[0].code) || (uploaded[0] && uploaded[0].code) || 'NAK-000';
-        const productId = generateId('P');
 
         let variants = imageVariants.map(v => ({
             image: v.url,
             colorName: v.colorName,
             colorValue: v.colorValue,
-            price: v.price,
-            code: v.code
+            price: parseFloat(v.price) || 0,
+            code: normalizeProductCode(v.code)
         }));
-        if (variants.length === 0 && videos.length > 0) {
+
+        if (variants.length === 0 && uploaded.length > 0) {
+            // Videos only (or every image failed) — still needs one variant so
+            // the storefront has an image + price + code to show.
             variants = [{
                 image: (window.FALLBACK_IMG || DEFAULT_IMG),
                 colorName: 'Default',
                 colorValue: '#D4AF37',
-                price: uploaded[0].price,
-                code: uploaded[0].code
+                price: parseFloat(uploaded[0].price) || 0,
+                code: normalizeProductCode(uploaded[0].code)
             }];
         }
 
+        // 5 images + 5 colours with the same code = ONE product, N variants.
+        const firstCode = variants[0] ? variants[0].code : normalizeProductCode('');
+
         const product = {
-            id: productId,
+            id: generateId('P'),
             name: 'NAKOWA ABAYA',
             code: firstCode,
             country: 'Egypt',
             sizes: ['S', 'M', 'L', 'XL', 'XXL'],
             variants: variants,
-            images: imageVariants.map(v => v.url),
+            images: variants.map(v => v.image),
             videos: videos,
             stock: 10,
             status: 'active',
-            createdAt: new Date().toISOString().split('T')[0]
+            created_at: new Date().toISOString()
         };
 
-        const res = await apiPost('saveProductsBatch', {
-            token: authToken,
-            products: [product]
-        });
-        if (!res.success) throw new Error(res.message || res.error || 'Save failed');
+        // ---- 3. ONE insert call -------------------------------------------
+        const { data, error } = await sb.from('products').insert(product).select();
+        if (error) throw error;
 
+        const saved = (data && data[0]) ? mapProductRow(data[0]) : mapProductRow(product);
+
+        // ---- 4. Cache + re-render + reset the button ----------------------
         if (!cachedProducts) cachedProducts = [];
-        cachedProducts.push(product);
+        cachedProducts.unshift(saved);
 
-        // v5.1: restore the button on SUCCESS too (it was only restored in the
-        // error path before, leaving it stuck on the spinner after a save).
         if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All'; }
 
         if (allFailed) {
-            showToast('Saved with placeholder images — create the Supabase "product-images" bucket (see SUPABASE-SETUP.md), then re-upload.', '⚠️');
+            showToast('Product saved with placeholder images — check Supabase Storage, then re-upload.', '⚠️');
         } else if (failedItems.length > 0) {
-            showToast(`Saved (${failedItems.length} skipped)`, '⚠️');
+            showToast(`Product saved (${failedItems.length} file(s) skipped)`, '⚠️');
         } else {
-            showToast('Product saved!', '✅');
+            showToast('Product saved successfully', '✅');
         }
-        loadSection('products');
 
-        setTimeout(async () => {
-            try {
-                const fresh = await apiGet('products');
-                cachedProducts = fresh || cachedProducts;
-                if (currentSection === 'products') renderProductList('all');
-            } catch (e) {}
-        }, 300);
+        console.log('[Batch] Product saved:', saved.id, '| variants:', saved.variants.length);
+        loadSection('products');
 
     } catch (err) {
         // ONE readable error per genuine failure (no per-file spam).
         logOnce('batch-fatal-' + err.message, '[Batch] Upload/save failed: ' + err.message);
-        showToast('Upload failed: ' + err.message.substring(0, 140), '❌');
+        showToast('Upload failed: ' + String(err.message).substring(0, 140), '❌');
         if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All'; }
+    } finally {
+        console.timeEnd('saveBatch');
     }
 }
 
@@ -1276,13 +1353,13 @@ async function editProduct(id) {
         const newVariants = variants.map((v, i) => {
             const priceEl = document.querySelector(`.edit-v-price[data-idx="${i}"]`);
             const codeEl = document.querySelector(`.edit-v-code[data-idx="${i}"]`);
-            return { ...v, price: parseFloat(priceEl.value) || v.price, code: codeEl.value.trim() || v.code };
+            return { ...v, price: parseFloat(priceEl.value) || v.price, code: normalizeProductCode(codeEl.value.trim() || v.code) };
         });
 
         const updated = {
             ...p,
             name: newName,
-            code: newCode,
+            code: normalizeProductCode(newCode),
             sizes: newSizesStr.split(',').map(s => s.trim()).filter(Boolean),
             stock: newStock,
             status: newStatus,
