@@ -67,7 +67,7 @@ const SUPABASE = {
     // Supabase lowercases bucket ids created from the dashboard Storage UI,
     // so this is the canonical expected name. resolveSupabaseBucket() below
     // probes the aliases too, so the dashboard casing wins automatically.
-    bucket: 'product-images',
+    bucket: 'Product-images',
     bucketAliases: ['PRODUCT-IMAGES', 'Product-Images', 'products-images', 'nakowa-images', 'nakowa-product-images'],
     // Smart counter: images go to Supabase while BOTH limits hold.
     // maxImages = image-count cap; maxSizeMB = size cap (~1 GB plan headroom).

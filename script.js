@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    NAKOWA ABAYAS COLLECTIONS â€” Public Script (v3 â€” FINAL)
    ============================================================ */
 
@@ -17,7 +17,7 @@ const CLOUDINARY = {
 const SUPABASE = {
     url: 'https://yntkbjzvmizssrxwzuoi.supabase.co',
     key: 'sb_publishable_CFyA2zonltT81jFRMyAQpg_kx5vLA_u',
-    bucket: 'product-images',
+    bucket: 'Product-images',
     threshold: 200
 };
 
@@ -175,7 +175,7 @@ function updateCartUI() {
         cartCount.classList.toggle('hidden', count === 0);
     }
     if (mobileCount) mobileCount.textContent = count;
-    if (cartTotal) cartTotal.textContent = 'â‚¦' + total.toLocaleString();
+    if (cartTotal) cartTotal.textContent = '₦' + total.toLocaleString();
 
     const container = document.getElementById('cartItems');
     if (!container) return;
@@ -190,7 +190,7 @@ function updateCartUI() {
             <img src="${item.image || DEFAULT_IMG}" alt="${escapeHtml(item.name)}" onerror="imgFallback(this)" />
             <div class="cart-item-info">
                 <h4>${escapeHtml(item.name)}</h4>
-                <p>â‚¦${item.price.toLocaleString()} Ã— ${item.qty}</p>
+                <p>₦${item.price.toLocaleString()} Ã— ${item.qty}</p>
                 <div class="cart-item-meta">Size: ${escapeHtml(item.size)} Â· Color: ${escapeHtml(item.colorName)}</div>
             </div>
             <button class="remove-item" data-idx="${idx}"><i class="fas fa-times"></i></button>
@@ -282,7 +282,7 @@ function rebuildCountryFilters() {
         <button class="filter-btn ${active === 'all' ? 'active' : ''}" data-country="all">All</button>
         ${countries.map(c => `
             <button class="filter-btn ${active === c ? 'active' : ''}" data-country="${escapeHtml(c)}">
-                ${c === 'Egypt' ? 'ðŸ‡ªðŸ‡¬ ' : ''}${escapeHtml(c)}
+                ${c === 'Egypt' ? '🇪🇬 ' : ''}${escapeHtml(c)}
             </button>
         `).join('')}
     `;
@@ -346,7 +346,7 @@ function renderProductCard(p) {
     const mainImage = optimizeImage(firstVariant.image, 500, 500);
     const firstVideo = (p.videos && Array.isArray(p.videos) && p.videos.length > 0) ? p.videos[0] : null;
     const country = p.country || 'Egypt';
-    const flag = country === 'Egypt' ? 'ðŸ‡ªðŸ‡¬' : '';
+    const flag = country === 'Egypt' ? '🇪🇬' : '';
     const sizes = Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : []);
 
     let colorCirclesHTML = '';
@@ -386,7 +386,7 @@ function renderProductCard(p) {
                 <div class="product-name">${escapeHtml(p.name)}</div>
                 <div class="product-code">${escapeHtml(firstVariant.code || p.code || '')}</div>
                 ${colorCirclesHTML}
-                <div class="product-price" data-product-id="${escapeHtml(p.id)}">â‚¦${parseFloat(firstVariant.price || 0).toLocaleString()}</div>
+                <div class="product-price" data-product-id="${escapeHtml(p.id)}">₦${parseFloat(firstVariant.price || 0).toLocaleString()}</div>
                 <div class="product-sizes">
                     ${sizes.map(s => `<span>${escapeHtml(s)}</span>`).join('')}
                 </div>
@@ -427,7 +427,7 @@ function attachProductListeners() {
                 if (nameEl) nameEl.textContent = newColorName;
 
                 const priceEl = document.querySelector(`.product-price[data-product-id="${productId}"]`);
-                if (priceEl && newPrice) priceEl.textContent = 'â‚¦' + parseFloat(newPrice).toLocaleString();
+                if (priceEl && newPrice) priceEl.textContent = '₦' + parseFloat(newPrice).toLocaleString();
 
                 const codeEl = card.querySelector('.product-code');
                 if (codeEl && newCode) codeEl.textContent = newCode;
@@ -531,8 +531,8 @@ function openQuickView(product) {
         <h3>${escapeHtml(product.name)}</h3>
         <div class="modal-details">
             <p><strong>Code:</strong> <span id="qvCode">${escapeHtml(firstVariant.code || product.code || '')}</span></p>
-            <p><strong>Country:</strong> ${product.country === 'Egypt' ? 'ðŸ‡ªðŸ‡¬' : ''} ${escapeHtml(product.country || 'Egypt')}</p>
-            <p><strong>Price:</strong> <span id="qvPrice">â‚¦${parseFloat(firstVariant.price || 0).toLocaleString()}</span></p>
+            <p><strong>Country:</strong> ${product.country === 'Egypt' ? '🇪🇬' : ''} ${escapeHtml(product.country || 'Egypt')}</p>
+            <p><strong>Price:</strong> <span id="qvPrice">₦${parseFloat(firstVariant.price || 0).toLocaleString()}</span></p>
             <p><strong>Sizes:</strong> ${sizes.map(escapeHtml).join(' Â· ') || 'â€”'}</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
@@ -582,7 +582,7 @@ function openQuickView(product) {
                 const selColorNameEl = document.getElementById('qvSelectedColor');
                 if (selColorNameEl) selColorNameEl.textContent = this.dataset.colorName;
                 const qvPriceEl = document.getElementById('qvPrice');
-                if (qvPriceEl) qvPriceEl.textContent = 'â‚¦' + parseFloat(this.dataset.price).toLocaleString();
+                if (qvPriceEl) qvPriceEl.textContent = '₦' + parseFloat(this.dataset.price).toLocaleString();
                 const qvCodeEl = document.getElementById('qvCode');
                 if (qvCodeEl) qvCodeEl.textContent = this.dataset.code;
             });
@@ -642,9 +642,9 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             <div class="form-group"><label>Notes (optional)</label><textarea id="orderNotes" placeholder="Any special requests..."></textarea></div>
         </form>
         <div class="order-summary">
-            <p><strong>Price:</strong> <span id="sumPrice">â‚¦${price.toLocaleString()}</span></p>
+            <p><strong>Price:</strong> <span id="sumPrice">₦${price.toLocaleString()}</span></p>
             <p><strong>Qty:</strong> <span id="sumQty">${presetQty}</span></p>
-            <p class="total">Total: â‚¦<span id="sumTotal">${(price * presetQty).toLocaleString()}</span></p>
+            <p class="total">Total: ₦<span id="sumTotal">${(price * presetQty).toLocaleString()}</span></p>
         </div>
         <button class="btn-gold" style="width:100%;" id="confirmOrderBtn">
             <i class="fab fa-whatsapp"></i> Confirm Order via WhatsApp
@@ -718,9 +718,9 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
                 'Color: ' + order.colorName,
                 'Code: ' + order.productCode,
                 'SELECTED SIZES: ' + sizes.join(', '),
-                'Price: â‚¦' + price.toLocaleString(),
+                'Price: ₦' + price.toLocaleString(),
                 'Quantity: ' + qty,
-                'Total: â‚¦' + (price * qty).toLocaleString(),
+                'Total: ₦' + (price * qty).toLocaleString(),
                 '',
                 'Customer Name: ' + name,
                 'Phone: ' + phone,
@@ -829,7 +829,7 @@ async function openTrackingModal() {
                     </div>
                     <div class="tracking-total">
                         <span>Total</span>
-                        <span>â‚¦${(myOrder.total || 0).toLocaleString()}</span>
+                        <span>₦${(myOrder.total || 0).toLocaleString()}</span>
                     </div>
                 </div>
             `;
@@ -857,7 +857,7 @@ async function openTrackingModal() {
                     </div>
                     <div class="tracking-total">
                         <span>Total</span>
-                        <span>â‚¦${(myOrder.total || 0).toLocaleString()}</span>
+                        <span>₦${(myOrder.total || 0).toLocaleString()}</span>
                     </div>
                 </div>
             `;
@@ -911,12 +911,12 @@ async function checkoutCart() {
         lines.push('Color: ' + item.colorName);
         lines.push('Size: ' + item.size);
         lines.push('Qty: ' + item.qty);
-        lines.push('Price: â‚¦' + item.price.toLocaleString());
-        lines.push('Subtotal: â‚¦' + (item.price * item.qty).toLocaleString());
+        lines.push('Price: ₦' + item.price.toLocaleString());
+        lines.push('Subtotal: ₦' + (item.price * item.qty).toLocaleString());
         lines.push('');
     }
 
-    lines.push('*GRAND TOTAL:* â‚¦' + total.toLocaleString());
+    lines.push('*GRAND TOTAL:* ₦' + total.toLocaleString());
     lines.push('');
     lines.push('Please provide your delivery details.');
 
