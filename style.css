@@ -760,15 +760,15 @@ nav {
 }
 
 .color-circle {
-    width: 16px;
-    height: 16px;
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 1.5px solid transparent;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     padding: 0;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     outline: none;
     background-clip: padding-box;
 }
@@ -1732,7 +1732,7 @@ footer {
 
 .product-card .product-image {
     width: 100%;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 4 / 5;
     overflow: hidden;
     position: relative;
     background: var(--black);
@@ -1803,8 +1803,17 @@ footer {
 
 .product-info .color-circle,
 .product-content .color-circle {
-  width: 16px;
-  height: 16px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    outline: none;
+    background-clip: padding-box;
 }
 
 /* Color name */
@@ -1871,24 +1880,24 @@ footer {
 
 /* Order button — full width, gold */
 .btn-order {
-  width: 100%;
-  margin-top: auto;
-  background: var(--gold-gradient);
-  border: none;
-  padding: 10px 12px;
-  font-weight: 800;
-  border-radius: var(--radius-pill);
-  color: var(--black);
-  cursor: pointer;
-  transition: var(--transition);
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+    width: 100%;
+    margin-top: auto;
+    background: var(--gold-gradient);
+    border: none;
+    padding: 8px 10px;
+    font-weight: 800;
+    border-radius: var(--radius-pill);
+    color: var(--black);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
 }
 
 .btn-order:hover {
@@ -1897,37 +1906,32 @@ footer {
 }
 
 @media (min-width: 640px) {
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    width: 100%;
+    .product-grid {
+        gap: 14px;
+    }
+
+    .product-card {
+        border-radius: 22px;
+    }
+
+    .product-info {
+        padding: 12px 14px;
+        gap: 4px;
+    }
+
+    .product-info .product-name {
+        font-size: 1rem;
+    }
+
+    .product-info .price-actual {
+        font-size: 1.15rem;
+    }
+
+    .btn-order {
+        padding: 10px 12px;
+        font-size: 0.75rem;
+    }
 }
-
-  .product-card {
-    min-width: 0;
-    overflow: hidden;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    background: var(--black);
-    border: 1.5px solid var(--border-gold);
-    box-shadow: 0 8px 24px -14px rgba(0, 0, 0, 0.4);
-    cursor: pointer;
-    transition: var(--transition);
-    position: relative;
-}
-
-  .product-info,
-  .product-content {
-    padding: 16px;
-    gap: 8px;
-  }
-
-  .product-info .product-name,
-  .product-content .product-name {
-    font-size: 1.1rem;
-  }
 
   .product-info .price-actual,
   .product-content .price-actual {
@@ -1935,9 +1939,25 @@ footer {
   }
 
   .btn-order {
-    padding: 12px 14px;
-    font-size: 0.85rem;
-  }
+    width: 100%;
+    margin-top: auto;
+    background: var(--gold-gradient);
+    border: none;
+    padding: 8px 10px;
+    font-weight: 800;
+    border-radius: var(--radius-pill);
+    color: var(--black);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
 }
 
 @media (min-width: 900px) {
