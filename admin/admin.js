@@ -132,6 +132,8 @@ let currentBatch = [];
 let supabaseInitialCount = 0;
 let supabaseBucket = SUPABASE.bucket;
 let supabaseProbePromise = null;
+let supabaseProbeCachedAt = 0;
+const SUPABASE_PROBE_TTL = 30 * 60 * 1000;
 let supabaseAvailable = false;
 let salesChartInstance = null;
 
@@ -1110,7 +1112,11 @@ function saveCurrentVariant() {
 // ============================================================
 // IMAGE COMPRESSION — SIZE-AWARE
 // ============================================================
-async function compressImage(file, maxWidth = 1200, quality = 0.8) {
+async function compressImage(file, maxWidth = 900, quality = 0.72) {
+    // Skip compression for small files (< 200KB)
+    if (file.size && file.size < 200 * 1024) {
+        return file;
+    }
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -1168,7 +1174,12 @@ async function probeSupabaseBucket() {
 }
 
 function resolveSupabaseBucket() {
-    if (!supabaseProbePromise) supabaseProbePromise = probeSupabaseBucket();
+    const now = Date.now();
+    if (supabaseProbePromise && (now - supabaseProbeCachedAt) < SUPABASE_PROBE_TTL) {
+        return supabaseProbePromise;
+    }
+    supabaseProbeCachedAt = now;
+    supabaseProbePromise = probeSupabaseBucket();
     return supabaseProbePromise;
 }
 
@@ -1305,6 +1316,21 @@ async function uploadOne(file, isVideo, indexInBatch) {
 // ============================================================
 // CONCURRENCY-LIMITED UPLOAD POOL
 // ============================================================
+async function uploadWithRetry(fn, maxRetries) {
+    maxRetries = maxRetries || 2;
+    let lastErr;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (err) {
+            lastErr = err;
+            if (attempt < maxRetries) {
+                await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+            }
+        }
+    }
+    throw lastErr;
+}
 async function uploadWithConcurrencyLimit(items, uploadFn, concurrency = 6, onProgress) {
     const results = new Array(items.length);
     let nextIndex = 0;
@@ -1409,7 +1435,7 @@ async function runBackgroundUpload(productId, batch) {
         const settled = await uploadWithConcurrencyLimit(
             batch,
             async (v, i) => {
-                const url = await uploadOne(v.file, v.isVideo, i);
+                const url = await uploadWithRetry(() => uploadOne(v.file, v.isVideo, i), 2);
                 return Object.assign({}, v, { url: url });
             },
             6,
