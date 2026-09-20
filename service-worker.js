@@ -2,7 +2,7 @@
    NAKOWA ABAYAS — Service Worker (v3)
    ============================================================ */
 
-const CACHE_NAME = 'nakowa-v16';
+const CACHE_NAME = 'nakowa-v17';
 const ASSETS = [
     './',
     './index.html',
