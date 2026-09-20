@@ -1842,3 +1842,9 @@ footer {
 
     .price-fake { font-size: 0.75em; margin-left: 6px; }
 }
+/* ============================================================
+   HERO BACKGROUND — Direct URL
+   ============================================================ */
+.hero {
+    background-image: url('https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1600&q=80') !important;
+}
