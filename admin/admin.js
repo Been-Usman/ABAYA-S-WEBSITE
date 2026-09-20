@@ -60,6 +60,60 @@ const COLOR_PALETTE = [
 ];
 
 // ============================================================
+// AUTH — 5-HOUR TOKEN + OWNER LOCK
+// Only the FIRST admin who ever logged in on this device
+// can log in again. Token expires after 5 hours.
+// ============================================================
+const TOKEN_LIFETIME_MS = 5 * 60 * 60 * 1000; // 5 hours
+const TOKEN_KEY = 'nakowa_admin_token';
+const TOKEN_TIME_KEY = 'nakowa_admin_token_time';
+const USER_KEY = 'nakowa_admin_user';
+const OWNER_KEY = 'nakowa_admin_owner';
+
+function saveToken(token, username) {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(TOKEN_TIME_KEY, Date.now().toString());
+    localStorage.setItem(USER_KEY, username);
+    // Lock this device to this username forever (until cleared manually)
+    if (!localStorage.getItem(OWNER_KEY)) {
+        localStorage.setItem(OWNER_KEY, username);
+    }
+}
+
+function getToken() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const time = parseInt(localStorage.getItem(TOKEN_TIME_KEY) || '0');
+    if (!token) return '';
+    if (Date.now() - time > TOKEN_LIFETIME_MS) {
+        clearToken();
+        return '';
+    }
+    return token;
+}
+
+function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_TIME_KEY);
+    localStorage.removeItem(USER_KEY);
+    // NOTE: OWNER_KEY is NOT removed — device stays locked to this admin
+}
+
+function getTokenRemainingMs() {
+    const time = parseInt(localStorage.getItem(TOKEN_TIME_KEY) || '0');
+    if (!time) return 0;
+    return Math.max(0, TOKEN_LIFETIME_MS - (Date.now() - time));
+}
+
+function getOwner() {
+    return localStorage.getItem(OWNER_KEY) || '';
+}
+
+function isOwner(username) {
+    const owner = getOwner();
+    return !owner || owner === username;
+}
+
+// ============================================================
 // STATE
 // ============================================================
 let authToken = '';
@@ -191,6 +245,14 @@ async function doLogin() {
         errEl.style.display = 'block';
         return;
     }
+
+    // OWNER LOCK: only the first admin who ever logged in can log in again
+    if (!isOwner(username)) {
+        errEl.textContent = 'This device is locked to another admin account.';
+        errEl.style.display = 'block';
+        return;
+    }
+
     errEl.style.display = 'none';
     const btn = $('loginBtn');
     btn.disabled = true;
@@ -230,8 +292,7 @@ function doLogout() {
     cachedSettings = null;
     cachedCustomers = null;
     cachedUsers = null;
-    localStorage.removeItem('nakowa_admin_token');
-    localStorage.removeItem('nakowa_admin_user');
+    clearToken();
     window.location.href = '../index.html';
 }
 
