@@ -1,11 +1,13 @@
-/* ============================================================
-   NAKOWA ABAYAS COLLECTIONS â€” Public Script (v3 â€” FINAL)
+﻿/* ============================================================
+   NAKOWA ABAYAS COLLECTIONS — Public Script (v4 — FINAL)
+   Features: Fake price, color circles (admin-only),
+             abandoned cart tracking, product separation
    ============================================================ */
 
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbx-edW1RqonhzFc8n1XWXv0iIvxbIrPflv3TT7z9hYi1HLSZ2OL9uS_HBxjKoOiEx8T/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxGcW2xkagjfp9Dr3Jz_1sflwM-JRbjPV1LUF4UoWzhAGJU2epWVDhXoQH9TgkevU5D/exec';
 
 const CLOUDINARY = {
     cloudName: 'Idtixrva',
@@ -108,6 +110,23 @@ function applyVideo10sLoop(container) {
 }
 
 // ============================================================
+// PRICE RENDERER — ACTUAL BOLD + FAKE STRIKETHROUGH
+// fakePrice = actualPrice + 5000 (calculated dynamically)
+// ============================================================
+function renderPrice(actualPrice) {
+    const actual = parseFloat(actualPrice) || 0;
+    const fake = actual + 5000;
+    return `
+        <span class="price-actual">₦${actual.toLocaleString()}</span>
+        <span class="price-fake">/₦${fake.toLocaleString()}/</span>
+    `;
+}
+
+function getPriceHTML(actualPrice) {
+    return renderPrice(actualPrice);
+}
+
+// ============================================================
 // SPLASH
 // ============================================================
 const SPLASH_TIME = 5000;
@@ -127,7 +146,7 @@ function hideSplash() {
 // ============================================================
 // TOAST
 // ============================================================
-function showToast(message, icon = 'âœ…') {
+function showToast(message, icon = '✅') {
     const toast = document.getElementById('toast');
     if (!toast) return;
     document.getElementById('toastMessage').textContent = message;
@@ -190,8 +209,8 @@ function updateCartUI() {
             <img src="${item.image || DEFAULT_IMG}" alt="${escapeHtml(item.name)}" onerror="imgFallback(this)" />
             <div class="cart-item-info">
                 <h4>${escapeHtml(item.name)}</h4>
-                <p>₦${item.price.toLocaleString()} Ã— ${item.qty}</p>
-                <div class="cart-item-meta">Size: ${escapeHtml(item.size)} Â· Color: ${escapeHtml(item.colorName)}</div>
+                <p>₦${item.price.toLocaleString()} × ${item.qty}</p>
+                <div class="cart-item-meta">Size: ${escapeHtml(item.size)} · Color: ${escapeHtml(item.colorName)}</div>
             </div>
             <button class="remove-item" data-idx="${idx}"><i class="fas fa-times"></i></button>
         </div>
@@ -204,7 +223,7 @@ function updateCartUI() {
             cart.splice(idx, 1);
             saveCart();
             updateCartUI();
-            showToast(`Removed ${removed.name}`, 'ðŸ—‘ï¸');
+            showToast(`Removed ${removed.name}`, '🗑️');
         });
     });
 }
@@ -244,7 +263,85 @@ function addToCart(product, variant, size, qty = 1) {
     }
     saveCart();
     updateCartUI();
-    showToast(`Added ${product.name} (${variant.colorName}) to cart!`, 'ðŸ›’');
+    showToast(`Added ${product.name} (${variant.colorName}) to cart!`, '🛒');
+}
+
+// ============================================================
+// ABANDONED CHECKOUT TRACKER
+// ============================================================
+function saveAbandonedCart(product, variant) {
+    try {
+        const record = {
+            productId: product.id,
+            productName: product.name,
+            productCode: variant.code || product.code,
+            colorName: variant.colorName,
+            colorValue: variant.colorValue,
+            price: parseFloat(variant.price || product.price) || 0,
+            image: variant.image,
+            savedAt: Date.now()
+        };
+        localStorage.setItem('nakowa_abandoned', JSON.stringify(record));
+    } catch (e) {}
+}
+
+function clearAbandonedCart() {
+    try { localStorage.removeItem('nakowa_abandoned'); } catch (e) {}
+}
+
+function checkAbandonedCart() {
+    try {
+        const raw = localStorage.getItem('nakowa_abandoned');
+        if (!raw) return;
+        const record = JSON.parse(raw);
+        // Only show if less than 24 hours old
+        if (Date.now() - record.savedAt > 24 * 60 * 60 * 1000) {
+            clearAbandonedCart();
+            return;
+        }
+        // Find the product
+        const product = products.find(p => String(p.id) === String(record.productId));
+        if (!product) return;
+        // Find the variant
+        const variants = product.variants || [];
+        const variant = variants.find(v => v.colorName === record.colorName) || variants[0];
+        if (!variant) return;
+
+        // Show a small banner at top of products section
+        const grid = document.getElementById('productGrid');
+        if (!grid) return;
+        const existing = document.getElementById('abandonedBanner');
+        if (existing) existing.remove();
+
+        const banner = document.createElement('div');
+        banner.id = 'abandonedBanner';
+        banner.className = 'abandoned-banner';
+        banner.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;width:100%;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <i class="fas fa-shopping-bag" style="color:var(--gold);font-size:1.3rem;"></i>
+                    <span>You left <strong style="color:var(--gold);">${escapeHtml(record.productName)}</strong> in your cart. Complete your order?</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn-gold" id="abandonedResumeBtn" style="padding:8px 16px;font-size:0.8rem;">Yes, continue</button>
+                    <button class="btn-outline-gold" id="abandonedDismissBtn" style="padding:8px 16px;font-size:0.8rem;">Dismiss</button>
+                </div>
+            </div>
+        `;
+        grid.parentElement.insertBefore(banner, grid);
+
+        document.getElementById('abandonedResumeBtn').addEventListener('click', () => {
+            banner.remove();
+            openOrderModal(product, variant);
+        });
+
+        document.getElementById('abandonedDismissBtn').addEventListener('click', () => {
+            banner.remove();
+            clearAbandonedCart();
+        });
+    } catch (e) {
+        console.warn('Abandoned cart error:', e);
+    }
 }
 
 // ============================================================
@@ -324,7 +421,7 @@ function renderProducts() {
     if (display) display.textContent = filtered.length;
 
     if (filtered.length === 0) {
-        grid.innerHTML = '<div class="empty-state">âœ¨ No Abayas found â€” try another filter.</div>';
+        grid.innerHTML = '<div class="empty-state">✨ No Abayas found — try another filter.</div>';
         return;
     }
 
@@ -349,8 +446,9 @@ function renderProductCard(p) {
     const flag = country === 'Egypt' ? '🇪🇬' : '';
     const sizes = Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : []);
 
+    // Color circles — ONLY from admin-added variants, show EXACTLY how many exist
     let colorCirclesHTML = '';
-    if (variants.length > 1) {
+    if (variants.length > 0) {
         colorCirclesHTML = `
             <div class="color-circles" data-product-id="${escapeHtml(p.id)}">
                 ${variants.map((v, i) => `
@@ -386,7 +484,7 @@ function renderProductCard(p) {
                 <div class="product-name">${escapeHtml(p.name)}</div>
                 <div class="product-code">${escapeHtml(firstVariant.code || p.code || '')}</div>
                 ${colorCirclesHTML}
-                <div class="product-price" data-product-id="${escapeHtml(p.id)}">₦${parseFloat(firstVariant.price || 0).toLocaleString()}</div>
+                <div class="product-price" data-product-id="${escapeHtml(p.id)}">${getPriceHTML(firstVariant.price || 0)}</div>
                 <div class="product-sizes">
                     ${sizes.map(s => `<span>${escapeHtml(s)}</span>`).join('')}
                 </div>
@@ -399,6 +497,7 @@ function renderProductCard(p) {
 }
 
 function attachProductListeners() {
+    // Color circle clicks — swap image IN-PLACE
     document.querySelectorAll('.color-circles').forEach(group => {
         group.querySelectorAll('.color-circle').forEach(circle => {
             circle.addEventListener('click', function(e) {
@@ -427,7 +526,7 @@ function attachProductListeners() {
                 if (nameEl) nameEl.textContent = newColorName;
 
                 const priceEl = document.querySelector(`.product-price[data-product-id="${productId}"]`);
-                if (priceEl && newPrice) priceEl.textContent = '₦' + parseFloat(newPrice).toLocaleString();
+                if (priceEl && newPrice) priceEl.innerHTML = getPriceHTML(newPrice);
 
                 const codeEl = card.querySelector('.product-code');
                 if (codeEl && newCode) codeEl.textContent = newCode;
@@ -513,7 +612,7 @@ function openQuickView(product) {
                 : `<img id="qvImage" src="${optimizeImage(firstVariant.image, 800, 800)}" alt="${escapeHtml(product.name)}" onerror="imgFallback(this)" />`
             }
         </div>
-        ${variants.length > 1 ? `
+        ${variants.length > 0 ? `
             <div class="color-circles" id="qvColorCircles">
                 ${variants.map((v, i) => `
                     <button class="color-circle ${i === 0 ? 'selected' : ''}"
@@ -532,8 +631,8 @@ function openQuickView(product) {
         <div class="modal-details">
             <p><strong>Code:</strong> <span id="qvCode">${escapeHtml(firstVariant.code || product.code || '')}</span></p>
             <p><strong>Country:</strong> ${product.country === 'Egypt' ? '🇪🇬' : ''} ${escapeHtml(product.country || 'Egypt')}</p>
-            <p><strong>Price:</strong> <span id="qvPrice">₦${parseFloat(firstVariant.price || 0).toLocaleString()}</span></p>
-            <p><strong>Sizes:</strong> ${sizes.map(escapeHtml).join(' Â· ') || 'â€”'}</p>
+            <p><strong>Price:</strong> <span id="qvPrice">${getPriceHTML(firstVariant.price || 0)}</span></p>
+            <p><strong>Sizes:</strong> ${sizes.map(escapeHtml).join(' · ') || '—'}</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
             <select id="qvSize" style="flex:1;min-width:120px;padding:10px;border-radius:8px;border:1px solid var(--border-gold);background:rgba(255,255,255,0.06);color:#fff;">
@@ -582,7 +681,7 @@ function openQuickView(product) {
                 const selColorNameEl = document.getElementById('qvSelectedColor');
                 if (selColorNameEl) selColorNameEl.textContent = this.dataset.colorName;
                 const qvPriceEl = document.getElementById('qvPrice');
-                if (qvPriceEl) qvPriceEl.textContent = '₦' + parseFloat(this.dataset.price).toLocaleString();
+                if (qvPriceEl) qvPriceEl.innerHTML = getPriceHTML(this.dataset.price);
                 const qvCodeEl = document.getElementById('qvCode');
                 if (qvCodeEl) qvCodeEl.textContent = this.dataset.code;
             });
@@ -592,7 +691,7 @@ function openQuickView(product) {
     document.getElementById('qvAddToCart').addEventListener('click', () => {
         const size = document.getElementById('qvSize').value;
         const qty = parseInt(document.getElementById('qvQty').value) || 1;
-        if (!size) { showToast('Please select a size', 'âš ï¸'); return; }
+        if (!size) { showToast('Please select a size', '⚠️'); return; }
         addToCart(product, selectedVariant, size, qty);
         modal.classList.remove('open');
     });
@@ -600,7 +699,7 @@ function openQuickView(product) {
     document.getElementById('qvOrderNow').addEventListener('click', () => {
         const size = document.getElementById('qvSize').value;
         const qty = parseInt(document.getElementById('qvQty').value) || 1;
-        if (!size) { showToast('Please select a size', 'âš ï¸'); return; }
+        if (!size) { showToast('Please select a size', '⚠️'); return; }
         modal.classList.remove('open');
         setTimeout(() => {
             openOrderModal(product, selectedVariant, size, qty);
@@ -615,6 +714,9 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
     const modal = document.getElementById('orderModal');
     const container = document.getElementById('orderFormContainer');
     if (!modal || !container) return;
+
+    // Save to abandoned cart — if user closes without ordering
+    saveAbandonedCart(product, variant);
 
     const sizes = Array.isArray(product.sizes) ? product.sizes : (typeof product.sizes === 'string' ? product.sizes.split(',').map(s => s.trim()) : []);
     const price = parseFloat(variant.price || product.price) || 0;
@@ -708,9 +810,12 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             myOrders.unshift({ ...order, orderId: orderId });
             localStorage.setItem('nakowa_my_orders', JSON.stringify(myOrders.slice(0, 50)));
 
+            // Clear abandoned cart after successful order
+            clearAbandonedCart();
+
             const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
             const waLines = [
-                'ðŸ›ï¸ *New Order â€” NAKOWA ABAYAS COLLECTIONS*',
+                '🛍️ *New Order — NAKOWA ABAYAS COLLECTIONS*',
                 '',
                 'Order ID: ' + orderId,
                 '',
@@ -735,7 +840,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             this.innerHTML = '<i class="fas fa-check"></i> Order placed!';
             this.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
 
-            showToast('Order placed successfully!', 'âœ…');
+            showToast('Order placed successfully!', '✅');
 
             setTimeout(() => {
                 modal.classList.remove('open');
@@ -745,11 +850,18 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
 
         } catch (err) {
             console.error(err);
-            showToast('Failed to place order: ' + err.message, 'âŒ');
+            showToast('Failed to place order: ' + err.message, '❌');
             this.disabled = false;
             this.innerHTML = '<i class="fab fa-whatsapp"></i> Confirm Order via WhatsApp';
         }
     });
+
+    // Clear abandoned cart if modal is closed via X
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            clearAbandonedCart();
+        }
+    }, { once: true });
 }
 
 // ============================================================
@@ -812,7 +924,7 @@ async function openTrackingModal() {
                     <div class="tracking-item-header">
                         <div class="tracking-order-id">
                             ${escapeHtml(displayId.code)}
-                            <span class="order-date">${escapeHtml(displayId.date)}${displayId.serial ? ' Â· ' + escapeHtml(displayId.serial) : ''}</span>
+                            <span class="order-date">${escapeHtml(displayId.date)}${displayId.serial ? ' · ' + escapeHtml(displayId.serial) : ''}</span>
                         </div>
                         <span class="tracking-status ${currentStatus}">${escapeHtml(currentStatus)}</span>
                     </div>
@@ -822,7 +934,7 @@ async function openTrackingModal() {
                             <div class="tp-name">${escapeHtml(myOrder.productName)}</div>
                             <div class="tp-meta">
                                 Code: <strong>${escapeHtml(myOrder.productCode)}</strong><br>
-                                Color: <strong>${escapeHtml(myOrder.colorName)}</strong> Â· Size: ${escapeHtml(myOrder.size)}<br>
+                                Color: <strong>${escapeHtml(myOrder.colorName)}</strong> · Size: ${escapeHtml(myOrder.size)}<br>
                                 Qty: ${myOrder.quantity}
                             </div>
                         </div>
@@ -852,7 +964,7 @@ async function openTrackingModal() {
                         <img src="${optimizeImage(myOrder.productImage, 100, 100)}" alt="" class="tracking-product-img" onerror="imgFallback(this)" />
                         <div class="tracking-product-info">
                             <div class="tp-name">${escapeHtml(myOrder.productName)}</div>
-                            <div class="tp-meta">Code: ${escapeHtml(myOrder.productCode)} Â· Color: ${escapeHtml(myOrder.colorName)}</div>
+                            <div class="tp-meta">Code: ${escapeHtml(myOrder.productCode)} · Color: ${escapeHtml(myOrder.colorName)}</div>
                         </div>
                     </div>
                     <div class="tracking-total">
@@ -890,18 +1002,18 @@ function formatOrderIdDisplay(orderId, adminCode) {
 }
 
 // ============================================================
-// CART CHECKOUT â†’ WhatsApp
+// CART CHECKOUT → WhatsApp
 // ============================================================
 async function checkoutCart() {
     if (cart.length === 0) {
-        showToast('Your cart is empty!', 'âš ï¸');
+        showToast('Your cart is empty!', '⚠️');
         return;
     }
 
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
     const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
 
-    let lines = ['ðŸ›ï¸ *Cart Order â€” NAKOWA ABAYAS COLLECTIONS*', ''];
+    let lines = ['🛍️ *Cart Order — NAKOWA ABAYAS COLLECTIONS*', ''];
 
     for (let i = 0; i < cart.length; i++) {
         const item = cart[i];
@@ -962,10 +1074,12 @@ async function loadProducts() {
         try {
             localStorage.setItem('nakowa_products_cache', JSON.stringify(products));
         } catch (e) {}
+        // After render, check abandoned cart
+        setTimeout(checkAbandonedCart, 300);
     } catch (err) {
         console.error('Load products error:', err);
         if (products.length === 0) {
-            grid.innerHTML = '<div class="empty-state">âŒ Could not load products. Please refresh.</div>';
+            grid.innerHTML = '<div class="empty-state">❌ Could not load products. Please refresh.</div>';
         }
     }
 }
@@ -1058,7 +1172,7 @@ function setupSearch() {
         if (display) display.textContent = filtered.length;
 
         if (filtered.length === 0) {
-            grid.innerHTML = '<div class="empty-state">âœ¨ No results found.</div>';
+            grid.innerHTML = '<div class="empty-state">✨ No results found.</div>';
             return;
         }
 
@@ -1073,7 +1187,7 @@ function setupSearch() {
 }
 
 // ============================================================
-// LOGO 5x â†’ Admin
+// LOGO 5x → Admin
 // ============================================================
 function setupLogoTrigger() {
     const logo = document.getElementById('logoTrigger');
@@ -1239,12 +1353,12 @@ function setupNewsletter() {
         const email = document.getElementById('newsletterEmail').value.trim();
         const msg = document.getElementById('newsletterMsg');
         if (!email.includes('@')) {
-            msg.textContent = 'âŒ Please enter a valid email.';
+            msg.textContent = '❌ Please enter a valid email.';
             msg.style.display = 'block';
             msg.style.color = '#e74c3c';
             return;
         }
-        msg.textContent = 'âœ… Thank you for subscribing!';
+        msg.textContent = '✅ Thank you for subscribing!';
         msg.style.display = 'block';
         msg.style.color = 'var(--gold)';
         form.reset();

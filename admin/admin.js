@@ -1,55 +1,22 @@
-/* ============================================================
-   NAKOWA ABAYAS COLLECTIONS — Admin Script (v5 — AUDITED & VERIFIED)
+﻿/* ============================================================
+   NAKOWA ABAYAS COLLECTIONS — Admin Script (v6 — FINAL)
 
-   ROOT CAUSES FOUND IN v4 AND FIXED HERE:
-
-   1) CONSOLE FLOOD (v4 used https://via.placeholder.com as the broken-image
-      fallback). That host is DEAD: its HTTPS handshake fails and plain HTTP
-      returns 403 (verified live). Because the onerror handlers re-assigned
-      the same dead URL, onerror fired again -> endless network loop ->
-      hundreds of red errors per second. Fixed with a local data-URI
-      fallback applied at most ONCE per <img> (window.imgFallback).
-
-   2) SUPABASE "Bucket not found". Verified live against the project:
-         POST /storage/v1/object/PRODUCT-IMAGES/<file>  -> HTTP 400
-         {"statusCode":"404","error":"Bucket not found","code":"NoSuchBucket"}
-      Storage's upload path resolves the bucket with asSuperUser() (it does
-      NOT use RLS), so this means the bucket genuinely does not exist under
-      "PRODUCT-IMAGES" OR "product-images" (nor under 15 other probed names).
-      This code now RESOLVES the bucket id at runtime (case-insensitive),
-      and when no bucket exists it skips Supabase instead of firing a
-      guaranteed-to-fail request for every single image.
-
-   3) NAVIGATION RACE. Async render functions drew their section even after
-      the user had switched to another section. Every render function now
-      re-checks `currentSection` before drawing.
-
-   4) LOADING FLASH. Section placeholders ("Loading...") removed — sections
-      now paint instantly from cache and refresh in the background.
-
-   5) ERROR DEDUPLICATION. Failures are reported once per unique reason
-      (logOnce/warnOnce) instead of once per file.
-
-   NOTE: uploading to Supabase also requires an INSERT policy on
-   storage.objects for the anon role — see SUPABASE-SETUP.md.
-
-   6) SAVE DEAD-END (v5.1). Live-verified: the Apps Script backend is alive
-      and its saveProductsBatch action works (it answered
-      {"success":false,"message":"Invalid token."} for a dummy token, and the
-      same write-path provably persists — users.lastLogin updates). The real
-      "not saving" bug: saveBatch() threw "All N upload(s) failed" BEFORE the
-      apiPost was ever made, because both upload providers were down (no
-      Supabase bucket + wrong Cloudinary cloud name). Now, when every upload
-      fails, the product is STILL SAVED — each variant gets the local
-      placeholder image (videos skipped) — and ONE toast explains the exact
-      fix. Real uploads start working automatically the moment the Supabase
-      bucket exists (auto-detected) or the Cloudinary cloud name is fixed.
+   FEATURES ADDED:
+   1. Bulk price update (checkboxes + toolbar)
+   2. Bulk delete (Delete Selected)
+   3. Search on Products page (client-side)
+   4. WhatsApp order status notification
+   5. Drag & drop image reorder in variant setup
+   6. Faster save (concurrency limit 6 + live progress)
+   7. Fake price display (actual bold + fake strikethrough)
+   8. Color circles in admin product cards
+   9. UTF-8 fixed everywhere
    ============================================================ */
 
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbx-edW1RqonhzFc8n1XWXv0iIvxbIrPflv3TT7z9hYi1HLSZ2OL9uS_HBxjKoOiEx8T/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxGcW2xkagjfp9Dr3Jz_1sflwM-JRbjPV1LUF4UoWzhAGJU2epWVDhXoQH9TgkevU5D/exec';
 
 const CLOUDINARY = {
     cloudName: 'Idtixrva',
@@ -61,16 +28,9 @@ const CLOUDINARY = {
 
 const SUPABASE = {
     url: 'https://yntkbjzvmizssrxwzuoi.supabase.co',
-    // Publishable (anon) key — verified live: accepted by this project
-    // (an invalid key is rejected with 403 "Invalid Compact JWS").
     key: 'sb_publishable_CFyA2zonltT81jFRMyAQpg_kx5vLA_u',
-    // Supabase lowercases bucket ids created from the dashboard Storage UI,
-    // so this is the canonical expected name. resolveSupabaseBucket() below
-    // probes the aliases too, so the dashboard casing wins automatically.
     bucket: 'Product-images',
-    bucketAliases: ['PRODUCT-IMAGES', 'Product-Images', 'products-images', 'nakowa-images', 'nakowa-product-images'],
-    // Smart counter: images go to Supabase while BOTH limits hold.
-    // maxImages = image-count cap; maxSizeMB = size cap (~1 GB plan headroom).
+    bucketAliases: ['product-images', 'PRODUCT-IMAGES', 'Product-Images', 'products-images', 'nakowa-images'],
     maxImages: 200,
     maxSizeMB: 900,
     threshold: 200
@@ -116,33 +76,31 @@ let uploadFiles = [];
 let currentVariantIndex = 0;
 let currentBatch = [];
 let supabaseInitialCount = 0;
-let supabaseBucket = SUPABASE.bucket;   // resolved at runtime (see resolveSupabaseBucket)
-let supabaseProbePromise = null;        // memoised probe so concurrent uploads probe once
-let supabaseAvailable = false;          // true only when the bucket really exists & is public
-let salesChartInstance = null;          // live Chart.js instance (destroyed on section change)
+let supabaseBucket = SUPABASE.bucket;
+let supabaseProbePromise = null;
+let supabaseAvailable = false;
+let salesChartInstance = null;
+
+// Bulk selection state
+let selectedProductIds = new Set();
+let productSearchQuery = '';
 
 // ============================================================
 // UTILITIES
 // ============================================================
 function $(id) { return document.getElementById(id); }
 
-// Local, network-free image fallback + one-shot onerror guard.
-// window.FALLBACK_IMG is defined in admin.html <head>; the inline
-// duplicate keeps this file self-sufficient (no redeclaration: properties,
-// not top-level consts).
 const DEFAULT_IMG = window.FALLBACK_IMG || 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20viewBox%3D%220%200%20400%20400%22%3E%3Crect%20width%3D%22400%22%20height%3D%22400%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%22200%22%20y%3D%22200%22%20fill%3D%22%23d4af37%22%20font-family%3D%22Poppins%2CArial%2Csans-serif%22%20font-size%3D%2256%22%20font-weight%3D%22700%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3ENAKOWA%3C%2Ftext%3E%3C%2Fsvg%3E';
 
 if (typeof window.imgFallback !== 'function') {
     window.imgFallback = function (img) {
-        if (!img || img.dataset.fbApplied === '1') return; // hard guard: never loop
+        if (!img || img.dataset.fbApplied === '1') return;
         img.dataset.fbApplied = '1';
         img.onerror = null;
         img.src = DEFAULT_IMG;
     };
 }
 
-// Report each unique problem once — stops console spam when a batch of
-// files fails for the same reason.
 const _reportedOnce = new Set();
 function logOnce(key, message, detail) {
     if (_reportedOnce.has(key)) return;
@@ -183,20 +141,26 @@ function generateId(prefix = 'P') {
     const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
     return prefix + '-' + ts + '-' + rand;
 }
-// Product-code normalization (NAK- prefix rules):
-//   "001"      → "NAK-001"   (pure digits get the prefix)
-//   "42"       → "NAK-42"
-//   "NAK-042"  → "NAK-042"   (already prefixed — unchanged)
-//   "MSC-002"  → "MSC-002"   (other formats — unchanged)
-//   ""         → "NAK-000"   (fallback)
+
 function normalizeProductCode(code) {
     code = (code || '').trim();
     if (!code) return 'NAK-000';
-    if (/^\d+$/.test(code)) return 'NAK-' + code;      // pure digits
-    if (code.startsWith('NAK-')) return code;           // already prefixed
-    return code;                                        // other format
+    if (/^\d+$/.test(code)) return 'NAK-' + code;
+    if (code.startsWith('NAK-')) return code;
+    return code;
 }
 
+// ============================================================
+// FAKE PRICE RENDERER
+// ============================================================
+function renderPrice(actualPrice) {
+    const actual = parseFloat(actualPrice) || 0;
+    const fake = actual + 5000;
+    return `
+        <span class="price-actual">₦${actual.toLocaleString()}</span>
+        <span class="price-fake">/₦${fake.toLocaleString()}/</span>
+    `;
+}
 
 // ============================================================
 // API
@@ -286,12 +250,10 @@ async function warmCache() {
         cachedOrders = o || [];
         cachedSettings = s || {};
     } catch (e) {
-        // Never leave the caches null: sections must be able to paint
-        // instantly from cache (no "Loading..." placeholder anywhere).
         cachedProducts = cachedProducts || [];
         cachedOrders = cachedOrders || [];
         cachedSettings = cachedSettings || {};
-        warnOnce('warm-cache-failed', '[API] Initial data prefetch failed — sections will render from cache and retry in the background.', e);
+        warnOnce('warm-cache-failed', '[API] Initial prefetch failed.', e);
     }
 }
 
@@ -301,10 +263,8 @@ async function warmCache() {
 function loadSection(section) {
     currentSection = section;
 
-    // Release the dashboard chart when leaving it: a Chart instance kept on a
-    // canvas that is about to be thrown away leaks and can log errors later.
     if (section !== 'dashboard' && salesChartInstance) {
-        try { salesChartInstance.destroy(); } catch (e) { /* already gone */ }
+        try { salesChartInstance.destroy(); } catch (e) {}
         salesChartInstance = null;
     }
 
@@ -312,6 +272,11 @@ function loadSection(section) {
         el.classList.toggle('active', el.dataset.section === section);
     });
     $('sidebar').classList.remove('open');
+
+    // Reset bulk selection when leaving products
+    if (section !== 'products') {
+        selectedProductIds.clear();
+    }
 
     switch (section) {
         case 'dashboard': renderDashboard(); break;
@@ -330,12 +295,12 @@ function loadSection(section) {
 async function renderDashboard() {
     $('pageTitle').textContent = 'Dashboard';
     $('topbarDate').textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    currentSection = 'dashboard'; // set synchronously, before the await
+    currentSection = 'dashboard';
 
     if (cachedProducts === null) cachedProducts = [];
     if (cachedOrders === null) cachedOrders = [];
     if (cachedSettings === null) cachedSettings = {};
-    drawDashboard(); // instant paint from cache — no loading state
+    drawDashboard();
 
     try {
         const [p, o, s] = await Promise.all([
@@ -346,10 +311,8 @@ async function renderDashboard() {
         cachedProducts = p || [];
         cachedOrders = o || [];
         cachedSettings = s || {};
-        if (currentSection === 'dashboard') {   // ⭐ only draw if still on Dashboard
-            drawDashboard();
-        }
-    } catch (e) { /* keep cache */ }
+        if (currentSection === 'dashboard') drawDashboard();
+    } catch (e) {}
 }
 
 function drawDashboard() {
@@ -432,15 +395,11 @@ function drawDashboard() {
 
     if (window.Chart) {
         const ctx = document.getElementById('salesChart');
-        // Destroy the previous instance before creating a new one, so a
-        // detached canvas is never kept alive by a stale Chart (this was
-        // leaking one chart instance per Dashboard visit).
         if (salesChartInstance) {
-            try { salesChartInstance.destroy(); } catch (e) { /* already gone */ }
+            try { salesChartInstance.destroy(); } catch (e) {}
             salesChartInstance = null;
         }
         if (ctx) {
-            if (ctx._chart) { try { ctx._chart.destroy(); } catch (e) {} }
             salesChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -472,22 +431,20 @@ function drawDashboard() {
 }
 
 // ============================================================
-// PRODUCTS
+// PRODUCTS — WITH SEARCH + BULK TOOLBAR + CHECKBOXES
 // ============================================================
 async function renderProducts() {
     $('pageTitle').textContent = 'Products';
-    currentSection = 'products'; // set synchronously, before the await
+    currentSection = 'products';
 
     if (cachedProducts === null) cachedProducts = [];
-    drawProductsSection(); // instant paint from cache — no loading state
+    drawProductsSection();
 
     try {
         const products = await apiGet('products');
         cachedProducts = products || [];
-        if (currentSection === 'products') {   // ⭐ only draw if still on Products
-            drawProductsSection();
-        }
-    } catch (e) { /* keep cache */ }
+        if (currentSection === 'products') drawProductsSection();
+    } catch (e) {}
 }
 
 function drawProductsSection() {
@@ -498,11 +455,56 @@ function drawProductsSection() {
                 <span><i class="fas fa-box"></i> All Products (${cachedProducts.length})</span>
                 <button class="btn-gold" id="addProductBtn"><i class="fas fa-plus"></i> Add Products</button>
             </div>
+
+            <div class="admin-product-search">
+                <input type="text" id="productSearchInput" placeholder="Search by name or code..." />
+            </div>
+
+            <div id="bulkToolbar" class="bulk-toolbar hidden">
+                <span class="bulk-count"><span id="bulkCount">0</span> selected</span>
+                <select id="bulkPriceMode">
+                    <option value="set">Set Price To (₦)</option>
+                    <option value="add">Add (₦)</option>
+                    <option value="subtract">Subtract (₦)</option>
+                    <option value="increase_pct">Increase by (%)</option>
+                    <option value="decrease_pct">Decrease by (%)</option>
+                </select>
+                <input type="number" id="bulkPriceValue" placeholder="Value" min="0" />
+                <button class="btn-bulk-apply" id="bulkApplyPriceBtn"><i class="fas fa-tag"></i> Apply</button>
+                <button class="btn-bulk-delete" id="bulkDeleteBtn"><i class="fas fa-trash"></i> Delete Selected</button>
+                <button class="btn-bulk-cancel" id="bulkCancelBtn">Cancel</button>
+            </div>
+
             <div id="productsContainer"></div>
         </div>
     `;
+
     $('addProductBtn').addEventListener('click', () => renderAddProductForm());
+
+    const searchInput = $('productSearchInput');
+    searchInput.value = productSearchQuery;
+    searchInput.addEventListener('input', function() {
+        productSearchQuery = this.value.trim().toLowerCase();
+        renderProductList('all');
+    });
+
+    $('bulkApplyPriceBtn').addEventListener('click', bulkApplyPrice);
+    $('bulkDeleteBtn').addEventListener('click', bulkDeleteProducts);
+    $('bulkCancelBtn').addEventListener('click', () => {
+        selectedProductIds.clear();
+        updateBulkToolbar();
+        renderProductList('all');
+    });
+
     renderProductList('all');
+}
+
+function updateBulkToolbar() {
+    const toolbar = $('bulkToolbar');
+    const countEl = $('bulkCount');
+    if (!toolbar || !countEl) return;
+    countEl.textContent = selectedProductIds.size;
+    toolbar.classList.toggle('hidden', selectedProductIds.size === 0);
 }
 
 function renderProductList(filterCountry) {
@@ -512,9 +514,23 @@ function renderProductList(filterCountry) {
     const countries = [...new Set(cachedProducts.map(p => p.country).filter(Boolean))];
     if (!countries.includes('Egypt')) countries.unshift('Egypt');
 
-    const filtered = filterCountry === 'all'
+    let filtered = filterCountry === 'all'
         ? cachedProducts
         : cachedProducts.filter(p => p.country === filterCountry);
+
+    // Apply search filter (client-side)
+    if (productSearchQuery) {
+        const q = productSearchQuery;
+        filtered = filtered.filter(p => {
+            const nameMatch = (p.name || '').toLowerCase().includes(q);
+            const codeMatch = (p.code || '').toLowerCase().includes(q);
+            const variantMatch = (p.variants || []).some(v =>
+                (v.colorName || '').toLowerCase().includes(q) ||
+                (v.code || '').toLowerCase().includes(q)
+            );
+            return nameMatch || codeMatch || variantMatch;
+        });
+    }
 
     const filterHTML = `
         <div class="filter-buttons" style="margin-bottom:14px;">
@@ -524,7 +540,7 @@ function renderProductList(filterCountry) {
     `;
 
     if (filtered.length === 0) {
-        container.innerHTML = filterHTML + `<div class="empty-state-admin"><i class="fas fa-box-open"></i><h4>No products</h4><p>Click "Add Products" to start.</p></div>`;
+        container.innerHTML = filterHTML + `<div class="empty-state-admin"><i class="fas fa-box-open"></i><h4>No products</h4><p>${productSearchQuery ? 'No match for your search.' : 'Click "Add Products" to start.'}</p></div>`;
     } else {
         container.innerHTML = filterHTML + `
             <div class="admin-product-grid">
@@ -542,6 +558,18 @@ function renderProductList(filterCountry) {
     container.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', () => deleteProduct(btn.dataset.id));
     });
+    container.querySelectorAll('.card-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const id = this.dataset.id;
+            if (this.checked) selectedProductIds.add(id);
+            else selectedProductIds.delete(id);
+            updateBulkToolbar();
+            const card = this.closest('.admin-product-card');
+            if (card) card.classList.toggle('selected', this.checked);
+        });
+    });
+
+    updateBulkToolbar();
 }
 
 function renderAdminProductCard(p) {
@@ -549,21 +577,39 @@ function renderAdminProductCard(p) {
     const firstVariant = variants[0] || {
         image: (Array.isArray(p.images) && p.images[0]) || p.images || '',
         price: p.price || 0,
-        code: p.code || ''
+        code: p.code || '',
+        colorName: 'Default',
+        colorValue: '#D4AF37'
     };
     const hasVideo = (p.videos && Array.isArray(p.videos) && p.videos.length > 0);
+    const isSelected = selectedProductIds.has(String(p.id));
+
+    // Color circles for admin card (compact)
+    let colorCirclesHTML = '';
+    if (variants.length > 0) {
+        colorCirclesHTML = `
+            <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin:6px 0;">
+                ${variants.slice(0, 6).map(v => `
+                    <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${v.colorValue || '#ccc'};border:1px solid rgba(255,255,255,0.3);" title="${escapeHtml(v.colorName || '')}"></span>
+                `).join('')}
+                ${variants.length > 6 ? `<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);">+${variants.length - 6}</span>` : ''}
+            </div>
+        `;
+    }
 
     return `
-        <div class="admin-product-card">
+        <div class="admin-product-card ${isSelected ? 'selected' : ''}">
+            <input type="checkbox" class="card-checkbox" data-id="${escapeHtml(p.id)}" ${isSelected ? 'checked' : ''} />
             ${hasVideo
                 ? `<video src="${p.videos[0]}" muted autoplay loop playsinline style="width:100%;height:140px;object-fit:cover;border-radius:8px;margin-bottom:10px;" data-autoplay-video></video>`
                 : `<img src="${firstVariant.image || DEFAULT_IMG}" alt="${escapeHtml(p.name)}" onerror="imgFallback(this)" />`
             }
             <h4>${escapeHtml(p.name)}</h4>
             <div class="product-meta">Code: <strong>${escapeHtml(firstVariant.code || p.code || '')}</strong></div>
-            <div class="product-meta">Price: <strong>${formatMoney(firstVariant.price || p.price)}</strong></div>
+            <div class="product-price" style="text-align:left;margin:4px 0;font-size:0.95rem;">${renderPrice(firstVariant.price || p.price || 0)}</div>
             <div class="product-meta">Stock: <strong>${p.stock || 0}</strong></div>
             <div class="product-meta">Colors: ${variants.length}${hasVideo ? ' · 🎬 Video' : ''}</div>
+            ${colorCirclesHTML}
             <div class="admin-actions">
                 <button class="edit-btn" data-id="${escapeHtml(p.id)}"><i class="fas fa-edit"></i> Edit</button>
                 <button class="delete-btn" data-id="${escapeHtml(p.id)}"><i class="fas fa-trash"></i></button>
@@ -573,7 +619,105 @@ function renderAdminProductCard(p) {
 }
 
 // ============================================================
-// ADD PRODUCT — BATCH UPLOAD
+// BULK PRICE UPDATE
+// ============================================================
+async function bulkApplyPrice() {
+    if (selectedProductIds.size === 0) {
+        showToast('Select products first', '⚠️');
+        return;
+    }
+    const mode = $('bulkPriceMode').value;
+    const value = parseFloat($('bulkPriceValue').value);
+    if (isNaN(value) || value < 0) {
+        showToast('Enter a valid value', '⚠️');
+        return;
+    }
+
+    const updates = [];
+    selectedProductIds.forEach(id => {
+        const p = cachedProducts.find(x => String(x.id) === String(id));
+        if (!p) return;
+        const variants = p.variants || [];
+        let currentPrice = 0;
+        if (variants.length > 0) currentPrice = parseFloat(variants[0].price) || 0;
+        else currentPrice = parseFloat(p.price) || 0;
+
+        let newPrice = currentPrice;
+        switch (mode) {
+            case 'set': newPrice = value; break;
+            case 'add': newPrice = currentPrice + value; break;
+            case 'subtract': newPrice = Math.max(0, currentPrice - value); break;
+            case 'increase_pct': newPrice = Math.round(currentPrice * (1 + value / 100)); break;
+            case 'decrease_pct': newPrice = Math.round(currentPrice * (1 - value / 100)); break;
+        }
+        newPrice = Math.max(0, newPrice);
+
+        // Apply to all variants
+        const newVariants = variants.map(v => ({ ...v, price: newPrice }));
+        updates.push({ id: p.id, newPrice: newPrice, variants: newVariants });
+    });
+
+    if (updates.length === 0) return;
+
+    showToast(`Updating ${updates.length} products...`, '⏳');
+
+    try {
+        const res = await apiPost('bulkUpdatePrices', {
+            token: authToken,
+            updates: updates.map(u => ({ id: u.id, newPrice: u.newPrice }))
+        });
+
+        if (res.success) {
+            // Update local cache immediately
+            updates.forEach(u => {
+                const idx = cachedProducts.findIndex(p => String(p.id) === String(u.id));
+                if (idx >= 0) {
+                    cachedProducts[idx].variants = u.variants;
+                }
+            });
+            showToast(`${updates.length} product(s) updated!`, '✅');
+            selectedProductIds.clear();
+            renderProductList('all');
+        } else {
+            showToast(res.message || 'Update failed', '❌');
+        }
+    } catch (err) {
+        showToast('Error: ' + err.message, '❌');
+    }
+}
+
+// ============================================================
+// BULK DELETE
+// ============================================================
+async function bulkDeleteProducts() {
+    if (selectedProductIds.size === 0) {
+        showToast('Select products first', '⚠️');
+        return;
+    }
+    const count = selectedProductIds.size;
+    showConfirm(`Delete ${count} product(s)?`, 'This action cannot be undone.', async () => {
+        try {
+            const res = await apiPost('bulkDeleteProducts', {
+                token: authToken,
+                ids: [...selectedProductIds]
+            });
+            if (res.success) {
+                cachedProducts = cachedProducts.filter(p => !selectedProductIds.has(String(p.id)));
+                showToast(`${count} product(s) deleted`, '🗑️');
+                selectedProductIds.clear();
+                renderProductList('all');
+                updateBulkToolbar();
+            } else {
+                showToast(res.message || 'Delete failed', '❌');
+            }
+        } catch (err) {
+            showToast('Error: ' + err.message, '❌');
+        }
+    });
+}
+
+// ============================================================
+// ADD PRODUCT — BATCH UPLOAD WITH DRAG REORDER
 // ============================================================
 function renderAddProductForm() {
     const container = $('productsContainer');
@@ -600,7 +744,7 @@ function renderAddProductForm() {
             </div>
 
             <div id="stepMedia" style="display:none;">
-                <p style="margin-bottom:12px;color:rgba(255,255,255,0.6);">Step 2: Upload images and/or videos (multiple allowed).</p>
+                <p style="margin-bottom:12px;color:rgba(255,255,255,0.6);">Step 2: Upload images and/or videos. Drag to reorder (first = main thumbnail).</p>
                 <div class="upload-zone" id="uploadZone">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>Click to select files</p>
@@ -674,7 +818,7 @@ function renderUploadPreview() {
     preview.innerHTML = uploadFiles.map((item, i) => {
         const isVideo = item.isVideo;
         return `
-            <div class="preview-item" data-idx="${i}">
+            <div class="preview-item" data-idx="${i}" draggable="true">
                 ${isVideo
                     ? `<video src="${URL.createObjectURL(item.file)}" muted autoplay loop playsinline data-autoplay-video></video>`
                     : `<img src="${URL.createObjectURL(item.file)}" alt="" />`
@@ -684,6 +828,7 @@ function renderUploadPreview() {
         `;
     }).join('');
 
+    // Remove buttons
     preview.querySelectorAll('[data-remove]').forEach(btn => {
         btn.addEventListener('click', e => {
             e.stopPropagation();
@@ -693,10 +838,53 @@ function renderUploadPreview() {
         });
     });
 
+    // Drag & drop reorder
+    setupDragReorder(preview);
+
     applyVideo10sLoop(preview);
 
     const btn = $('startVariantsBtn');
     if (btn) btn.disabled = uploadFiles.length === 0;
+}
+
+// Drag & drop reorder
+function setupDragReorder(container) {
+    let dragIdx = null;
+
+    container.querySelectorAll('.preview-item').forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            dragIdx = parseInt(this.dataset.idx);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        item.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            container.querySelectorAll('.preview-item').forEach(x => x.classList.remove('drag-over'));
+        });
+
+        item.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+        });
+
+        item.addEventListener('dragleave', function() {
+            this.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const dropIdx = parseInt(this.dataset.idx);
+            if (dragIdx === null || dragIdx === dropIdx) return;
+
+            const moved = uploadFiles.splice(dragIdx, 1)[0];
+            uploadFiles.splice(dropIdx, 0, moved);
+            dragIdx = null;
+            renderUploadPreview();
+        });
+    });
 }
 
 // ============================================================
@@ -724,8 +912,7 @@ function startVariantSetup() {
 
     getSupabaseImageCount().then(count => {
         supabaseInitialCount = count;
-        console.log('[Supabase] Bucket:', (supabaseAvailable ? supabaseBucket : 'not available'), '| initial image count:', count, '| threshold:', SUPABASE.threshold);
-    }).catch(() => { /* reported once inside getSupabaseImageCount */ });
+    }).catch(() => {});
 
     renderVariantStep();
 }
@@ -829,13 +1016,13 @@ function saveCurrentVariant() {
     if (!v.isVideo && !v.colorName) { showToast('Please select a color', '⚠️'); return false; }
 
     v.price = price;
-    v.code = normalizeProductCode(code);   // Issue 3: auto-prefix "NAK-"
+    v.code = normalizeProductCode(code);
     if (v.isVideo && !v.colorName) { v.colorName = 'Default'; v.colorValue = '#D4AF37'; }
     return true;
 }
 
 // ============================================================
-// IMAGE COMPRESSION
+// IMAGE COMPRESSION — SIZE-AWARE
 // ============================================================
 async function compressImage(file, maxWidth = 1200, quality = 0.8) {
     return new Promise((resolve, reject) => {
@@ -865,20 +1052,7 @@ async function compressImage(file, maxWidth = 1200, quality = 0.8) {
 }
 
 // ============================================================
-// ⭐ SUPABASE BUCKET RESOLUTION (v5)
-//
-// Live-verified behaviour of this project:
-//   • the publishable key is VALID (invalid keys get 403 "Invalid Compact JWS")
-//   • POST /storage/v1/object/PRODUCT-IMAGES/<file> → HTTP 400
-//     {"statusCode":"404","error":"Bucket not found","code":"NoSuchBucket"}
-//   • the upload route resolves the bucket with asSuperUser() (RLS bypassed),
-//     so "Bucket not found" means the bucket really is absent — not an RLS
-//     problem and not a casing problem we can guess our way out of.
-//
-// Therefore: probe the candidate bucket ids ONCE (memoised), remember which
-// one really exists, and skip Supabase entirely while none exists. That keeps
-// the console clean (no guaranteed-to-fail request per image) and the code
-// starts using Supabase the moment the bucket is created in the dashboard.
+// SUPABASE BUCKET RESOLUTION
 // ============================================================
 function supabaseBucketCandidates() {
     const list = [SUPABASE.bucket, ...(SUPABASE.bucketAliases || [])];
@@ -887,45 +1061,33 @@ function supabaseBucketCandidates() {
 
 async function probeSupabaseBucket() {
     const probeName = '_nakowa-bucket-probe.jpg';
-
     for (const candidate of supabaseBucketCandidates()) {
         try {
             const res = await fetch(`${SUPABASE.url}/storage/v1/object/public/${candidate}/${probeName}`, { cache: 'no-store' });
             let body = null;
             try { body = await res.json(); } catch (e) { body = null; }
             const code = body && body.code;
-
-            // "NoSuchBucket" = this candidate does not exist / is not public.
-            // Any other answer means the bucket exists and is publicly readable.
             if (code !== 'NoSuchBucket') {
                 supabaseBucket = candidate;
                 supabaseAvailable = true;
                 console.log('[Supabase] ✅ Bucket resolved:', candidate);
                 return true;
             }
-        } catch (e) {
-            // network hiccup on one candidate — keep checking the rest
-        }
+        } catch (e) {}
     }
-
     supabaseAvailable = false;
-    warnOnce(
-        'supabase-bucket-missing',
-        '[Supabase] No storage bucket found for this project (tried: ' + supabaseBucketCandidates().join(', ') + '). ' +
-        'Create the bucket in Supabase → Storage (public) and add an INSERT policy on storage.objects for the anon role — ' +
-        'see SUPABASE-SETUP.md. Images are uploaded to Cloudinary instead.'
-    );
+    warnOnce('supabase-bucket-missing',
+        '[Supabase] No bucket found. Images → Cloudinary.');
     return false;
 }
 
 function resolveSupabaseBucket() {
-    // Memoised promise: concurrent uploads all await the same single probe.
     if (!supabaseProbePromise) supabaseProbePromise = probeSupabaseBucket();
     return supabaseProbePromise;
 }
 
 // ============================================================
-// ⭐ SUPABASE UPLOAD (v5) — resolved bucket, deduplicated errors
+// SUPABASE UPLOAD
 // ============================================================
 async function uploadToSupabase(file) {
     const bucket = supabaseBucket;
@@ -945,30 +1107,19 @@ async function uploadToSupabase(file) {
 
     if (!res.ok) {
         const errText = await res.text();
-
-        // Give a specific hint based on status code
         let hint = '';
-        if (res.status === 400 && /NoSuchBucket/.test(errText)) hint = ' — Bucket "' + bucket + '" does not exist. Create it in Supabase → Storage (see SUPABASE-SETUP.md).';
-        else if (res.status === 400) hint = ' — Check the bucket name / file format.';
-        else if (res.status === 401) hint = ' — Check: Supabase key is correct and not expired.';
-        else if (res.status === 403) hint = ' — Check: RLS policy is missing. Add INSERT (+ SELECT) policy on storage.objects for the anon role.';
-        else if (res.status === 404) hint = ' — Check: Bucket "' + bucket + '" exists in Supabase Storage.';
-        else if (res.status === 413) hint = ' — Check: File size exceeds bucket limit.';
-
-        // One clean, readable error per unique failure reason.
+        if (res.status === 400 && /NoSuchBucket/.test(errText)) hint = ' — Bucket "' + bucket + '" not found.';
+        else if (res.status === 403) hint = ' — RLS policy missing.';
         logOnce('supabase-upload-' + res.status + '-' + bucket,
-            '[Supabase] ❌ Upload FAILED. Status: ' + res.status + ' | Body: ' + errText + hint);
-
+            '[Supabase] ❌ Upload FAILED (' + res.status + '): ' + errText + hint);
         throw new Error(`Supabase upload failed (${res.status}): ${errText}`);
     }
 
-    const publicUrl = `${SUPABASE.url}/storage/v1/object/public/${bucket}/${filename}`;
-    console.log('[Supabase] ✅ Upload SUCCESS:', filename);
-    return publicUrl;
+    return `${SUPABASE.url}/storage/v1/object/public/${bucket}/${filename}`;
 }
 
 // ============================================================
-// CLOUDINARY UPLOAD — WITH DIAGNOSTIC LOGGING
+// CLOUDINARY UPLOAD
 // ============================================================
 async function uploadToCloudinary(file, isVideo = false) {
     const formData = new FormData();
@@ -977,74 +1128,31 @@ async function uploadToCloudinary(file, isVideo = false) {
     formData.append('folder', CLOUDINARY.folder);
 
     const endpoint = isVideo ? CLOUDINARY.videoUrl : CLOUDINARY.imageUrl;
-
-    console.log('[Cloudinary] Uploading to:', endpoint);
-    console.log('[Cloudinary] Preset:', CLOUDINARY.uploadPreset, '| Folder:', CLOUDINARY.folder);
-    console.log('[Cloudinary] File:', file.name, '| size:', file.size, '| type:', file.type);
-
     const res = await fetch(endpoint, { method: 'POST', body: formData });
     const data = await res.json();
-
-    console.log('[Cloudinary] HTTP status:', res.status);
-    console.log('[Cloudinary] Response:', data);
 
     if (data.error) {
         const raw = Array.isArray(data.error) ? data.error[0] : data.error;
         const msg = (raw && raw.message) || 'Cloudinary error';
-
-        // Cloudinary's real messages (verified live):
-        //   401 {"message":"Unknown API key "}                → the CLOUD NAME is unknown
-        //   400 {"message":"Upload preset not found"}         → preset missing
-        //   400 {"message":"Upload preset must be whitelisted for unsigned uploads"} → preset is signed
         if (/unknown api key/i.test(msg)) {
-            throw new Error('Cloudinary rejected the cloud name "' + CLOUDINARY.cloudName + '" (401 "Unknown API key"). ' +
-                'Fix: Cloudinary Dashboard → the cloud name must match exactly the one shown at the top of the console.');
+            throw new Error('Cloudinary rejected cloud name. Check Dashboard.');
         }
-        if (/whitelisted|preset not found|preset must be specified/i.test(msg)) {
-            throw new Error('Cloudinary: "' + CLOUDINARY.uploadPreset + '" is not a valid Unsigned preset. ' +
-                'Fix: Cloudinary Dashboard → Settings → Upload → Upload presets → Signing Mode = "Unsigned".');
+        if (/whitelisted|preset not found/i.test(msg)) {
+            throw new Error('Cloudinary preset "' + CLOUDINARY.uploadPreset + '" must be Unsigned.');
         }
         throw new Error('Cloudinary: ' + msg);
     }
-    if (!data.secure_url) throw new Error('Cloudinary: no secure_url returned');
+    if (!data.secure_url) throw new Error('Cloudinary: no URL returned');
     return data.secure_url;
 }
 
-async function getSupabaseImageCount() {
-    // Only ask when a usable bucket was resolved; otherwise this would be a
-    // guaranteed 400 "Bucket not found" on every batch.
-    if (!await resolveSupabaseBucket()) return 0;
-
-    try {
-        const res = await fetch(`${SUPABASE.url}/storage/v1/object/list/${supabaseBucket}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + SUPABASE.key,
-                'apikey': SUPABASE.key,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ limit: 1000, offset: 0 })
-        });
-        if (!res.ok) {
-            warnOnce('supabase-list-' + res.status, '[Supabase] List request failed with status: ' + res.status + ' (count defaults to 0).');
-            return 0;
-        }
-        const files = await res.json();
-        return Array.isArray(files) ? files.length : 0;
-    } catch (e) {
-        warnOnce('supabase-list-error', '[Supabase] getSupabaseImageCount error (count defaults to 0):', e);
-        return 0;
-    }
-}
-
-// ⭐ SMART COUNTER (v6) — count AND total size in one list call.
-// Images go to Supabase only while BOTH caps hold (200 images / 900 MB);
-// whichever hits first sends everything after it to Cloudinary.
+// ============================================================
+// SUPABASE STATS (count + size)
+// ============================================================
 let supabaseStatsCache = { count: 0, sizeMB: 0, at: 0 };
+
 async function getSupabaseStats() {
     if (!await resolveSupabaseBucket()) return { count: 0, sizeMB: 0 };
-
-    // Serve from a 60s cache so a parallel batch doesn't N list calls.
     if (Date.now() - supabaseStatsCache.at < 60000) return supabaseStatsCache;
 
     try {
@@ -1057,10 +1165,7 @@ async function getSupabaseStats() {
             },
             body: JSON.stringify({ limit: 1000, offset: 0 })
         });
-        if (!res.ok) {
-            warnOnce('supabase-list-' + res.status, '[Supabase] List request failed with status: ' + res.status + ' (stats default to 0).');
-            return { count: 0, sizeMB: 0 };
-        }
+        if (!res.ok) return { count: 0, sizeMB: 0 };
         const files = await res.json();
         let totalSize = 0;
         (files || []).forEach(f => {
@@ -1069,105 +1174,117 @@ async function getSupabaseStats() {
         supabaseStatsCache = { count: files.length || 0, sizeMB: totalSize / (1024 * 1024), at: Date.now() };
         return supabaseStatsCache;
     } catch (e) {
-        warnOnce('supabase-stats-error', '[Supabase] getSupabaseStats error (stats default to 0):', e);
         return { count: 0, sizeMB: 0 };
     }
 }
 
+async function getSupabaseImageCount() {
+    const stats = await getSupabaseStats();
+    return stats.count;
+}
+
 // ============================================================
-// ⭐ UPLOAD ONE (v6) — smart counter + graceful Cloudinary fallback
+// UPLOAD ONE
 // ============================================================
 async function uploadOne(file, isVideo, indexInBatch) {
-    if (isVideo) {
-        // Videos ALWAYS → Cloudinary
-        return await uploadToCloudinary(file, true);
-    }
+    if (isVideo) return await uploadToCloudinary(file, true);
 
-    // Images → Supabase while a bucket exists AND count < 200 AND size < 900 MB
     const stats = await getSupabaseStats();
     const counterFull = (stats.count + indexInBatch) >= SUPABASE.maxImages;
     const sizeFull = stats.sizeMB >= SUPABASE.maxSizeMB;
     const useSupabase = !counterFull && !sizeFull && await resolveSupabaseBucket();
 
+    const isLargeBatch = currentBatch.length > 20;
+    const maxW = isLargeBatch ? 1000 : 1200;
+    const quality = isLargeBatch ? 0.7 : 0.8;
+
     if (useSupabase) {
         try {
-            const compressed = await compressImage(file);
+            const compressed = await compressImage(file, maxW, quality);
             const url = await uploadToSupabase(compressed);
-            // Invalidate the stats cache so the next file in this batch sees the new count.
             supabaseStatsCache.at = 0;
-            console.log('[Upload] Saved to Supabase. Total:', stats.count + 1 + indexInBatch);
             return url;
         } catch (e) {
-            // Stop hammering Supabase for the rest of this session and let
-            // Cloudinary handle the remaining images. Reported ONCE.
             supabaseAvailable = false;
             warnOnce('supabase-upload-fallback',
-                '[Supabase] Upload unavailable (' + e.message + ') — remaining images go to Cloudinary.');
-
-            const compressed = await compressImage(file);
+                '[Supabase] Upload unavailable — using Cloudinary.');
+            const compressed = await compressImage(file, maxW, quality);
             return await uploadToCloudinary(compressed, false);
         }
     }
-
-    if (counterFull || sizeFull) {
-        console.log('[Upload] Supabase full (count:', stats.count, '| size:', stats.sizeMB.toFixed(1) + 'MB). Using Cloudinary.');
-    }
-    const compressed = await compressImage(file);
+    const compressed = await compressImage(file, maxW, quality);
     return await uploadToCloudinary(compressed, false);
 }
 
 // ============================================================
-// SAVE BATCH — Promise.allSettled
+// CONCURRENCY-LIMITED UPLOAD POOL
+// ============================================================
+async function uploadWithConcurrencyLimit(items, uploadFn, concurrency = 6, onProgress) {
+    const results = new Array(items.length);
+    let nextIndex = 0;
+    let completed = 0;
+
+    async function worker() {
+        while (nextIndex < items.length) {
+            const i = nextIndex++;
+            try {
+                results[i] = { status: 'fulfilled', value: await uploadFn(items[i], i) };
+            } catch (err) {
+                results[i] = { status: 'rejected', reason: err };
+            }
+            completed++;
+            if (onProgress) onProgress(completed, items.length);
+        }
+    }
+
+    const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => worker());
+    await Promise.all(workers);
+    return results;
+}
+
+function updateSaveProgress(completed, total) {
+    const saveBtn = $('saveBatchBtn');
+    if (!saveBtn) return;
+    const pct = Math.round((completed / total) * 100);
+    saveBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Uploading ${completed}/${total} (${pct}%)`;
+}
+
+// ============================================================
+// SAVE BATCH — FAST + CONCURRENCY LIMITED
 // ============================================================
 async function saveBatch() {
-    if (!currentBatch.length) { showToast('No files selected — add files to the batch first.', '⚠️'); return; }
+    if (!currentBatch.length) { showToast('No files selected', '⚠️'); return; }
     const saveBtn = $('saveBatchBtn');
-    if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...'; }
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...'; }
 
     try {
-        // Resolve the Supabase bucket once for the whole batch (single probe).
         await resolveSupabaseBucket();
+        if (!supabaseInitialCount) supabaseInitialCount = await getSupabaseImageCount();
 
-        if (!supabaseInitialCount) {
-            supabaseInitialCount = await getSupabaseImageCount();
-        }
+        console.log('[Batch] Starting', currentBatch.length, 'file(s).');
 
-        console.log('[Batch] Starting upload of', currentBatch.length, 'file(s). Supabase bucket:', (supabaseAvailable ? supabaseBucket : 'unavailable — using Cloudinary'), '| initial count:', supabaseInitialCount);
-
-        const settled = await Promise.allSettled(currentBatch.map(async (v, i) => {
-            const url = await uploadOne(v.file, v.isVideo, i);
-            return { ...v, url };
-        }));
+        const settled = await uploadWithConcurrencyLimit(
+            currentBatch,
+            async (v, i) => {
+                const url = await uploadOne(v.file, v.isVideo, i);
+                return { ...v, url };
+            },
+            6,
+            updateSaveProgress
+        );
 
         const uploaded = [];
         const failedItems = [];
         settled.forEach((result, i) => {
-            if (result.status === 'fulfilled') {
-                uploaded.push(result.value);
-            } else {
-                failedItems.push({ index: i, reason: result.reason?.message || String(result.reason) });
-            }
-        });
-
-        console.log('[Batch] Result — uploaded:', uploaded.length, '| failed:', failedItems.length);
-
-        // One message per unique failure reason instead of one per file.
-        failedItems.forEach(f => {
-            logOnce('batch-fail-' + f.reason, '[Batch] Upload failed (' + failedItems.length + ' file(s) affected): ' + f.reason);
+            if (result.status === 'fulfilled') uploaded.push(result.value);
+            else failedItems.push({ index: i, reason: result.reason?.message || String(result.reason) });
         });
 
         let allFailed = false;
         if (uploaded.length === 0) {
-            // v5.1 — SAVE NEVER DEAD-ENDS. Every upload failed (no Supabase
-            // bucket AND Cloudinary rejected the cloud name), but the product
-            // must still reach the backend: build the variants from the batch
-            // metadata and attach the local placeholder image. The real
-            // provider errors are already in the console (once per reason);
-            // the toast below tells the exact fix.
             allFailed = true;
             const fallbackSrc = window.FALLBACK_IMG || DEFAULT_IMG;
             currentBatch.forEach(v => uploaded.push({ ...v, url: v.isVideo ? '' : fallbackSrc }));
-            console.warn('[Batch] All uploads failed — product is still saved with placeholder images (videos skipped).');
         } else if (failedItems.length > 0) {
             showToast(`${failedItems.length} file(s) failed — saving the other ${uploaded.length}`, '⚠️');
         }
@@ -1218,30 +1335,18 @@ async function saveBatch() {
         if (!cachedProducts) cachedProducts = [];
         cachedProducts.push(product);
 
-        // v5.1: restore the button on SUCCESS too (it was only restored in the
-        // error path before, leaving it stuck on the spinner after a save).
         if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All'; }
 
         if (allFailed) {
-            showToast('Saved with placeholder images — create the Supabase "product-images" bucket (see SUPABASE-SETUP.md), then re-upload.', '⚠️');
+            showToast('Saved with placeholder — fix bucket, then re-upload.', '⚠️');
         } else if (failedItems.length > 0) {
             showToast(`Saved (${failedItems.length} skipped)`, '⚠️');
         } else {
             showToast('Product saved!', '✅');
         }
         loadSection('products');
-
-        setTimeout(async () => {
-            try {
-                const fresh = await apiGet('products');
-                cachedProducts = fresh || cachedProducts;
-                if (currentSection === 'products') renderProductList('all');
-            } catch (e) {}
-        }, 300);
-
     } catch (err) {
-        // ONE readable error per genuine failure (no per-file spam).
-        logOnce('batch-fatal-' + err.message, '[Batch] Upload/save failed: ' + err.message);
+        logOnce('batch-fatal-' + err.message, '[Batch] Failed: ' + err.message);
         showToast('Upload failed: ' + err.message.substring(0, 140), '❌');
         if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All'; }
     }
@@ -1387,22 +1492,20 @@ async function deleteProduct(id) {
 }
 
 // ============================================================
-// ORDERS
+// ORDERS — WITH WHATSAPP STATUS NOTIFICATION
 // ============================================================
 async function renderOrders() {
     $('pageTitle').textContent = 'Orders';
-    currentSection = 'orders'; // set synchronously, before the await
+    currentSection = 'orders';
 
     if (cachedOrders === null) cachedOrders = [];
-    drawOrdersSection(); // instant paint from cache — no loading state
+    drawOrdersSection();
 
     try {
         const orders = await apiGet('orders');
         cachedOrders = (orders || []).reverse();
-        if (currentSection === 'orders') {   // ⭐ only draw if still on Orders
-            drawOrdersSection();
-        }
-    } catch (e) { /* keep cache */ }
+        if (currentSection === 'orders') drawOrdersSection();
+    } catch (e) {}
 }
 
 function drawOrdersSection() {
@@ -1478,7 +1581,7 @@ function renderOrdersTable(orders) {
             <td>${o.quantity}</td>
             <td><strong>${formatMoney(o.total)}</strong></td>
             <td>
-                <select class="status-select" data-order-id="${escapeHtml(o.orderId)}">
+                <select class="status-select" data-order-id="${escapeHtml(o.orderId)}" data-phone="${escapeHtml(o.customerPhone || '')}">
                     ${['pending', 'confirmed', 'processing', 'completed', 'cancelled'].map(s =>
                         `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`
                     ).join('')}
@@ -1491,14 +1594,31 @@ function renderOrdersTable(orders) {
     tbody.querySelectorAll('.status-select').forEach(sel => {
         sel.addEventListener('change', async function() {
             const orderId = this.dataset.orderId;
+            const customerPhone = this.dataset.phone;
             const newStatus = this.value;
             try {
                 const res = await apiPost('updateOrderStatus', { token: authToken, orderId, status: newStatus });
                 if (res.success) {
-                    showToast('Status updated', '✅');
                     const idx = cachedOrders.findIndex(o => o.orderId === orderId);
                     if (idx >= 0) cachedOrders[idx].status = newStatus;
-                } else showToast(res.message || 'Failed', '❌');
+
+                    // Open WhatsApp to notify customer
+                    if (customerPhone) {
+                        const cleanPhone = customerPhone.replace(/\D/g, '');
+                        if (cleanPhone) {
+                            const msg = `🛍️ *NAKOWA ABAYAS COLLECTIONS*\n\nYour order ${orderId} status is now: *${newStatus.toUpperCase()}*\n\nThank you for shopping with us!`;
+                            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+                            window.open(waUrl, '_blank');
+                            showToast('Status updated — WhatsApp opened to notify customer', '✅');
+                        } else {
+                            showToast('Status updated', '✅');
+                        }
+                    } else {
+                        showToast('Status updated', '✅');
+                    }
+                } else {
+                    showToast(res.message || 'Failed', '❌');
+                }
             } catch (err) { showToast('Error: ' + err.message, '❌'); }
         });
     });
@@ -1540,7 +1660,7 @@ async function generateReceipt(orderId) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     const idParts = formatOrderIdDisplay(o.orderId, o.productCode);
-    doc.text(idParts.code, margin, y + 4);
+    doc.text(idParts.code || '', margin, y + 4);
     if (idParts.date) doc.text(idParts.date, margin, y + 8);
     y += 14;
 
@@ -1608,18 +1728,16 @@ async function generateReceipt(orderId) {
 // ============================================================
 async function renderCustomers() {
     $('pageTitle').textContent = 'Customers';
-    currentSection = 'customers'; // set synchronously, before the await
+    currentSection = 'customers';
 
     if (cachedCustomers === null) cachedCustomers = [];
-    drawCustomersSection(); // instant paint from cache — no loading state
+    drawCustomersSection();
 
     try {
         const customers = await apiGet('customers');
         cachedCustomers = customers || [];
-        if (currentSection === 'customers') {   // ⭐ only draw if still on Customers
-            drawCustomersSection();
-        }
-    } catch (e) { /* keep cache */ }
+        if (currentSection === 'customers') drawCustomersSection();
+    } catch (e) {}
 }
 
 function drawCustomersSection() {
@@ -1656,18 +1774,16 @@ function drawCustomersSection() {
 // ============================================================
 async function renderSettings() {
     $('pageTitle').textContent = 'Settings';
-    currentSection = 'settings'; // set synchronously, before the await
+    currentSection = 'settings';
 
     if (cachedSettings === null) cachedSettings = {};
-    drawSettingsSection(); // instant paint from cache — no loading state
+    drawSettingsSection();
 
     try {
         const settings = await apiGet('settings');
         cachedSettings = settings || {};
-        if (currentSection === 'settings') {   //  only draw if still on Settings
-            drawSettingsSection();
-        }
-    } catch (e) { /* keep cache */ }
+        if (currentSection === 'settings') drawSettingsSection();
+    } catch (e) {}
 }
 
 function drawSettingsSection() {
@@ -1676,9 +1792,9 @@ function drawSettingsSection() {
         <div class="admin-card">
             <div class="card-title"><span><i class="fas fa-cog"></i> Website Settings</span></div>
             <form class="admin-form" id="settingsForm">
-                <div class="form-group"><label>WhatsApp Number</label><input type="text" id="setWhatsapp" value="${escapeHtml(s.whatsapp || '')}" placeholder="+2348001234567" /></div>
+                <div class="form-group"><label>WhatsApp Number</label><input type="text" id="setWhatsapp" value="${escapeHtml(s.whatsapp || '')}" placeholder="+20 150 076 6295" /></div>
                 <div class="form-group"><label>Email</label><input type="email" id="setEmail" value="${escapeHtml(s.email || '')}" placeholder="info@nakowaabayas.com" /></div>
-                <div class="form-group"><label>Address</label><input type="text" id="setAddress" value="${escapeHtml(s.address || '')}" placeholder="Lagos, Nigeria" /></div>
+                <div class="form-group"><label>Address</label><input type="text" id="setAddress" value="${escapeHtml(s.address || '')}" placeholder="Cairo, Egypt" /></div>
                 <div class="form-group"><label>Low Stock Threshold</label><input type="number" id="setThreshold" value="${s.lowStockThreshold || 3}" min="1" /></div>
                 <div class="form-group"><label>Hero Image URL</label><input type="text" id="setHero" value="${escapeHtml(s.hero || '')}" placeholder="https://..." /></div>
                 <div class="form-group"><label>Logo URL</label><input type="text" id="setLogo" value="${escapeHtml(s.logo || '')}" placeholder="https://..." /></div>
@@ -1712,18 +1828,16 @@ function drawSettingsSection() {
 // ============================================================
 async function renderUsers() {
     $('pageTitle').textContent = 'Users';
-    currentSection = 'users'; // set synchronously, before the await
+    currentSection = 'users';
 
     if (cachedUsers === null) cachedUsers = [];
-    drawUsersSection(); // instant paint from cache — no loading state
+    drawUsersSection();
 
     try {
         const users = await apiGet('users');
         cachedUsers = users || [];
-        if (currentSection === 'users') {   //  only draw if still on Users
-            drawUsersSection();
-        }
-    } catch (e) { /* keep cache */ }
+        if (currentSection === 'users') drawUsersSection();
+    } catch (e) {}
 }
 
 function drawUsersSection() {
