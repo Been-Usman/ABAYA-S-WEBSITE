@@ -125,7 +125,7 @@ function getPriceHTML(actualPrice) {
 // ============================================================
 // SPLASH
 // ============================================================
-const SPLASH_TIME = 5000;
+const SPLASH_TIME = 1500;
 const splashStart = Date.now();
 let splashHidden = false;
 
@@ -529,17 +529,11 @@ function attachProductListeners() {
         });
     });
 
-    document.querySelectorAll('.btn-quick-view').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const p = products.find(x => String(x.id) === String(this.dataset.id));
-            if (p) openQuickView(p);
-        });
-    });
+    
 
     document.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', function(e) {
-            if (e.target.closest('.btn-order') || e.target.closest('.color-circle') || e.target.closest('.btn-quick-view')) return;
+            if (e.target.closest('.btn-order') || e.target.closest('.color-circle')) return;
             const p = products.find(x => String(x.id) === String(this.dataset.id));
             if (p) openQuickView(p);
         });
