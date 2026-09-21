@@ -470,9 +470,6 @@ function renderProductCard(p) {
                     : `<img src="${mainImage}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="imgFallback(this)" />`
                 }
                 ${flag ? `<span class="country-badge">${flag} ${escapeHtml(country)}</span>` : ''}
-                <div class="quick-view-overlay">
-                    <button class="btn-quick-view" data-id="${escapeHtml(p.id)}">Quick View</button>
-                </div>
             </div>
             <div class="product-info">
                 <div class="product-name">${escapeHtml(p.name)}</div>
@@ -531,12 +528,7 @@ function attachProductListeners() {
 
     
 
-    document.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            if (e.target.closest('.btn-order') || e.target.closest('.color-circle')) return;
-            const p = products.find(x => String(x.id) === String(this.dataset.id));
-            if (p) openQuickView(p);
-        });
+    
     });
 
     document.querySelectorAll('.btn-order').forEach(btn => {
