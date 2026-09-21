@@ -115,11 +115,7 @@ function applyVideo10sLoop(container) {
 // ============================================================
 function renderPrice(actualPrice) {
     const actual = parseFloat(actualPrice) || 0;
-    const fake = actual + 5000;
-    return `
-        <span class="price-actual">₦${actual.toLocaleString()}</span>
-        <span class="price-fake">₦${fake.toLocaleString()}</span>
-    `;
+    return `<span class="price-actual">₦${actual.toLocaleString()}</span>`;
 }
 
 function getPriceHTML(actualPrice) {
@@ -444,9 +440,8 @@ function renderProductCard(p) {
     const firstVideo = (p.videos && Array.isArray(p.videos) && p.videos.length > 0) ? p.videos[0] : null;
     const country = p.country || 'Egypt';
     const flag = country === 'Egypt' ? '🇪🇬' : '';
-    const sizes = Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : []);
 
-    // Color circles — ONLY from admin-added variants, show EXACTLY how many exist
+    // Color circles — centered, no name below
     let colorCirclesHTML = '';
     if (variants.length > 0) {
         colorCirclesHTML = `
@@ -464,7 +459,6 @@ function renderProductCard(p) {
                             aria-label="${escapeHtml(v.colorName || '')}"></button>
                 `).join('')}
             </div>
-            <div class="selected-color-name" data-product-id="${escapeHtml(p.id)}">${escapeHtml(firstVariant.colorName || '')}</div>
         `;
     }
 
@@ -485,9 +479,6 @@ function renderProductCard(p) {
                 <div class="product-code">${escapeHtml(firstVariant.code || p.code || '')}</div>
                 ${colorCirclesHTML}
                 <div class="product-price" data-product-id="${escapeHtml(p.id)}">${getPriceHTML(firstVariant.price || 0)}</div>
-                <div class="product-sizes">
-                    ${sizes.map(s => `<span>${escapeHtml(s)}</span>`).join('')}
-                </div>
                 <button class="btn-order" data-id="${escapeHtml(p.id)}">
                     <i class="fas fa-shopping-cart"></i> Order Now
                 </button>
@@ -522,8 +513,7 @@ function attachProductListeners() {
                     videoEl.outerHTML = `<img src="${optimizeImage(newImage, 500, 500)}" alt="" onerror="imgFallback(this)" />`;
                 }
 
-                const nameEl = document.querySelector(`.selected-color-name[data-product-id="${productId}"]`);
-                if (nameEl) nameEl.textContent = newColorName;
+                
 
                 const priceEl = document.querySelector(`.product-price[data-product-id="${productId}"]`);
                 if (priceEl && newPrice) priceEl.innerHTML = getPriceHTML(newPrice);
@@ -762,7 +752,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
         document.getElementById('sumTotal').textContent = (price * q).toLocaleString();
     });
 
-    document.getElementById('confirmOrderBtn').addEventListener('click', async function() {
+    document.getElementById('confirmOrderBtn').addEventListener('click', function() {
         const name = document.getElementById('orderName').value.trim();
         const phone = document.getElementById('orderPhone').value.trim();
         const address = document.getElementById('orderAddress').value.trim();
@@ -798,7 +788,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             time: now.toLocaleTimeString('en-US', { hour12: false }).substring(0, 5)
         };
 
-        // Build WhatsApp message (box style)
+        // Build WhatsApp message
         const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
         const L = '────────────────────────────';
         const pad = (label, value, width) => {
@@ -840,30 +830,27 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
         const waMessage = waLines.join('\n');
         const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(waMessage);
 
-        // OPEN WHATSAPP IMMEDIATELY
+        // ⭐ OPEN WHATSAPP NAN TAKE — babu jira
         window.open(waUrl, '_blank');
 
-        // Update UI immediately
-        this.innerHTML = '<i class="fas fa-check"></i> Sent to WhatsApp!';
-        this.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
-        showToast('Order sent! Opening WhatsApp...', '✅');
+        // Update UI nan take
         modal.classList.remove('open');
+        showToast('Order sent! Opening WhatsApp...', '✅');
 
-        // Save to backend IN BACKGROUND
-        try {
-            const res = await apiPost('saveOrder', { order: order });
+        // Save to backend A BANGO
+        apiPost('saveOrder', { order: order }).then(function(res) {
             const orderId = (res && res.success && res.orderId) ? res.orderId : tempOrderId;
             const myOrders = JSON.parse(localStorage.getItem('nakowa_my_orders') || '[]');
             myOrders.unshift(Object.assign({}, order, { orderId: orderId }));
             localStorage.setItem('nakowa_my_orders', JSON.stringify(myOrders.slice(0, 50)));
             clearAbandonedCart();
-        } catch (err) {
+        }).catch(function(err) {
             console.error('Background save failed:', err);
             const myOrders = JSON.parse(localStorage.getItem('nakowa_my_orders') || '[]');
             myOrders.unshift(Object.assign({}, order, { orderId: tempOrderId }));
             localStorage.setItem('nakowa_my_orders', JSON.stringify(myOrders.slice(0, 50)));
             clearAbandonedCart();
-        }
+        });
     });;
 
     // Clear abandoned cart if modal is closed via X
