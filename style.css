@@ -884,7 +884,7 @@ nav {
     border: 1.5px solid var(--gold);
     padding: 8px;
     font-weight: 700;
-    border-radius: 8px;
+    border-radius: 6px;
     color: #000;
     cursor: pointer;
     transition: var(--transition);
@@ -1819,26 +1819,6 @@ footer {
     }
 }
 
-/* Small phone */
-@media (max-width: 380px) {
-    .product-info .product-name,
-    .product-content .product-name { font-size: 0.7rem; }
-    .price-actual { font-size: 0.85rem; }
-    .btn-order { font-size: 0.6rem; padding: 6px; }
-}
-/* ============================================================
-   GRID RESPONSIVE — 2 (mobile) / 4 (PC)
-   ============================================================ */
-@media (min-width: 900px) {
-    .product-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-        gap: 16px;
-        max-width: 1320px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-}
-
 @media (min-width: 640px) and (max-width: 899px) {
     .product-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -1850,22 +1830,10 @@ footer {
    ============================================================ */
 
 /* A WAYA (max 768px) — hamburger + theme + cart kawai */
-@media (max-width: 768px) {
-    .nav-links { display: none !important; }
-    .nav-search { display: none !important; }
-    .hamburger { display: flex !important; }
-    .theme-toggle { display: flex !important; }
-    .cart-icon-container { display: flex !important; }
-}
+
 
 /* A PC (min 769px) — duk su bayyana */
-@media (min-width: 769px) {
-    .hamburger { display: none !important; }
-    .nav-links { display: flex !important; }
-    .nav-search { display: flex !important; }
-    .theme-toggle { display: flex !important; }
-    .cart-icon-container { display: flex !important; }
-}
+
 
 /* ============================================================
    GRID — 2 columns a kowane girman (kaman yadda muka zaɓa)
@@ -1882,12 +1850,14 @@ footer {
 }
 
 @media (min-width: 900px) {
-    .product-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 16px;
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
+    .about-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
     }
 }
 /* ============================================================
@@ -1895,11 +1865,28 @@ footer {
    ============================================================ */
 @media (min-width: 640px) {
     .product-card {
-        border-radius: 12px;
-    }
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 10px 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
     .product-card .product-image {
-        border-radius: 12px 12px 0 0;
-    }
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    position: relative;
+    background: #0a1240;
+    display: block;
+    flex-shrink: 0;
+    border-radius: 10px 10px 0 0;
+}
     .product-info,
     .product-content {
         padding: 10px 10px 14px;
@@ -1912,7 +1899,134 @@ footer {
         font-size: 1.05rem;
     }
     .btn-order {
-        padding: 10px;
-        font-size: 0.7rem;
+    width: 100%;
+    margin-top: 6px;
+    background: var(--gold-gradient);
+    border: 1.5px solid var(--gold);
+    padding: 8px;
+    font-weight: 700;
+    border-radius: 6px;
+    color: #000;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+}
+/* ============================================================
+   NAV RESPONSIVE
+   ============================================================ */
+
+/* A WAYA (max 768px) — hamburger + logo + theme + cart kawai */
+@media (max-width: 768px) {
+    .nav-links { display: none !important; }
+    .nav-search { display: none !important; }
+    .hamburger { display: flex !important; }
+    .theme-toggle { display: flex !important; }
+    .cart-icon-container { display: flex !important; }
+    .nav-logo .brand-title { font-size: 0.9rem; }
+}
+
+/* A PC (min 769px) — duk su bayyana */
+@media (min-width: 769px) {
+    .hamburger { display: none !important; }
+    .nav-links { display: flex !important; }
+    .nav-search { display: flex !important; }
+    .theme-toggle { display: flex !important; }
+    .cart-icon-container { display: flex !important; }
+}
+
+/* ============================================================
+   GRID RESPONSIVE — 2 (mobile) / 2 (tablet) / 4 (PC)
+   ============================================================ */
+
+/* Mobile — 2 columns */
+.product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+}
+
+/* Tablet — 2 columns */
+@media (min-width: 640px) and (max-width: 899px) {
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px;
     }
+}
+
+/* PC — 4 columns */
+@media (min-width: 900px) {
+    .product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 16px;
+        max-width: 1320px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* ============================================================
+   CARDS A PC — girma daidai
+   ============================================================ */
+@media (min-width: 640px) {
+    .product-card {
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 10px 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    border: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.08);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+    .product-card .product-image {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    position: relative;
+    background: #0a1240;
+    display: block;
+    flex-shrink: 0;
+    border-radius: 10px 10px 0 0;
+}
+    .product-info,
+    .product-content {
+        padding: 10px 10px 14px;
+    }
+    .product-info .product-name,
+    .product-content .product-name {
+        font-size: 0.9rem;
+    }
+    .price-actual {
+        font-size: 1.05rem;
+    }
+    .btn-order {
+    width: 100%;
+    margin-top: 6px;
+    background: var(--gold-gradient);
+    border: 1.5px solid var(--gold);
+    padding: 8px;
+    font-weight: 700;
+    border-radius: 6px;
+    color: #000;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
 }
