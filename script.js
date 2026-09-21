@@ -533,11 +533,6 @@ function attachProductListeners() {
         });
     });
 
-    
-
-    
-    });
-
     document.querySelectorAll('.btn-order').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
