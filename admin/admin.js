@@ -281,8 +281,7 @@ async function doLogin() {
         }
         authToken = res.token;
         currentAdmin = res.username;
-        localStorage.setItem('nakowa_admin_token', authToken);
-        localStorage.setItem('nakowa_admin_user', currentAdmin);
+        saveToken(authToken, currentAdmin);
 
         await warmCache();
 
@@ -311,7 +310,7 @@ function doLogout() {
 }
 
 function checkAuth() {
-    return localStorage.getItem('nakowa_admin_token') || '';
+    return getToken();
 }
 
 
@@ -2240,7 +2239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = checkAuth();
     if (token) {
         authToken = token;
-        currentAdmin = localStorage.getItem('nakowa_admin_user') || '';
+        currentAdmin = sessionStorage.getItem('nakowa_admin_user') || '';
         $('loginScreen').style.display = 'none';
         $('dashboard').style.display = 'flex';
         warmCache().then(() => {
