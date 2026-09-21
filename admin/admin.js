@@ -60,35 +60,23 @@ const COLOR_PALETTE = [
 ];
 
 // ============================================================
-// AUTH — 5-HOUR TOKEN + OWNER LOCK
-// Only the FIRST admin who ever logged in on this device
-// can log in again. Token expires after 5 hours.
+// AUTH — 5-HOUR TOKEN (no owner lock)
 // ============================================================
 const TOKEN_LIFETIME_MS = 5 * 60 * 60 * 1000; // 5 hours
 const TOKEN_KEY = 'nakowa_admin_token';
 const TOKEN_TIME_KEY = 'nakowa_admin_token_time';
 const USER_KEY = 'nakowa_admin_user';
-const OWNER_KEY = 'nakowa_admin_owner';
 
 function saveToken(token, username) {
     sessionStorage.setItem(TOKEN_KEY, token);
     sessionStorage.setItem(TOKEN_TIME_KEY, Date.now().toString());
     sessionStorage.setItem(USER_KEY, username);
-    if (!localStorage.getItem(OWNER_KEY)) {
-        localStorage.setItem(OWNER_KEY, username);
-    }
 }
 
 function getToken() {
     const token = sessionStorage.getItem(TOKEN_KEY);
     const time = parseInt(sessionStorage.getItem(TOKEN_TIME_KEY) || '0');
-    const user = sessionStorage.getItem(USER_KEY);
-    const owner = localStorage.getItem(OWNER_KEY);
     if (!token) return '';
-    if (user && owner && user !== owner) {
-        clearToken();
-        return '';
-    }
     if (Date.now() - time > TOKEN_LIFETIME_MS) {
         clearToken();
         return '';
@@ -100,21 +88,13 @@ function clearToken() {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(TOKEN_TIME_KEY);
     sessionStorage.removeItem(USER_KEY);
+    localStorage.removeItem('nakowa_admin_owner');
 }
 
 function getTokenRemainingMs() {
     const time = parseInt(sessionStorage.getItem(TOKEN_TIME_KEY) || '0');
     if (!time) return 0;
     return Math.max(0, TOKEN_LIFETIME_MS - (Date.now() - time));
-}
-
-function getOwner() {
-    return localStorage.getItem(OWNER_KEY) || '';
-}
-
-function isOwner(username) {
-    const owner = getOwner();
-    return !owner || owner === username;
 }
 
 // ============================================================
@@ -260,12 +240,7 @@ async function doLogin() {
         return;
     }
 
-    // OWNER LOCK: only the first admin who ever logged in can log in again
-    if (!isOwner(username)) {
-        errEl.textContent = 'This device is locked to another admin account.';
-        errEl.style.display = 'block';
-        return;
-    }
+    
 
     errEl.style.display = 'none';
     const btn = $('loginBtn');
