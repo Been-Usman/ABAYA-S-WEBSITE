@@ -29,6 +29,15 @@
     --youtube: #FF0000;
     --instagram: #E4405F;
 }
+html[data-theme="dark"] {
+    --bg-main: #000000;
+    --card-bg: #0a1240;
+}
+
+html[data-theme="light"] {
+    --bg-main: #080e33;
+    --card-bg: #0a1240;
+}
 
 html[data-theme="dark"] {
     --bg-main: #000000;
@@ -226,33 +235,36 @@ img { max-width: 100%; display: block; }
     position: relative;
     z-index: 2;
     text-align: center;
-    max-width: 95%;
+    max-width: 95vw;
     width: 100%;
-    padding: 20px;
+    padding: 10px;
+    overflow: visible;
 }
 
 .splash-logo {
-    width: 110px;
-    height: 110px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #d4af37;
     box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
-    margin: 0 auto 24px;
+    margin: 0 auto 20px;
     background: #000;
 }
 
 .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     margin-bottom: 6px;
     white-space: nowrap;
     overflow: visible;
     text-align: center;
-    padding: 0 8px;
+    padding: 0;
+    display: inline-block;
+    max-width: 100%;
 }
 .splash-title .gold-text {
     color: var(--gold);
@@ -260,21 +272,23 @@ img { max-width: 100%; display: block; }
 
 .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     white-space: nowrap;
     overflow: visible;
     text-align: center;
-    padding: 0 8px;
+    padding: 0;
+    display: inline-block;
+    max-width: 100%;
 }
 
 .splash-loader {
-    margin-top: 36px;
-    width: 200px;
-    max-width: 80%;
+    margin-top: 28px;
+    width: 140px;
+    max-width: 70vw;
     height: 2px;
     background: rgba(212, 175, 55, 0.15);
     border-radius: 2px;
@@ -1813,30 +1827,34 @@ footer {
     
     .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     margin-bottom: 6px;
     white-space: nowrap;
     overflow: visible;
     text-align: center;
-    padding: 0 8px;
+    padding: 0;
+    display: inline-block;
+    max-width: 100%;
 }
 .splash-title .gold-text {
     color: var(--gold);
 }
     .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     white-space: nowrap;
     overflow: visible;
     text-align: center;
-    padding: 0 8px;
+    padding: 0;
+    display: inline-block;
+    max-width: 100%;
 }
 }
 
@@ -1921,33 +1939,75 @@ footer {
 @media (max-width: 380px) {
     .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     margin-bottom: 6px;
     white-space: nowrap;
     overflow: visible;
     text-align: center;
-    padding: 0 8px;
+    padding: 0;
+    display: inline-block;
+    max-width: 100%;
 }
 .splash-title .gold-text {
     color: var(--gold);
 }
     .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     white-space: nowrap;
     overflow: visible;
     text-align: center;
-    padding: 0 8px;
+    padding: 0;
+    display: inline-block;
+    max-width: 100%;
 }
     .product-info .product-name,
     .product-content .product-name { font-size: 0.7rem; }
     .price-actual { font-size: 0.85rem; }
     .btn-order { font-size: 0.6rem; padding: 6px; }
+}
+/* Small phone splash */
+@media (max-width: 380px) {
+    .splash-title {
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+    }
+    .splash-subtitle {
+        font-size: 0.55rem;
+        letter-spacing: 1.5px;
+    }
+    .splash-logo {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 16px;
+    }
+    .splash-loader {
+        width: 120px;
+        margin-top: 22px;
+    }
+}
+/* PC splash — girma kadan */
+@media (min-width: 600px) {
+    .splash-title {
+        font-size: 1.8rem;
+        letter-spacing: 1px;
+    }
+    .splash-subtitle {
+        font-size: 0.85rem;
+        letter-spacing: 4px;
+    }
+    .splash-logo {
+        width: 120px;
+        height: 120px;
+    }
+    .splash-loader {
+        width: 180px;
+    }
 }
