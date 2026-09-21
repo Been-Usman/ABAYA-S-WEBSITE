@@ -1322,19 +1322,16 @@ function checkAndShowTrackingOnReturn() {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
-    window.addEventListener('load', () => {
-        // Tabbatar splash ya wuce bayan 4s
-        setTimeout(hideSplash, SPLASH_TIME);
+    // ============================================================
+    // SPLASH — tabbatacce zai rufe bayan 4s (ba ya dogara da window.load)
+    // ============================================================
+    setTimeout(hideSplash, SPLASH_TIME);
 
-        // Fallback — idan wani abu ya faru, tabbatar ya rufe
-        
-    });
+    // Fallback na ƙarshe — ko da komai ya faru, rufe bayan 6s
+    setTimeout(hideSplash, 6000);
 
-    // Fallback na ƙarshe — ko da komai ya faru, rufe splash bayan 6s
-    setTimeout(() => {
-        hideSplash();
-    }, 6000);
-    
+    // Fallback na biyu — bayan 8s (idan har yanzu yana nan)
+    setTimeout(hideSplash, 8000);
 
     setupTheme();
     setupBackToTop();
