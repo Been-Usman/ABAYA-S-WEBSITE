@@ -29,13 +29,7 @@
     --instagram: #E4405F;
 }
 
-[data-theme="light"] {
-    --black: #080e33;
-    --dark-gray: #050d32;
-    --darker: #030826;
-    --white: #ffffff;
-    --soft-white: #ffffff;
-}
+/* Light mode an cire — black + navy kawai */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -351,9 +345,7 @@ nav {
     box-shadow: 0 4px 40px rgba(0, 0, 0, 0.8);
 }
 
-[data-theme="light"] nav {
-    background: rgba(255, 255, 255, 0.95);
-}
+
 
 .nav-logo {
     cursor: pointer;
@@ -379,9 +371,7 @@ nav {
     transition: var(--transition);
     position: relative;
 }
-[data-theme="light"] .nav-links a {
-    color: rgba(0, 0, 0, 0.85);
-}
+
 .nav-links a::after {
     content: '';
     position: absolute;
@@ -421,7 +411,7 @@ nav {
     outline: none;
 }
 .nav-search input::placeholder { color: rgba(255, 255, 255, 0.4); }
-[data-theme="light"] .nav-search input::placeholder { color: rgba(0, 0, 0, 0.4); }
+
 .nav-search button {
     background: transparent;
     border: none;
@@ -501,9 +491,7 @@ nav {
     border-radius: 2px;
     transition: var(--transition);
 }
-[data-theme="light"] .hamburger span {
-    background: #0a0a0a;
-}
+
 .hamburger:hover span { background: var(--gold); }
 
 /* ============================================================
@@ -652,9 +640,7 @@ nav {
     font-size: 0.98rem;
     line-height: 1.8;
 }
-[data-theme="light"] .about-text p {
-    color: rgba(0, 0, 0, 0.85);
-}
+
 .about-text strong { color: var(--gold); }
 
 /* ============================================================
@@ -743,11 +729,13 @@ nav {
 .product-card .product-image {
     width: 100%;
     aspect-ratio: 3 / 4;
-    max-height: 185px;
+    max-height: 240px;
     overflow: hidden;
     position: relative;
-    background: var(--card-bg);
-    display: block;
+    background: #0a1240;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     border-radius: 10px 10px 0 0;
 }
@@ -756,8 +744,8 @@ nav {
 .product-card .product-image video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: center top;
+    object-fit: contain;
+    object-position: center center;
     display: block;
     transition: transform 0.4s ease;
 }
@@ -835,10 +823,7 @@ nav {
     letter-spacing: 0.5px;
     margin: 0;
 }
-[data-theme="light"] .product-info .product-code,
-[data-theme="light"] .product-content .product-code {
-    color: rgba(0, 0, 0, 0.5);
-}
+
 
 .color-circles {
     display: flex;
@@ -977,9 +962,7 @@ nav {
     color: rgba(255, 255, 255, 0.85);
     justify-content: center;
 }
-[data-theme="light"] .contact-info p {
-    color: rgba(0, 0, 0, 0.85);
-}
+
 .contact-info i {
     width: 24px;
     color: var(--gold);
@@ -1035,9 +1018,7 @@ footer {
     padding: 50px 0 24px;
     border-top: 2px solid var(--gold);
 }
-[data-theme="light"] footer {
-    color: rgba(0, 0, 0, 0.7);
-}
+
 
 .footer-grid {
     display: grid;
@@ -1063,9 +1044,7 @@ footer {
     margin-bottom: 8px;
     transition: var(--transition);
 }
-[data-theme="light"] .footer-grid a {
-    color: rgba(0, 0, 0, 0.6);
-}
+
 .footer-grid a:hover { color: var(--gold); }
 
 .newsletter-form {
@@ -1088,10 +1067,7 @@ footer {
     transition: var(--transition);
     font-family: 'Poppins', sans-serif;
 }
-[data-theme="light"] .newsletter-form input {
-    background: rgba(0, 0, 0, 0.05);
-    color: #0a0a0a;
-}
+
 .newsletter-form input:focus { border-color: var(--gold); }
 .newsletter-form input::placeholder { color: rgba(255, 255, 255, 0.3); }
 
@@ -1113,9 +1089,7 @@ footer {
     font-size: 0.95rem;
     transition: var(--transition);
 }
-[data-theme="light"] .footer-social a {
-    color: rgba(0, 0, 0, 0.6);
-}
+
 .footer-social a:hover { transform: translateY(-3px); border-color: var(--gold); }
 .footer-social .social-fb:hover { background: var(--facebook); color: #fff; }
 .footer-social .social-ig:hover { background: var(--instagram); color: #fff; }
@@ -1321,10 +1295,7 @@ footer {
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-gold);
 }
-[data-theme="light"] .modal-box {
-    background: rgba(255, 255, 255, 0.95);
-    color: #0a0a0a;
-}
+
 
 .modal-box .close-modal {
     position: absolute;
@@ -1339,9 +1310,7 @@ footer {
     line-height: 1;
     z-index: 5;
 }
-[data-theme="light"] .modal-box .close-modal {
-    color: #0a0a0a;
-}
+
 .modal-box .close-modal:hover { color: var(--gold); transform: rotate(90deg); }
 
 .modal-gallery {
@@ -1437,12 +1406,7 @@ footer {
     transition: var(--transition);
     outline: none;
 }
-[data-theme="light"] .order-form input,
-[data-theme="light"] .order-form select,
-[data-theme="light"] .order-form textarea {
-    background: rgba(0, 0, 0, 0.04);
-    color: #0a0a0a;
-}
+
 .order-form input:focus,
 .order-form select:focus,
 .order-form textarea:focus {
@@ -1490,9 +1454,7 @@ footer {
     max-width: 500px;
     background: rgba(8, 14, 51, 0.95);
 }
-[data-theme="light"] .tracking-modal .modal-box {
-    background: rgba(255, 255, 255, 0.95);
-}
+
 
 .tracking-header {
     text-align: center;
@@ -1839,6 +1801,22 @@ footer {
     .splash-title { font-size: 2.4rem; }
 }
 
+/* ============================================================
+   NAV RESPONSIVE — mobile hamburger, desktop full
+   ============================================================ */
+/* A waya (max 768px) — hamburger kawai */
+
+
+/* A PC (min 769px) — duk su bayyana */
+@media (min-width: 769px) {
+    .hamburger { display: none !important; }
+    .mobile-menu { display: none !important; }
+    .nav-links { display: flex !important; }
+    .nav-search { display: flex !important; }
+    .theme-toggle { display: flex !important; }
+    .cart-icon-container { display: flex !important; }
+}
+
 @media (min-width: 900px) {
     .about-grid {
         grid-template-columns: 1fr 1fr;
@@ -1857,4 +1835,23 @@ footer {
     .product-content .product-name { font-size: 0.7rem; }
     .price-actual { font-size: 0.85rem; }
     .btn-order { font-size: 0.6rem; padding: 6px; }
+}
+/* ============================================================
+   GRID RESPONSIVE — 2 (mobile) / 4 (PC)
+   ============================================================ */
+@media (min-width: 900px) {
+    .product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 16px;
+        max-width: 1320px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (min-width: 640px) and (max-width: 899px) {
+    .product-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 14px;
+    }
 }
