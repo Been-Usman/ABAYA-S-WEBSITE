@@ -8,13 +8,17 @@
     --navy: #080e33;
     --navy-dark: #050d32;
     --navy-darker: #030826;
-    --card-bg: #0a1240;
-    --card-bg-hover: #0e1850;
+    --bg-main: #000000;
+    --bg-card: #0a1240;
+    --bg-card-hover: #0e1850;
+    --bg-nav: rgba(0, 0, 0, 0.95);
+    --bg-footer: #000000;
+    --bg-modal: rgba(8, 14, 51, 0.95);
+    --bg-cart: #080e33;
     --gold: #f9e508;
     --gold-light: #d4c303;
     --gold-dark: #b89b00;
     --white: #ffffff;
-    --bg-main: #000000;
     --border-gold: rgba(212, 175, 55, 0.4);
     --gold-gradient: linear-gradient(135deg, #d4af37, #f6ea0f);
     --shadow-gold: 0 8px 32px rgba(212, 175, 55, 0.25);
@@ -29,15 +33,26 @@
     --youtube: #FF0000;
     --instagram: #E4405F;
 }
+
+/* DARK — black */
+html[data-theme="dark"] {
+    --bg-main: #000000;
+    --bg-card: #0a1240;
+    --bg-card-hover: #0e1850;
+    --bg-nav: rgba(0, 0, 0, 0.95);
+    --bg-footer: #000000;
+    --bg-modal: rgba(8, 14, 51, 0.95);
+    --bg-cart: #080e33;
+}
+
+/* LIGHT — navy */
+
 html[data-theme="dark"] {
     --bg-main: #000000;
     --card-bg: #0a1240;
 }
 
-html[data-theme="light"] {
-    --bg-main: #080e33;
-    --card-bg: #0a1240;
-}
+
 
 html[data-theme="dark"] {
     --bg-main: #000000;
@@ -86,6 +101,7 @@ body {
     width: 100%;
     max-width: 100vw;
     background: var(--bg-main);
+    transition: background 0.4s;
 }
 
 h1, h2, h3, h4, .brand-title {
@@ -387,7 +403,7 @@ img { max-width: 100%; display: block; }
    NAVBAR
    ============================================================ */
 nav {
-    background: rgba(8, 14, 51, 0.95);
+    background: var(--bg-nav);
     backdrop-filter: blur(12px);
     padding: 0 16px;
     position: sticky;
@@ -563,7 +579,7 @@ nav {
     width: 300px;
     max-width: 85vw;
     height: 100vh;
-    background: var(--navy-darker);
+    background: var(--bg-main);
     padding: 60px 24px 40px;
     transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 1000;
@@ -759,7 +775,7 @@ nav {
     border-radius: 10px 10px 12px 12px;
     display: flex;
     flex-direction: column;
-    background: var(--card-bg);
+    background: var(--bg-card);
     border: none;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.08);
     cursor: pointer;
@@ -781,7 +797,7 @@ nav {
 
 .product-card:hover {
     transform: translateY(-4px);
-    background: var(--card-bg-hover);
+    background: var(--bg-card-hover);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 28px rgba(212, 175, 55, 0.2);
 }
 
@@ -790,7 +806,7 @@ nav {
     aspect-ratio: 3 / 4;
     overflow: hidden;
     position: relative;
-    background: var(--card-bg);
+    background: var(--bg-card);
     display: block;
     flex-shrink: 0;
     border-radius: 10px 10px 0 0;
@@ -1060,10 +1076,11 @@ nav {
    FOOTER
    ============================================================ */
 footer {
-    background: var(--navy-darker);
+    background: var(--bg-footer);
     color: rgba(255, 255, 255, 0.7);
     padding: 50px 0 24px;
     border-top: 2px solid var(--gold);
+    transition: background 0.4s;
 }
 
 .footer-grid {
@@ -1228,7 +1245,7 @@ footer {
     left: 20px;
     max-width: 340px;
     margin-left: auto;
-    background: var(--navy-darker);
+    background: var(--bg-card);
     border-radius: var(--radius);
     border: 1px solid var(--border-gold);
     box-shadow: var(--shadow-dark);
@@ -1334,9 +1351,10 @@ footer {
     position: relative;
     box-shadow: var(--shadow-dark);
     color: var(--white);
-    background: rgba(8, 14, 51, 0.95);
+    background: var(--bg-modal);
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-gold);
+    transition: background 0.4s;
 }
 
 .modal-box .close-modal {
@@ -1404,7 +1422,21 @@ footer {
 /* ============================================================
    ORDER MODAL
    ============================================================ */
-.order-modal .modal-box { max-width: 620px; }
+.order-modal .modal-box {
+    max-width: 700px;
+    width: 100%;
+    border-radius: var(--radius);
+    padding: 24px;
+    max-height: 92vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: var(--shadow-dark);
+    color: var(--white);
+    background: var(--bg-modal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-gold);
+    transition: background 0.4s;
+}
 
 .order-modal-header {
     display: flex;
@@ -1491,8 +1523,19 @@ footer {
    TRACKING MODAL
    ============================================================ */
 .tracking-modal .modal-box {
-    max-width: 500px;
-    background: rgba(8, 14, 51, 0.95);
+    max-width: 700px;
+    width: 100%;
+    border-radius: var(--radius);
+    padding: 24px;
+    max-height: 92vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: var(--shadow-dark);
+    color: var(--white);
+    background: var(--bg-modal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-gold);
+    transition: background 0.4s;
 }
 
 .tracking-header {
@@ -1665,7 +1708,7 @@ footer {
     width: 400px;
     max-width: 90vw;
     height: 100vh;
-    background: var(--navy-darker);
+    background: var(--bg-cart);
     z-index: 2000;
     box-shadow: -4px 0 40px rgba(0, 0, 0, 0.5);
     transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -1750,8 +1793,11 @@ footer {
 .cart-empty i { font-size: 2.5rem; margin-bottom: 10px; display: block; }
 
 .cart-footer {
-    padding-top: 16px;
-    border-top: 1px solid var(--border-gold);
+    background: var(--bg-footer);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 50px 0 24px;
+    border-top: 2px solid var(--gold);
+    transition: background 0.4s;
 }
 .cart-total {
     display: flex;
@@ -1833,7 +1879,21 @@ footer {
     .newsletter-form { margin-left: 0; margin-right: 0; }
     .footer-social { justify-content: flex-start; }
 
-    .modal-box { padding: 32px; }
+    .modal-box {
+    max-width: 700px;
+    width: 100%;
+    border-radius: var(--radius);
+    padding: 24px;
+    max-height: 92vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: var(--shadow-dark);
+    color: var(--white);
+    background: var(--bg-modal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-gold);
+    transition: background 0.4s;
+}
     .modal-details { grid-template-columns: 1fr 1fr; }
 
     
@@ -2188,4 +2248,26 @@ footer {
 @keyframes splashLoad {
     0% { width: 0%; }
     100% { width: 100%; }
+}
+/* ============================================================
+   THEME — black (dark) da navy (light)
+   ============================================================ */
+html[data-theme="dark"] {
+    --bg-main: #000000;
+    --bg-card: #0a1240;
+    --bg-card-hover: #0e1850;
+    --bg-nav: rgba(0, 0, 0, 0.95);
+    --bg-footer: #000000;
+    --bg-modal: rgba(8, 14, 51, 0.95);
+    --bg-cart: #080e33;
+}
+
+html[data-theme="light"] {
+    --bg-main: #080e33;
+    --bg-card: #0a1240;
+    --bg-card-hover: #0e1850;
+    --bg-nav: rgba(8, 14, 51, 0.95);
+    --bg-footer: #080e33;
+    --bg-modal: rgba(8, 14, 51, 0.95);
+    --bg-cart: #080e33;
 }

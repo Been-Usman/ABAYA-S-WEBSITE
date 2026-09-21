@@ -1303,10 +1303,17 @@ function setupModalCloses() {
 
 function checkAndShowTrackingOnReturn() {
     try {
-        if (sessionStorage.getItem('tracking_shown')) return;
+        // Tabbatacce: tracking yana bayyana SAU DAYA KAWAII ga customer
+        // (har abada — ba kowace shiga ba)
+        if (localStorage.getItem('nakowa_tracking_seen') === 'true') return;
+
         const myOrders = JSON.parse(localStorage.getItem('nakowa_my_orders') || '[]');
         if (myOrders.length === 0) return;
-        sessionStorage.setItem('tracking_shown', 'true');
+
+        // Mark as seen FOREVER
+        localStorage.setItem('nakowa_tracking_seen', 'true');
+
+        // Show tracking modal
         setTimeout(() => {
             openTrackingModal();
         }, 1500);
