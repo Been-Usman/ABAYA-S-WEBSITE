@@ -125,7 +125,7 @@ function getPriceHTML(actualPrice) {
 // ============================================================
 // SPLASH
 // ============================================================
-const SPLASH_TIME = 1500;
+const SPLASH_TIME = 5000;
 const splashStart = Date.now();
 let splashHidden = false;
 
@@ -135,7 +135,15 @@ function hideSplash() {
     const s = document.getElementById('splashScreen');
     if (s) {
         s.classList.add('fade-out');
-        setTimeout(() => { s.style.display = 'none'; }, 800);
+        setTimeout(() => {
+            s.style.display = 'none';
+        }, 800);
+    }
+    // Tabbatar public website ya bayyana
+    const pub = document.getElementById('publicWebsite');
+    if (pub) {
+        pub.style.opacity = '1';
+        pub.style.visibility = 'visible';
     }
 }
 
@@ -1316,12 +1324,15 @@ function checkAndShowTrackingOnReturn() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('load', () => {
-        const elapsed = Date.now() - splashStart;
-        const remaining = SPLASH_TIME - elapsed;
-        if (remaining > 0) setTimeout(hideSplash, remaining);
-        else hideSplash();
+        // Tabbatar splash ya wuce bayan 5s
+        setTimeout(hideSplash, SPLASH_TIME);
+
+        // Fallback — idan wani abu ya faru, tabbatar ya rufe
+        setTimeout(() => {
+            hideSplash();
+        }, SPLASH_TIME + 2000);
     });
-    setTimeout(hideSplash, SPLASH_TIME + 1000);
+    
 
     setupTheme();
     setupBackToTop();

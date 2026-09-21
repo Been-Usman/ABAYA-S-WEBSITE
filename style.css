@@ -242,29 +242,36 @@ img { max-width: 100%; display: block; }
 }
 
 .splash-logo {
-    width: 80px;
-    height: 80px;
+    width: clamp(70px, 18vw, 110px);
+    height: clamp(70px, 18vw, 110px);
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #d4af37;
-    box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
-    margin: 0 auto 20px;
+    box-shadow: 0 0 60px rgba(212, 175, 55, 0.2);
+    margin: 0 0 18px 0;
     background: #000;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: scale(0.7);
+    animation: splashLogoIn 0.8s ease forwards;
 }
 
 .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-size: clamp(0.85rem, 4vw, 1.8rem);
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    margin: 0 0 4px 0;
     white-space: nowrap;
-    overflow: visible;
     text-align: center;
+    line-height: 1.2;
     padding: 0;
-    display: inline-block;
-    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3em;
+    width: 100%;
 }
 .splash-title .gold-text {
     color: var(--gold);
@@ -272,17 +279,17 @@ img { max-width: 100%; display: block; }
 
 .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.6rem;
+    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: clamp(1px, 0.8vw, 3px);
     text-transform: uppercase;
     white-space: nowrap;
-    overflow: visible;
     text-align: center;
+    margin: 0;
     padding: 0;
-    display: inline-block;
-    max-width: 100%;
+    display: block;
+    width: 100%;
 }
 
 .splash-loader {
@@ -300,10 +307,11 @@ img { max-width: 100%; display: block; }
 
 .splash-loader-line {
     height: 100%;
-    width: 100%;
-    background: #d4af37;
-    border-radius: 2px;
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    width: 0%;
+    background: linear-gradient(90deg, #d4af37, #f6ea0f);
+    border-radius: 3px;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+    animation: splashLoad 5s linear forwards;
 }
 
 
@@ -1827,34 +1835,37 @@ footer {
     
     .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-size: clamp(0.85rem, 4vw, 1.8rem);
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    margin: 0 0 4px 0;
     white-space: nowrap;
-    overflow: visible;
     text-align: center;
+    line-height: 1.2;
     padding: 0;
-    display: inline-block;
-    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3em;
+    width: 100%;
 }
 .splash-title .gold-text {
     color: var(--gold);
 }
     .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.6rem;
+    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: clamp(1px, 0.8vw, 3px);
     text-transform: uppercase;
     white-space: nowrap;
-    overflow: visible;
     text-align: center;
+    margin: 0;
     padding: 0;
-    display: inline-block;
-    max-width: 100%;
+    display: block;
+    width: 100%;
 }
 }
 
@@ -1939,34 +1950,37 @@ footer {
 @media (max-width: 380px) {
     .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-size: clamp(0.85rem, 4vw, 1.8rem);
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    margin: 0 0 4px 0;
     white-space: nowrap;
-    overflow: visible;
     text-align: center;
+    line-height: 1.2;
     padding: 0;
-    display: inline-block;
-    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3em;
+    width: 100%;
 }
 .splash-title .gold-text {
     color: var(--gold);
 }
     .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: 0.6rem;
+    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: clamp(1px, 0.8vw, 3px);
     text-transform: uppercase;
     white-space: nowrap;
-    overflow: visible;
     text-align: center;
+    margin: 0;
     padding: 0;
-    display: inline-block;
-    max-width: 100%;
+    display: block;
+    width: 100%;
 }
     .product-info .product-name,
     .product-content .product-name { font-size: 0.7rem; }
@@ -1976,18 +1990,50 @@ footer {
 /* Small phone splash */
 @media (max-width: 380px) {
     .splash-title {
-        font-size: 0.95rem;
-        letter-spacing: 0.3px;
-    }
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.85rem, 4vw, 1.8rem);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.2;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3em;
+    width: 100%;
+}
     .splash-subtitle {
-        font-size: 0.55rem;
-        letter-spacing: 1.5px;
-    }
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: clamp(1px, 0.8vw, 3px);
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    display: block;
+    width: 100%;
+}
     .splash-logo {
-        width: 70px;
-        height: 70px;
-        margin-bottom: 16px;
-    }
+    width: clamp(70px, 18vw, 110px);
+    height: clamp(70px, 18vw, 110px);
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #d4af37;
+    box-shadow: 0 0 60px rgba(212, 175, 55, 0.2);
+    margin: 0 0 18px 0;
+    background: #000;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: scale(0.7);
+    animation: splashLogoIn 0.8s ease forwards;
+}
     .splash-loader {
         width: 120px;
         margin-top: 22px;
@@ -1996,18 +2042,92 @@ footer {
 /* PC splash — girma kadan */
 @media (min-width: 600px) {
     .splash-title {
-        font-size: 1.8rem;
-        letter-spacing: 1px;
-    }
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.85rem, 4vw, 1.8rem);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.2;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3em;
+    width: 100%;
+}
     .splash-subtitle {
-        font-size: 0.85rem;
-        letter-spacing: 4px;
-    }
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: clamp(1px, 0.8vw, 3px);
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    display: block;
+    width: 100%;
+}
     .splash-logo {
-        width: 120px;
-        height: 120px;
-    }
+    width: clamp(70px, 18vw, 110px);
+    height: clamp(70px, 18vw, 110px);
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #d4af37;
+    box-shadow: 0 0 60px rgba(212, 175, 55, 0.2);
+    margin: 0 0 18px 0;
+    background: #000;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: scale(0.7);
+    animation: splashLogoIn 0.8s ease forwards;
+}
     .splash-loader {
         width: 180px;
     }
+}
+/* ============================================================
+   SPLASH WORDS — staggered animation
+   ============================================================ */
+.splash-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: splashWordIn 0.7s ease forwards;
+}
+
+.word-1 { animation-delay: 0.2s; }
+.word-2 { animation-delay: 0.9s; }
+.word-3 { animation-delay: 1.6s; }
+.word-4 { animation-delay: 2.3s; }
+
+@keyframes splashWordIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes splashLogoIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes splashLoad {
+    0% { width: 0%; }
+    100% { width: 100%; }
 }
