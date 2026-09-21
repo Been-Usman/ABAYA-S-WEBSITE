@@ -125,26 +125,34 @@ function getPriceHTML(actualPrice) {
 // ============================================================
 // SPLASH
 // ============================================================
-const SPLASH_TIME = 4000;
+const SPLASH_TIME = 3000;
 const splashStart = Date.now();
 let splashHidden = false;
 
 function hideSplash() {
+    if (splashHidden) return;
+    splashHidden = true;
     const s = document.getElementById('splashScreen');
     if (s) {
         s.classList.add('fade-out');
-        s.style.pointerEvents = 'none';
-        setTimeout(function() {
+        setTimeout(() => {
             s.style.display = 'none';
-        }, 600);
-    }
-    const pub = document.getElementById('publicWebsite');
-    if (pub) {
-        pub.style.opacity = '1';
-        pub.style.visibility = 'visible';
-        pub.style.pointerEvents = 'auto';
+            s.style.visibility = 'hidden';
+            s.style.opacity = '0';
+        }, 800);
     }
 }
+
+// FORCE hide — safety net: after 5 seconds, splash MUST be gone
+setTimeout(() => {
+    const s = document.getElementById('splashScreen');
+    if (s) {
+        s.style.display = 'none';
+        s.style.visibility = 'hidden';
+        s.style.opacity = '0';
+    }
+    splashHidden = true;
+}, 5000);
 
 // ============================================================
 // TOAST
@@ -1324,6 +1332,8 @@ function checkAndShowTrackingOnReturn() {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
+    // Force hide splash after DOM ready + 3s max
+    setTimeout(hideSplash, 3000);
     // ============================================================
     // SPLASH — tabbatacce zai rufe bayan 4s (ba ya dogara da window.load)
     // ============================================================
