@@ -280,20 +280,13 @@ img { max-width: 100%; display: block; }
 
 .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(0.85rem, 4vw, 1.8rem);
+    font-size: 2.2rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 0.5px;
-    margin: 0 0 4px 0;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
     white-space: nowrap;
-    text-align: center;
-    line-height: 1.2;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.3em;
-    width: 100%;
+    line-height: 1.1;
 }
 .splash-title .gold-text {
     color: var(--gold);
@@ -301,17 +294,12 @@ img { max-width: 100%; display: block; }
 
 .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
+    font-size: 1rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.6);
-    letter-spacing: clamp(1px, 0.8vw, 3px);
+    letter-spacing: 5px;
     text-transform: uppercase;
     white-space: nowrap;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    display: block;
-    width: 100%;
 }
 
 .splash-loader {
@@ -1899,37 +1887,25 @@ footer {
     
     .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(0.85rem, 4vw, 1.8rem);
+    font-size: 2.2rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 0.5px;
-    margin: 0 0 4px 0;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
     white-space: nowrap;
-    text-align: center;
-    line-height: 1.2;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.3em;
-    width: 100%;
+    line-height: 1.1;
 }
 .splash-title .gold-text {
     color: var(--gold);
 }
     .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
+    font-size: 1rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.6);
-    letter-spacing: clamp(1px, 0.8vw, 3px);
+    letter-spacing: 5px;
     text-transform: uppercase;
     white-space: nowrap;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    display: block;
-    width: 100%;
 }
 }
 
@@ -2014,37 +1990,25 @@ footer {
 @media (max-width: 380px) {
     .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(0.85rem, 4vw, 1.8rem);
+    font-size: 2.2rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 0.5px;
-    margin: 0 0 4px 0;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
     white-space: nowrap;
-    text-align: center;
-    line-height: 1.2;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.3em;
-    width: 100%;
+    line-height: 1.1;
 }
 .splash-title .gold-text {
     color: var(--gold);
 }
     .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
+    font-size: 1rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.6);
-    letter-spacing: clamp(1px, 0.8vw, 3px);
+    letter-spacing: 5px;
     text-transform: uppercase;
     white-space: nowrap;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    display: block;
-    width: 100%;
 }
     .product-info .product-name,
     .product-content .product-name { font-size: 0.7rem; }
@@ -2055,34 +2019,22 @@ footer {
 @media (max-width: 380px) {
     .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(0.85rem, 4vw, 1.8rem);
+    font-size: 2.2rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 0.5px;
-    margin: 0 0 4px 0;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
     white-space: nowrap;
-    text-align: center;
-    line-height: 1.2;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.3em;
-    width: 100%;
+    line-height: 1.1;
 }
     .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
+    font-size: 1rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.6);
-    letter-spacing: clamp(1px, 0.8vw, 3px);
+    letter-spacing: 5px;
     text-transform: uppercase;
     white-space: nowrap;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    display: block;
-    width: 100%;
 }
     .splash-logo {
     width: clamp(70px, 18vw, 110px);
@@ -2113,34 +2065,22 @@ footer {
 @media (min-width: 600px) {
     .splash-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(0.85rem, 4vw, 1.8rem);
+    font-size: 2.2rem;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 0.5px;
-    margin: 0 0 4px 0;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
     white-space: nowrap;
-    text-align: center;
-    line-height: 1.2;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.3em;
-    width: 100%;
+    line-height: 1.1;
 }
     .splash-subtitle {
     font-family: 'Poppins', sans-serif;
-    font-size: clamp(0.5rem, 2.2vw, 0.9rem);
+    font-size: 1rem;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.6);
-    letter-spacing: clamp(1px, 0.8vw, 3px);
+    letter-spacing: 5px;
     text-transform: uppercase;
     white-space: nowrap;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    display: block;
-    width: 100%;
 }
     .splash-logo {
     width: clamp(70px, 18vw, 110px);
@@ -2270,4 +2210,81 @@ html[data-theme="light"] {
     --bg-footer: #080e33;
     --bg-modal: rgba(8, 14, 51, 0.95);
     --bg-cart: #080e33;
+}
+/* ============================================================
+   RESPONSIVE FIX — Mobile (force hamburger + hide desktop nav)
+   ============================================================ */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none !important;
+    }
+    .nav-search {
+        display: none !important;
+    }
+    .hamburger {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .mobile-menu {
+        display: block !important;
+    }
+    .brand-title {
+        font-size: 0.85rem !important;
+        letter-spacing: 1px !important;
+    }
+    .nav-logo .logo-img {
+        width: 42px !important;
+        height: 42px !important;
+    }
+    .theme-toggle {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1rem !important;
+    }
+    .cart-icon-container i {
+        font-size: 1.15rem !important;
+    }
+    .hamburger span {
+        width: 22px !important;
+    }
+    nav {
+        padding: 0 10px !important;
+        gap: 4px;
+    }
+    .nav-actions {
+        gap: 4px !important;
+    }
+    .container {
+        padding: 0 14px !important;
+    }
+    .section-title {
+        font-size: 1.8rem !important;
+    }
+    .hero-content h1 {
+        font-size: 1.8rem !important;
+    }
+    .product-grid {
+        gap: 10px !important;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+    .brand-title {
+        font-size: 0.75rem !important;
+        letter-spacing: 0.5px !important;
+    }
+    .nav-logo .logo-img {
+        width: 38px !important;
+        height: 38px !important;
+    }
+    .hamburger span {
+        width: 20px !important;
+    }
+    nav {
+        padding: 0 8px !important;
+    }
 }
