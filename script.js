@@ -130,12 +130,11 @@ const splashStart = Date.now();
 let splashHidden = false;
 
 function hideSplash() {
-    if (splashHidden) return;
-    splashHidden = true;
     const s = document.getElementById('splashScreen');
     if (s) {
         s.classList.add('fade-out');
-        setTimeout(() => {
+        s.style.pointerEvents = 'none';
+        setTimeout(function() {
             s.style.display = 'none';
         }, 600);
     }
@@ -143,6 +142,7 @@ function hideSplash() {
     if (pub) {
         pub.style.opacity = '1';
         pub.style.visibility = 'visible';
+        pub.style.pointerEvents = 'auto';
     }
 }
 
