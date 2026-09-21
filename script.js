@@ -125,7 +125,7 @@ function getPriceHTML(actualPrice) {
 // ============================================================
 // SPLASH
 // ============================================================
-const SPLASH_TIME = 5000;
+const SPLASH_TIME = 4000;
 const splashStart = Date.now();
 let splashHidden = false;
 
@@ -137,9 +137,8 @@ function hideSplash() {
         s.classList.add('fade-out');
         setTimeout(() => {
             s.style.display = 'none';
-        }, 800);
+        }, 600);
     }
-    // Tabbatar public website ya bayyana
     const pub = document.getElementById('publicWebsite');
     if (pub) {
         pub.style.opacity = '1';
@@ -1324,14 +1323,17 @@ function checkAndShowTrackingOnReturn() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('load', () => {
-        // Tabbatar splash ya wuce bayan 5s
+        // Tabbatar splash ya wuce bayan 4s
         setTimeout(hideSplash, SPLASH_TIME);
 
         // Fallback — idan wani abu ya faru, tabbatar ya rufe
-        setTimeout(() => {
-            hideSplash();
-        }, SPLASH_TIME + 2000);
+        
     });
+
+    // Fallback na ƙarshe — ko da komai ya faru, rufe splash bayan 6s
+    setTimeout(() => {
+        hideSplash();
+    }, 6000);
     
 
     setupTheme();

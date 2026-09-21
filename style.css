@@ -209,10 +209,11 @@ img { max-width: 100%; display: block; }
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    transition: opacity 0.6s ease, transform 0.6s ease;
     opacity: 1;
     transform: scale(1);
     padding: 20px;
+    overflow: hidden;
 }
 
 #splashScreen.fade-out {
@@ -235,10 +236,15 @@ img { max-width: 100%; display: block; }
     position: relative;
     z-index: 2;
     text-align: center;
-    max-width: 95vw;
     width: 100%;
+    max-width: 100%;
     padding: 10px;
-    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto;
 }
 
 .splash-logo {
@@ -248,9 +254,9 @@ img { max-width: 100%; display: block; }
     object-fit: cover;
     border: 3px solid #d4af37;
     box-shadow: 0 0 60px rgba(212, 175, 55, 0.2);
-    margin: 0 0 18px 0;
+    margin: 0 auto 18px auto;
     background: #000;
-    flex-shrink: 0;
+    display: block;
     opacity: 0;
     transform: scale(0.7);
     animation: splashLogoIn 0.8s ease forwards;
@@ -293,16 +299,14 @@ img { max-width: 100%; display: block; }
 }
 
 .splash-loader {
-    margin-top: 28px;
-    width: 140px;
-    max-width: 70vw;
-    height: 2px;
+    margin: 24px auto 0 auto;
+    width: clamp(140px, 50vw, 220px);
+    height: 3px;
     background: rgba(212, 175, 55, 0.15);
-    border-radius: 2px;
+    border-radius: 3px;
     overflow: hidden;
     position: relative;
-    margin-left: auto;
-    margin-right: auto;
+    display: block;
 }
 
 .splash-loader-line {
@@ -311,7 +315,7 @@ img { max-width: 100%; display: block; }
     background: linear-gradient(90deg, #d4af37, #f6ea0f);
     border-radius: 3px;
     box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-    animation: splashLoad 5s linear forwards;
+    animation: splashLoad 4s linear forwards;
 }
 
 
@@ -2027,17 +2031,23 @@ footer {
     object-fit: cover;
     border: 3px solid #d4af37;
     box-shadow: 0 0 60px rgba(212, 175, 55, 0.2);
-    margin: 0 0 18px 0;
+    margin: 0 auto 18px auto;
     background: #000;
-    flex-shrink: 0;
+    display: block;
     opacity: 0;
     transform: scale(0.7);
     animation: splashLogoIn 0.8s ease forwards;
 }
     .splash-loader {
-        width: 120px;
-        margin-top: 22px;
-    }
+    margin: 24px auto 0 auto;
+    width: clamp(140px, 50vw, 220px);
+    height: 3px;
+    background: rgba(212, 175, 55, 0.15);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    display: block;
+}
 }
 /* PC splash — girma kadan */
 @media (min-width: 600px) {
@@ -2079,16 +2089,23 @@ footer {
     object-fit: cover;
     border: 3px solid #d4af37;
     box-shadow: 0 0 60px rgba(212, 175, 55, 0.2);
-    margin: 0 0 18px 0;
+    margin: 0 auto 18px auto;
     background: #000;
-    flex-shrink: 0;
+    display: block;
     opacity: 0;
     transform: scale(0.7);
     animation: splashLogoIn 0.8s ease forwards;
 }
     .splash-loader {
-        width: 180px;
-    }
+    margin: 24px auto 0 auto;
+    width: clamp(140px, 50vw, 220px);
+    height: 3px;
+    background: rgba(212, 175, 55, 0.15);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    display: block;
+}
 }
 /* ============================================================
    SPLASH WORDS — staggered animation
@@ -2104,6 +2121,47 @@ footer {
 .word-2 { animation-delay: 0.9s; }
 .word-3 { animation-delay: 1.6s; }
 .word-4 { animation-delay: 2.3s; }
+
+@keyframes splashWordIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes splashLogoIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes splashLoad {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+/* ============================================================
+   SPLASH WORDS — staggered animation (4s total)
+   ============================================================ */
+.splash-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: splashWordIn 0.6s ease forwards;
+}
+
+.word-1 { animation-delay: 0.15s; }   /* NAKOWA */
+.word-2 { animation-delay: 0.75s; }   /* ABAYAS */
+.word-3 { animation-delay: 1.35s; }   /* COLLECTIONS */
+.word-4 { animation-delay: 1.95s; }   /* PREMIUM LUXURY ABAYAS */
 
 @keyframes splashWordIn {
     0% {
