@@ -161,20 +161,24 @@ function showToast(message, icon = '✅') {
 // THEME
 // ============================================================
 function getTheme() {
-    return localStorage.getItem('nakowa_theme') || 'dark';
+    const t = localStorage.getItem('nakowa_theme') || 'black';
+    return t === 'navy' ? 'navy' : 'black';
 }
 
 function setTheme(theme) {
+    // Kawai 'black' ko 'navy'
+    if (theme !== 'navy') theme = 'black';
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('nakowa_theme', theme);
+
+    // Update icon: black mode → moon, navy mode → sun
     const icon = document.querySelector('#themeToggle i');
     const mobileIcon = document.querySelector('#mobileThemeToggle i');
-    if (theme === 'light') {
-        if (icon) icon.className = 'fas fa-sun';
-        if (mobileIcon) mobileIcon.className = 'fas fa-sun';
-    } else {
-        if (icon) icon.className = 'fas fa-moon';
-        if (mobileIcon) mobileIcon.className = 'fas fa-moon';
+    if (icon) {
+        icon.className = theme === 'navy' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    if (mobileIcon) {
+        mobileIcon.className = theme === 'navy' ? 'fas fa-sun' : 'fas fa-moon';
     }
 }
 
@@ -1299,7 +1303,7 @@ function setupMobileMenu() {
         themeLink.addEventListener('click', e => {
             e.preventDefault();
             const cur = document.documentElement.getAttribute('data-theme');
-            setTheme(cur === 'light' ? 'dark' : 'light');
+            setTheme(cur === 'navy' ? 'black' : 'navy');
             menu.classList.remove('open');
         });
     }
@@ -1388,7 +1392,7 @@ function setupTheme() {
     if (btn) {
         btn.addEventListener('click', () => {
             const cur = document.documentElement.getAttribute('data-theme');
-            setTheme(cur === 'light' ? 'dark' : 'light');
+            setTheme(cur === 'navy' ? 'black' : 'navy');
         });
     }
     setTheme(getTheme());

@@ -1,11 +1,8 @@
-﻿/* ============================================================
-   THEME — DARK (default) + LIGHT
-   ============================================================ */
-:root {
-    --bg-main: #080e33;
-    --bg-dark: #050d32;
-    --bg-darker: #030826;
-    --bg-card: #0a1240;
+﻿:root {
+    --bg-main: #000000;
+    --bg-dark: #0a0a0a;
+    --bg-darker: #050505;
+    --bg-card: #0d0d0d;
     --white: #ffffff;
     --gold: #f9e508;
     --gold-light: #d4c303;
@@ -19,34 +16,26 @@
     --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-[data-theme="light"] {
-    --bg-main: #f5f5f5;
-    --bg-dark: #ececec;
-    --bg-darker: #ffffff;
-    --bg-card: #ffffff;
+[data-theme="navy"] {
+    --bg-main: #080e33;
+    --bg-dark: #050d32;
+    --bg-darker: #030826;
+    --bg-card: #0a1240;
 }
+
+/* ============================================================
+   THEME — DARK (default) + LIGHT
+   ============================================================ */
+
+
+
 
 /* ============================================================
    NAKOWA ABAYAS COLLECTIONS — Admin Styles
    v2 — Added: fake price, bulk toolbar, checkboxes, progress
    ============================================================ */
 
-:root {
-    --black: #000000;
-    --gold: #f9e508;
-    --gold-light: #d4c303;
-    --gold-gradient: linear-gradient(135deg, #d4af37, #f6ea0f);
-    --white: #ffffff;
-    --dark-gray: #1a1a1a;
-    --darker: #0d0d0d;
-    --border-gold: rgba(212, 175, 55, 0.4);
-    --shadow-gold: 0 8px 32px rgba(212, 175, 55, 0.25);
-    --shadow-dark: 0 12px 40px rgba(0, 0, 0, 0.6);
-    --radius: 16px;
-    --radius-sm: 10px;
-    --radius-pill: 50px;
-    --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
+
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
