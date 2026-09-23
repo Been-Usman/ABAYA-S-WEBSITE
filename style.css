@@ -2557,6 +2557,40 @@ html
 /* ============================================================
    SPLASH SCREEN — centered, bigger text, no wrap
    ============================================================ */
+
+
+
+
+
+
+
+
+
+
+/* RESPONSIVE — splash on all phones */
+@media (max-width: 768px) {
+    
+    
+    
+    
+}
+
+@media (max-width: 500px) {
+    
+    
+    
+    
+}
+
+@media (max-width: 380px) {
+    
+    
+    
+    
+}
+/* ============================================================
+   SPLASH SCREEN — bigger, centered, no wrap
+   ============================================================ */
 .splash-content {
     position: relative;
     z-index: 2;
@@ -2591,7 +2625,6 @@ html
     margin-bottom: 10px !important;
     white-space: nowrap !important;
     line-height: 1.1 !important;
-    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5) !important;
     text-align: center !important;
     width: 100% !important;
 }
@@ -2606,7 +2639,6 @@ html
     white-space: nowrap !important;
     text-align: center !important;
     width: 100% !important;
-    margin: 0 auto !important;
 }
 
 .splash-loader {
@@ -2621,57 +2653,23 @@ html
     margin-right: auto !important;
 }
 
-/* RESPONSIVE — splash on all phones */
 @media (max-width: 768px) {
-    .splash-logo {
-        width: 120px !important;
-        height: 120px !important;
-    }
-    .splash-title {
-        font-size: 1.9rem !important;
-        letter-spacing: 1.5px !important;
-    }
-    .splash-subtitle {
-        font-size: 0.85rem !important;
-        letter-spacing: 4px !important;
-    }
-    .splash-loader {
-        width: 220px !important;
-    }
+    .splash-logo { width: 120px !important; height: 120px !important; }
+    .splash-title { font-size: 1.9rem !important; letter-spacing: 1.5px !important; }
+    .splash-subtitle { font-size: 0.85rem !important; letter-spacing: 4px !important; }
+    .splash-loader { width: 220px !important; }
 }
 
 @media (max-width: 500px) {
-    .splash-logo {
-        width: 110px !important;
-        height: 110px !important;
-    }
-    .splash-title {
-        font-size: 1.5rem !important;
-        letter-spacing: 0.8px !important;
-    }
-    .splash-subtitle {
-        font-size: 0.7rem !important;
-        letter-spacing: 3px !important;
-    }
-    .splash-loader {
-        width: 180px !important;
-    }
+    .splash-logo { width: 110px !important; height: 110px !important; }
+    .splash-title { font-size: 1.5rem !important; letter-spacing: 0.8px !important; }
+    .splash-subtitle { font-size: 0.7rem !important; letter-spacing: 3px !important; }
+    .splash-loader { width: 180px !important; }
 }
 
 @media (max-width: 380px) {
-    .splash-logo {
-        width: 95px !important;
-        height: 95px !important;
-    }
-    .splash-title {
-        font-size: 1.2rem !important;
-        letter-spacing: 0.3px !important;
-    }
-    .splash-subtitle {
-        font-size: 0.6rem !important;
-        letter-spacing: 2px !important;
-    }
-    .splash-loader {
-        width: 160px !important;
-    }
+    .splash-logo { width: 95px !important; height: 95px !important; }
+    .splash-title { font-size: 1.2rem !important; letter-spacing: 0.3px !important; }
+    .splash-subtitle { font-size: 0.6rem !important; letter-spacing: 2px !important; }
+    .splash-loader { width: 160px !important; }
 }
