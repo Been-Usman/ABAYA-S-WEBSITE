@@ -439,11 +439,15 @@ function renderProducts() {
         filtered = filtered.filter(p => p.country === currentCountryFilter);
     }
 
-    if (currentPriceFilter !== 'all') {
-        const limit = currentPriceFilter === '35k' ? 35000 : 40000;
+    if (currentPriceFilter === '35k') {
         filtered = filtered.filter(p => {
             const price = getProductPrice(p);
-            return price > 0 && price <= limit;
+            return price > 0 && price <= 35000;
+        });
+    } else if (currentPriceFilter === '40k') {
+        filtered = filtered.filter(p => {
+            const price = getProductPrice(p);
+            return price > 0 && price <= 40000;
         });
     }
 
