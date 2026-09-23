@@ -2203,68 +2203,7 @@ html[data-theme="light"] {
 }
 
 /* PHONE (standard) */
-@media (max-width: 768px) {
-    nav {
-        padding: 0 12px !important;
-    }
-    .nav-links,
-    .nav-search {
-        display: none !important;
-    }
-    .hamburger {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-    }
-    .mobile-menu {
-        display: block !important;
-    }
-    .brand-title {
-        font-size: 0.9rem !important;
-        letter-spacing: 0.5px !important;
-    }
-    .nav-logo .logo-img {
-        width: 44px !important;
-        height: 44px !important;
-    }
-    .theme-toggle {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 1rem !important;
-    }
-    .cart-icon-container i {
-        font-size: 1.2rem !important;
-    }
-    .hamburger span {
-        width: 22px !important;
-        height: 2px !important;
-    }
-    .nav-actions {
-        gap: 4px !important;
-    }
-    .container {
-        padding: 0 16px !important;
-    }
-    .section-title {
-        font-size: 1.8rem !important;
-    }
-    .hero-content h1 {
-        font-size: 1.8rem !important;
-        line-height: 1.2 !important;
-    }
-    .hero-content p {
-        font-size: 0.95rem !important;
-    }
-    
-    .about-image {
-        width: 200px !important;
-        height: 260px !important;
-    }
-    .footer-grid {
-        grid-template-columns: 1fr !important;
-        text-align: center !important;
-    }
-}
+
 
 /* PHONE (small) */
 @media (max-width: 600px) {
@@ -2439,5 +2378,225 @@ html[data-theme="light"] {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 22px;
         max-width: 1500px;
+    }
+}
+/* ============================================================
+   RESPONSIVE — MOBILE (duk wayoyi)
+   ============================================================ */
+
+/* TABLET / SMALL LAPTOP */
+@media (max-width: 1024px) {
+    .nav-links { display: none !important; }
+    .nav-search { display: none !important; }
+    .hamburger { display: flex !important; }
+}
+
+/* PHONE (large) — wayoyi masu fadi kamar iPhone Pro Max, Samsung Ultra */
+@media (max-width: 900px) {
+    .nav-links { display: none !important; }
+    .nav-search { display: none !important; }
+    .hamburger { display: flex !important; }
+}
+
+/* PHONE (standard) */
+@media (max-width: 768px) {
+    nav {
+        padding: 0 12px !important;
+    }
+    .nav-links,
+    .nav-search {
+        display: none !important;
+    }
+    .hamburger {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+    .mobile-menu {
+        display: block !important;
+    }
+    .brand-title {
+        font-size: 0.9rem !important;
+        letter-spacing: 0.5px !important;
+    }
+    .nav-logo .logo-img {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    .theme-toggle {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1rem !important;
+    }
+    .cart-icon-container i {
+        font-size: 1.2rem !important;
+    }
+    .hamburger span {
+        width: 22px !important;
+        height: 2px !important;
+    }
+    .nav-actions {
+        gap: 4px !important;
+    }
+    .container {
+        padding: 0 16px !important;
+    }
+    .section-title {
+        font-size: 1.8rem !important;
+    }
+    .hero-content h1 {
+        font-size: 1.8rem !important;
+        line-height: 1.2 !important;
+    }
+    .hero-content p {
+        font-size: 0.95rem !important;
+    }
+    .product-grid {
+        gap: 10px !important;
+    }
+    .about-image {
+        width: 200px !important;
+        height: 260px !important;
+    }
+    .footer-grid {
+        grid-template-columns: 1fr !important;
+        text-align: center !important;
+    }
+}
+
+/* PHONE (small) */
+@media (max-width: 600px) {
+    nav {
+        padding: 0 10px !important;
+        height: 60px !important;
+    }
+    .brand-title {
+        font-size: 0.8rem !important;
+        letter-spacing: 0.3px !important;
+    }
+    .nav-logo .logo-img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    .theme-toggle {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.9rem !important;
+    }
+    .cart-icon-container i {
+        font-size: 1.1rem !important;
+    }
+    .hamburger {
+        padding: 6px !important;
+    }
+    .hamburger span {
+        width: 20px !important;
+    }
+    .nav-actions {
+        gap: 2px !important;
+    }
+    .container {
+        padding: 0 14px !important;
+    }
+    .section-title {
+        font-size: 1.5rem !important;
+    }
+    .hero-content h1 {
+        font-size: 1.5rem !important;
+    }
+    .hero-content p {
+        font-size: 0.85rem !important;
+    }
+    .hero {
+        min-height: 380px !important;
+    }
+    .btn-gold {
+        padding: 11px 24px !important;
+        font-size: 0.85rem !important;
+    }
+    .about-image {
+        width: 170px !important;
+        height: 220px !important;
+    }
+    .splash-logo {
+        width: 100px !important;
+        height: 100px !important;
+    }
+    .splash-title {
+        font-size: 1.4rem !important;
+        letter-spacing: 0.3px !important;
+    }
+    .splash-subtitle {
+        font-size: 0.65rem !important;
+        letter-spacing: 2.5px !important;
+    }
+    .splash-loader {
+        width: 180px !important;
+    }
+    .contact-info p {
+        font-size: 0.85rem !important;
+    }
+    .social-links a {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 1.05rem !important;
+    }
+}
+
+/* PHONE (very small) */
+@media (max-width: 400px) {
+    nav {
+        padding: 0 8px !important;
+    }
+    .brand-title {
+        font-size: 0.72rem !important;
+    }
+    .nav-logo .logo-img {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    .theme-toggle {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.85rem !important;
+    }
+    .cart-icon-container i {
+        font-size: 1rem !important;
+    }
+    .hamburger span {
+        width: 18px !important;
+    }
+    .section-title {
+        font-size: 1.3rem !important;
+    }
+    .hero-content h1 {
+        font-size: 1.3rem !important;
+    }
+    .hero-content p {
+        font-size: 0.8rem !important;
+    }
+    .container {
+        padding: 0 12px !important;
+    }
+    .splash-title {
+        font-size: 1.2rem !important;
+    }
+    .splash-logo {
+        width: 85px !important;
+        height: 85px !important;
+    }
+}
+
+/* Force hamburger to show whenever nav-links is hidden */
+@media (max-width: 1100px) {
+    .nav-links,
+    .nav-search {
+        display: none !important;
+    }
+    .hamburger {
+        display: flex !important;
+    }
+    .mobile-menu {
+        display: block !important;
     }
 }
