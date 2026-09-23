@@ -439,44 +439,205 @@ function renderProducts() {
         filtered = filtered.filter(p => p.country === currentCountryFilter);
     }
 
-    if (currentPriceFilter === '35k') {
-        // 35k & Below = ₦30,000 - ₦35,000
+    if (currentPriceFilter !== 'all') {
+        const limit = currentPriceFilter === '35k' ? 35000 : 40000;
         filtered = filtered.filter(p => {
             const price = getProductPrice(p);
-            return price >= 30000 && price <= 35000;
-        });
-    } else if (currentPriceFilter === '40k') {
-        // 40k & Below = ₦36,000 - ₦45,000
-        filtered = filtered.filter(p => {
-            const price = getProductPrice(p);
-            return price >= 36000 && price <= 45000;
+            return price > 0 && price <= limit;
         });
     }
-    // 'all' → babu filter, nuna duk abayas else {
-                    // Swipe RIGHT → previous color (one step only)
-                    if (currentIndex > 0) {
-                        updateToIndex(currentIndex - 1);
-                    }
+
+    const display = document.getElementById('productCountDisplay');
+    if (display) display.textContent = filtered.length;
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state">✨ No Abayas found — try another filter.</div>';
+        return;
+    }
+
+    grid.innerHTML = filtered.map(p => renderProductCard(p)).join('');
+    attachProductListeners();
+    applyVideo10sLoop(grid);
+}
+
+function renderProductCard(p) {
+    const variants = dedupeVariants((p.variants && Array.isArray(p.variants)) ? p.variants : []);
+    const firstVariant = variants[0] || {
+        image: getFirstImage(p),
+        colorName: 'Default',
+        colorValue: '#d4af37',
+        price: p.price || 0,
+        code: p.code || ''
+    };
+
+    const mainImage = optimizeImage(firstVariant.image, 500, 500);
+    const firstVideo = (p.videos && Array.isArray(p.videos) && p.videos.length > 0) ? p.videos[0] : null;
+    const country = p.country || 'Egypt';
+    const flag = country === 'Egypt' ? '🇪🇬' : '';
+
+    // Color circles — centered, no name below
+    let colorCirclesHTML = '';
+    if (variants.length > 0) {
+        colorCirclesHTML = `
+            <div class="color-circles" data-product-id="${escapeHtml(p.id)}">
+                ${variants.map((v, i) => `
+                    <button class="color-circle ${i === 0 ? 'selected' : ''}"
+                            data-color-index="${i}"
+                            data-image="${escapeHtml(v.image || '')}"
+                            data-color-name="${escapeHtml(v.colorName || '')}"
+                            data-color-value="${escapeHtml(v.colorValue || '')}"
+                            data-price="${v.price || p.price || 0}"
+                            data-code="${escapeHtml(v.code || p.code || '')}"
+                            style="background-color: ${v.colorValue || '#ccc'};"
+                            title="${escapeHtml(v.colorName || '')}"
+                            aria-label="${escapeHtml(v.colorName || '')}"></button>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    return `
+        <div class="product-card" data-id="${escapeHtml(p.id)}">
+            <div class="product-image">
+                ${firstVideo
+                    ? `<video src="${firstVideo}" muted autoplay loop playsinline data-autoplay-video></video>`
+                    : `<img src="${mainImage}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="imgFallback(this)" />`
                 }
+                ${flag ? `<span class="country-badge">${flag} ${escapeHtml(country)}</span>` : ''}
+            </div>
+            <div class="product-info">
+                <div class="product-name">${escapeHtml(p.name)}</div>
+                <div class="product-code">${escapeHtml(firstVariant.code || p.code || '')}</div>
+                ${colorCirclesHTML}
+                <div class="product-price" data-product-id="${escapeHtml(p.id)}">${getPriceHTML(firstVariant.price || 0)}</div>
+                <button class="btn-order" data-id="${escapeHtml(p.id)}">
+                    <i class="fas fa-shopping-cart"></i> Order Now
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function attachProductListeners() {
+    // ============================================================
+    // COLOR CIRCLES + SWIPE GALLERY
+    // ============================================================
+    document.querySelectorAll('.product-card').forEach(card => {
+        const productId = card.dataset.id;
+        const product = products.find(x => String(x.id) === String(productId));
+        if (!product) return;
+
+        const variants = dedupeVariants(product.variants || []);
+        if (variants.length === 0) return;
+
+        let currentIndex = 0;
+
+        const imgEl = card.querySelector('.product-image img');
+        const videoEl = card.querySelector('.product-image video');
+        const circles = card.querySelectorAll('.color-circle');
+
+        function updateToIndex(idx) {
+            if (idx < 0) idx = 0;
+            if (idx >= variants.length) idx = variants.length - 1;
+            currentIndex = idx;
+
+            const v = variants[idx];
+
+            // Update image
+            if (imgEl && v.image) {
+                imgEl.src = optimizeImage(v.image, 500, 500);
+            } else if (videoEl && v.image) {
+                videoEl.outerHTML = `<img src="${optimizeImage(v.image, 500, 500)}" alt="" onerror="imgFallback(this)" />`;
+            }
+
+            // Update circles
+            circles.forEach((c, i) => {
+                c.classList.toggle('selected', i === idx);
+            });
+
+            // Update price
+            const priceEl = card.querySelector('.product-price');
+            if (priceEl) priceEl.innerHTML = getPriceHTML(v.price || product.price || 0);
+
+            // Update code
+            const codeEl = card.querySelector('.product-code');
+            if (codeEl) codeEl.textContent = v.code || product.code || '';
+
+            // Store selected
+            card.dataset.selectedColor = v.colorName || '';
+            card.dataset.selectedImage = v.image || '';
+            card.dataset.selectedPrice = v.price || product.price || 0;
+            card.dataset.selectedCode = v.code || product.code || '';
+        }
+
+        // ============================================================
+        // COLOR CIRCLE CLICKS
+        // ============================================================
+        circles.forEach((circle, i) => {
+            circle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                updateToIndex(i);
+            });
+        });
+
+        // ============================================================
+        // SWIPE / DRAG GALLERY (pointer events)
+        // ============================================================
+        const imageWrap = card.querySelector('.product-image');
+        if (!imageWrap) return;
+
+        let startX = 0;
+        let startY = 0;
+        let isDragging = false;
+        let hasMoved = false;
+        const SWIPE_THRESHOLD = 40; // px
+
+        imageWrap.style.touchAction = 'pan-y'; // allow vertical scroll
+        imageWrap.style.userSelect = 'none';
+
+        imageWrap.addEventListener('pointerdown', (e) => {
+            // Ignore if clicking a button inside image (quick view)
+            if (e.target.closest('button')) return;
+            startX = e.clientX;
+            startY = e.clientY;
+            isDragging = true;
+            hasMoved = false;
+        });
+
+        imageWrap.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            // If vertical movement is larger, it's a scroll — cancel
+            if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+                isDragging = false;
+                return;
+            }
+
+            // If horizontal movement passes threshold — swipe
+            if (Math.abs(dx) > SWIPE_THRESHOLD) {
+                hasMoved = true;
+                if (dx < 0) {
+                    // Swipe LEFT → next
+                    updateToIndex(currentIndex + 1);
+                } else {
+                    // Swipe RIGHT → previous
+                    updateToIndex(currentIndex - 1);
+                }
+                isDragging = false;
             }
         });
 
         const endDrag = () => {
             isDragging = false;
+            hasMoved = false;
         };
 
         imageWrap.addEventListener('pointerup', endDrag);
         imageWrap.addEventListener('pointercancel', endDrag);
         imageWrap.addEventListener('pointerleave', endDrag);
-
-        // Prevent accidental click after swipe
-        imageWrap.addEventListener('click', (e) => {
-            if (hasMoved) {
-                e.stopPropagation();
-                e.preventDefault();
-                hasMoved = false;
-            }
-        }, true);
 
         // Prevent click firing after swipe
         imageWrap.addEventListener('click', (e) => {
