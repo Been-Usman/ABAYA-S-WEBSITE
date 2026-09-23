@@ -373,6 +373,25 @@ function getFirstImage(p) {
     if (typeof p.images === 'string' && p.images) return p.images.split(',')[0].trim();
     return '';
 }
+// ============================================================
+// COLOR HELPERS — normalize + dedupe variants
+// ============================================================
+function normalizeColor(name) {
+    return (name || '').trim().toLowerCase();
+}
+
+function dedupeVariants(variants) {
+    if (!Array.isArray(variants)) return [];
+    const seen = new Set();
+    const out = [];
+    for (const v of variants) {
+        const key = normalizeColor(v.colorName);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(v);
+    }
+    return out;
+}
 
 // ============================================================
 // DYNAMIC COUNTRY FILTERS
@@ -442,7 +461,7 @@ function renderProducts() {
 }
 
 function renderProductCard(p) {
-    const variants = (p.variants && Array.isArray(p.variants)) ? p.variants : [];
+    const variants = dedupeVariants((p.variants && Array.isArray(p.variants)) ? p.variants : []);
     const firstVariant = variants[0] || {
         image: getFirstImage(p),
         colorName: 'Default',
@@ -500,47 +519,153 @@ function renderProductCard(p) {
 }
 
 function attachProductListeners() {
-    // Color circle clicks — swap image IN-PLACE
-    document.querySelectorAll('.color-circles').forEach(group => {
-        group.querySelectorAll('.color-circle').forEach(circle => {
+    // ============================================================
+    // COLOR CIRCLES + SWIPE GALLERY
+    // ============================================================
+    document.querySelectorAll('.product-card').forEach(card => {
+        const productId = card.dataset.id;
+        const product = products.find(x => String(x.id) === String(productId));
+        if (!product) return;
+
+        const variants = dedupeVariants(product.variants || []);
+        if (variants.length === 0) return;
+
+        let currentIndex = 0;
+
+        const imgEl = card.querySelector('.product-image img');
+        const videoEl = card.querySelector('.product-image video');
+        const circles = card.querySelectorAll('.color-circle');
+
+        function updateToIndex(idx) {
+            if (idx < 0) idx = 0;
+            if (idx >= variants.length) idx = variants.length - 1;
+            currentIndex = idx;
+
+            const v = variants[idx];
+
+            // Update image
+            if (imgEl && v.image) {
+                imgEl.src = optimizeImage(v.image, 500, 500);
+            } else if (videoEl && v.image) {
+                videoEl.outerHTML = `<img src="${optimizeImage(v.image, 500, 500)}" alt="" onerror="imgFallback(this)" />`;
+            }
+
+            // Update circles
+            circles.forEach((c, i) => {
+                c.classList.toggle('selected', i === idx);
+            });
+
+            // Update price
+            const priceEl = card.querySelector('.product-price');
+            if (priceEl) priceEl.innerHTML = getPriceHTML(v.price || product.price || 0);
+
+            // Update code
+            const codeEl = card.querySelector('.product-code');
+            if (codeEl) codeEl.textContent = v.code || product.code || '';
+
+            // Store selected
+            card.dataset.selectedColor = v.colorName || '';
+            card.dataset.selectedImage = v.image || '';
+            card.dataset.selectedPrice = v.price || product.price || 0;
+            card.dataset.selectedCode = v.code || product.code || '';
+        }
+
+        // ============================================================
+        // COLOR CIRCLE CLICKS
+        // ============================================================
+        circles.forEach((circle, i) => {
             circle.addEventListener('click', function(e) {
                 e.stopPropagation();
-                const productId = group.dataset.productId;
-                const card = document.querySelector(`.product-card[data-id="${productId}"]`);
-                if (!card) return;
-
-                group.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-
-                const newImage = this.dataset.image;
-                const newColorName = this.dataset.colorName;
-                const newPrice = this.dataset.price;
-                const newCode = this.dataset.code;
-
-                const imgEl = card.querySelector('.product-image img');
-                const videoEl = card.querySelector('.product-image video');
-                if (imgEl && newImage) {
-                    imgEl.src = optimizeImage(newImage, 500, 500);
-                } else if (videoEl && newImage) {
-                    videoEl.outerHTML = `<img src="${optimizeImage(newImage, 500, 500)}" alt="" onerror="imgFallback(this)" />`;
-                }
-
-                
-
-                const priceEl = document.querySelector(`.product-price[data-product-id="${productId}"]`);
-                if (priceEl && newPrice) priceEl.innerHTML = getPriceHTML(newPrice);
-
-                const codeEl = card.querySelector('.product-code');
-                if (codeEl && newCode) codeEl.textContent = newCode;
-
-                card.dataset.selectedColor = newColorName;
-                card.dataset.selectedImage = newImage;
-                card.dataset.selectedPrice = newPrice;
-                card.dataset.selectedCode = newCode;
+                e.preventDefault();
+                updateToIndex(i);
             });
         });
+
+        // ============================================================
+        // SWIPE / DRAG GALLERY (pointer events)
+        // ============================================================
+        const imageWrap = card.querySelector('.product-image');
+        if (!imageWrap) return;
+
+        let startX = 0;
+        let startY = 0;
+        let isDragging = false;
+        let hasMoved = false;
+        const SWIPE_THRESHOLD = 40; // px
+
+        imageWrap.style.touchAction = 'pan-y'; // allow vertical scroll
+        imageWrap.style.userSelect = 'none';
+
+        imageWrap.addEventListener('pointerdown', (e) => {
+            // Ignore if clicking a button inside image (quick view)
+            if (e.target.closest('button')) return;
+            startX = e.clientX;
+            startY = e.clientY;
+            isDragging = true;
+            hasMoved = false;
+        });
+
+        imageWrap.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            // If vertical movement is larger, it's a scroll — cancel
+            if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+                isDragging = false;
+                return;
+            }
+
+            // If horizontal movement passes threshold — swipe
+            if (Math.abs(dx) > SWIPE_THRESHOLD) {
+                hasMoved = true;
+                if (dx < 0) {
+                    // Swipe LEFT → next
+                    updateToIndex(currentIndex + 1);
+                } else {
+                    // Swipe RIGHT → previous
+                    updateToIndex(currentIndex - 1);
+                }
+                isDragging = false;
+            }
+        });
+
+        const endDrag = () => {
+            isDragging = false;
+            hasMoved = false;
+        };
+
+        imageWrap.addEventListener('pointerup', endDrag);
+        imageWrap.addEventListener('pointercancel', endDrag);
+        imageWrap.addEventListener('pointerleave', endDrag);
+
+        // Prevent click firing after swipe
+        imageWrap.addEventListener('click', (e) => {
+            if (hasMoved) {
+                e.stopPropagation();
+                e.preventDefault();
+                hasMoved = false;
+            }
+        }, true);
+
+        // ============================================================
+        // MOUSE WHEEL (desktop) — optional horizontal scroll
+        // ============================================================
+        imageWrap.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20) {
+                e.preventDefault();
+                if (e.deltaX > 0) updateToIndex(currentIndex + 1);
+                else updateToIndex(currentIndex - 1);
+            }
+        }, { passive: false });
+
+        // Initialize first
+        updateToIndex(0);
     });
 
+    // ============================================================
+    // ORDER NOW
+    // ============================================================
     document.querySelectorAll('.btn-order').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -548,10 +673,10 @@ function attachProductListeners() {
             const p = products.find(x => String(x.id) === String(this.dataset.id));
             if (!p) return;
 
+            const variants = dedupeVariants(p.variants || []);
             const selectedColor = card.dataset.selectedColor;
-            const variants = p.variants || [];
             let variant = variants[0];
-            if (selectedColor && variants.length > 1) {
+            if (selectedColor && variants.length > 0) {
                 const found = variants.find(v => v.colorName === selectedColor);
                 if (found) variant = found;
             }
