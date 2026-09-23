@@ -595,13 +595,12 @@ function attachProductListeners() {
         let startY = 0;
         let isDragging = false;
         let hasMoved = false;
-        const SWIPE_THRESHOLD = 40; // px
+        const SWIPE_THRESHOLD = 50; // px — must move this far to trigger
 
-        imageWrap.style.touchAction = 'pan-y'; // allow vertical scroll
+        imageWrap.style.touchAction = 'pan-y';
         imageWrap.style.userSelect = 'none';
 
         imageWrap.addEventListener('pointerdown', (e) => {
-            // Ignore if clicking a button inside image (quick view)
             if (e.target.closest('button')) return;
             startX = e.clientX;
             startY = e.clientY;
@@ -611,37 +610,53 @@ function attachProductListeners() {
 
         imageWrap.addEventListener('pointermove', (e) => {
             if (!isDragging) return;
+            // Idan an riga an yi swipe a wannan drag ɗin, kar a sake
+            if (hasMoved) return;
+
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
 
-            // If vertical movement is larger, it's a scroll — cancel
+            // Vertical scroll — cancel drag
             if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
                 isDragging = false;
                 return;
             }
 
-            // If horizontal movement passes threshold — swipe
+            // Horizontal swipe — ONLY ONE STEP
             if (Math.abs(dx) > SWIPE_THRESHOLD) {
                 hasMoved = true;
-                if (dx < 0) {
-                    // Swipe LEFT → next
-                    updateToIndex(currentIndex + 1);
-                } else {
-                    // Swipe RIGHT → previous
-                    updateToIndex(currentIndex - 1);
-                }
                 isDragging = false;
+
+                if (dx < 0) {
+                    // Swipe LEFT → next color (one step only)
+                    if (currentIndex < variants.length - 1) {
+                        updateToIndex(currentIndex + 1);
+                    }
+                } else {
+                    // Swipe RIGHT → previous color (one step only)
+                    if (currentIndex > 0) {
+                        updateToIndex(currentIndex - 1);
+                    }
+                }
             }
         });
 
         const endDrag = () => {
             isDragging = false;
-            hasMoved = false;
         };
 
         imageWrap.addEventListener('pointerup', endDrag);
         imageWrap.addEventListener('pointercancel', endDrag);
         imageWrap.addEventListener('pointerleave', endDrag);
+
+        // Prevent accidental click after swipe
+        imageWrap.addEventListener('click', (e) => {
+            if (hasMoved) {
+                e.stopPropagation();
+                e.preventDefault();
+                hasMoved = false;
+            }
+        }, true);
 
         // Prevent click firing after swipe
         imageWrap.addEventListener('click', (e) => {
