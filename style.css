@@ -749,12 +749,7 @@ nav {
 .product-count-text strong { color: var(--gold); opacity: 1; }
 
 /* ---------- GRID: 2 columns (mobile), 4 (PC) ---------- */
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    width: 100%;
-}
+
 
 /* ---------- PRODUCT CARD ---------- */
 .product-card {
@@ -792,12 +787,24 @@ nav {
 .product-card .product-image {
     width: 100%;
     aspect-ratio: 3 / 4;
+    max-height: 260px;
     overflow: hidden;
     position: relative;
-    background: var(--bg-card);
+    background: var(--black);
     display: block;
     flex-shrink: 0;
-    border-radius: 10px 10px 0 0;
+}
+
+@media (min-width: 1024px) {
+    .product-card .product-image {
+        max-height: 320px;
+    }
+}
+
+@media (min-width: 1440px) {
+    .product-card .product-image {
+        max-height: 380px;
+    }
 }
 
 .product-card .product-image img,
@@ -1947,10 +1954,7 @@ footer {
 
 /* Tablet — 2 columns */
 @media (min-width: 640px) and (max-width: 899px) {
-    .product-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
+    
 }
 
 /* PC — 4 columns */
@@ -1963,13 +1967,7 @@ footer {
         grid-template-columns: 1fr 1fr;
         gap: 40px;
     }
-    .product-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 16px;
-        max-width: 1320px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+    
 }
 
 /* ============================================================
@@ -2257,9 +2255,7 @@ html[data-theme="light"] {
     .hero-content p {
         font-size: 0.95rem !important;
     }
-    .product-grid {
-        gap: 10px !important;
-    }
+    
     .about-image {
         width: 200px !important;
         height: 260px !important;
@@ -2404,5 +2400,44 @@ html[data-theme="light"] {
     }
     .mobile-menu {
         display: block !important;
+    }
+}
+/* ============================================================
+   PRODUCT GRID — RESPONSIVE
+   Mobile: 2 columns | Tablet: 3 columns | Desktop: 4 columns
+   ============================================================ */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* TABLET — 3 columns */
+@media (min-width: 640px) {
+    .product-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+    }
+}
+
+/* DESKTOP — 4 columns */
+@media (min-width: 1024px) {
+    .product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* LARGE DESKTOP — keep 4 but bigger cards */
+@media (min-width: 1440px) {
+    .product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 22px;
+        max-width: 1500px;
     }
 }
