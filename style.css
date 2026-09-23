@@ -2603,47 +2603,17 @@ html
 /* ============================================================
    NAV SEARCH — visible on desktop, hidden on mobile
    ============================================================ */
-.nav-search {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 50px;
-    padding: 4px 14px;
-    border: 1px solid var(--border-gold);
-    transition: var(--transition);
-}
 
-.nav-search:focus-within {
-    border-color: var(--gold);
-}
 
-.nav-search input {
-    background: transparent;
-    border: none;
-    padding: 8px 10px;
-    color: #ffffff;
-    width: 140px;
-    font-size: 16px;
-    outline: none;
-    font-family: 'Poppins', sans-serif;
-}
 
-.nav-search input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-}
 
-.nav-search button {
-    background: transparent;
-    border: none;
-    color: var(--gold);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: var(--transition);
-}
 
-.nav-search button:hover {
-    transform: scale(1.15);
-}
+
+
+
+
+
+
 
 /* Hide nav-search ONLY on mobile */
 
@@ -2670,35 +2640,14 @@ nav {
 }
 
 /* Nav links — visible on DESKTOP */
-.nav-links {
-    display: flex;
-    gap: 28px;
-    list-style: none;
-    align-items: center;
-}
 
-.nav-links a {
-    color: rgba(255, 255, 255, 0.85);
-    font-weight: 500;
-    font-size: 0.9rem;
-    transition: var(--transition);
-    position: relative;
-    text-decoration: none;
-}
 
-.nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--gold);
-    transition: var(--transition);
-}
 
-.nav-links a:hover { color: var(--gold); }
-.nav-links a:hover::after { width: 100%; }
+
+
+
+
+
 
 /* Nav actions */
 .nav-actions {
@@ -2708,62 +2657,24 @@ nav {
 }
 
 /* Search — visible on DESKTOP */
-.nav-search {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 50px;
-    padding: 4px 14px;
-    border: 1px solid var(--border-gold);
-    transition: var(--transition);
-}
 
-.nav-search:focus-within { border-color: var(--gold); }
 
-.nav-search input {
-    background: transparent;
-    border: none;
-    padding: 8px 10px;
-    color: #ffffff;
-    width: 140px;
-    font-size: 16px;
-    outline: none;
-    font-family: 'Poppins', sans-serif;
-}
 
-.nav-search input::placeholder { color: rgba(255, 255, 255, 0.4); }
 
-.nav-search button {
-    background: transparent;
-    border: none;
-    color: var(--gold);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: var(--transition);
-}
 
-.nav-search button:hover { transform: scale(1.15); }
+
+
+
+
+
+
 
 /* Hamburger — hidden on DESKTOP */
-.hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-}
 
-.hamburger span {
-    width: 26px;
-    height: 2.5px;
-    background: #ffffff;
-    border-radius: 2px;
-    transition: var(--transition);
-}
 
-.hamburger:hover span { background: var(--gold); }
+
+
+
 
 /* Mobile menu — hidden by default */
 .mobile-menu {
@@ -2795,15 +2706,7 @@ nav {
     .nav-search {
         display: none !important;
     }
-    .hamburger {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-    }
-    .mobile-menu {
-        display: block !important;
-    }
-}
+    
 
 /* ============================================================
    SMALL PHONES
@@ -2829,13 +2732,7 @@ nav {
     .cart-icon-container i {
         font-size: 1.1rem !important;
     }
-    .hamburger span {
-        width: 20px !important;
-    }
-    .nav-actions {
-        gap: 2px !important;
-    }
-}
+    
 
 @media (max-width: 400px) {
     nav {
@@ -2848,7 +2745,4 @@ nav {
         width: 36px !important;
         height: 36px !important;
     }
-    .hamburger span {
-        width: 18px !important;
-    }
-}
+    
