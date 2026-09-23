@@ -353,51 +353,9 @@ img { max-width: 100%; display: block; }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* ============================================================
    MOBILE MENU
    ============================================================ */
-.mobile-menu {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: -100%;
-    width: 300px;
-    max-width: 85vw;
-    height: 100vh;
-    background: var(--bg-darker);
-    padding: 60px 24px 40px;
-    transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.4s ease;
-    z-index: 1000;
-    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.8);
-    border-right: 2px solid var(--gold);
-    overflow-y: auto;
-}
-.mobile-menu.open { left: 0; }
 .mobile-menu .mobile-logo {
     width: 80px;
     height: 80px;
@@ -418,19 +376,6 @@ img { max-width: 100%; display: block; }
 }
 .mobile-menu a:hover { color: var(--gold); padding-left: 10px; }
 
-.close-mobile {
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    font-size: 2rem;
-    position: absolute;
-    top: 12px;
-    right: 18px;
-    cursor: pointer;
-    transition: var(--transition);
-    line-height: 1;
-}
-.close-mobile:hover { color: var(--gold); transform: rotate(90deg); }
 
 /* ============================================================
    HERO
@@ -616,8 +561,6 @@ img { max-width: 100%; display: block; }
     display: block;
     flex-shrink: 0;
 }
-
-
 
 
 
@@ -1668,7 +1611,6 @@ footer {
 /* ============================================================
    RESPONSIVE — TABLET (min 600px)
    ============================================================ */
-
     .modal-details { grid-template-columns: 1fr 1fr; }
 
     
@@ -1685,9 +1627,7 @@ footer {
 
 /* A WAYA (max 768px) — hamburger + logo + theme + cart */
 
-    
-    
-
+        
 /* ============================================================
    RESPONSIVE — GRID
    ============================================================ */
@@ -1698,7 +1638,6 @@ footer {
 }
 
 /* PC — 4 columns */
-
 
 /* ============================================================
    RESPONSIVE — SMALL PHONE (max 380px)
@@ -1720,7 +1659,6 @@ footer {
     
 }
 /* PC splash — girma kadan */
-
 /* ============================================================
    SPLASH WORDS — staggered animation
    ============================================================ */
@@ -1843,9 +1781,7 @@ html
         font-size: 0.8rem !important;
         letter-spacing: 0.3px !important;
     }
-    
-    
-
+        
 /* Force hamburger to show whenever nav-links is hidden */
 
 }
@@ -1871,9 +1807,7 @@ html
 
 /* DESKTOP — 4 columns */
 
-
 /* LARGE DESKTOP — keep 4 but bigger cards */
-
 /* ============================================================
    RESPONSIVE — MOBILE (duk wayoyi)
    ============================================================ */
@@ -1886,14 +1820,11 @@ html
 
 /* PHONE (standard) */
 
-    
-    .brand-title {
+        .brand-title {
         font-size: 0.9rem !important;
         letter-spacing: 0.5px !important;
     }
-    
-    
-
+        
 /* Force hamburger to show whenever nav-links is hidden */
 
 }
@@ -1920,8 +1851,6 @@ html
 
 
 
-
-
 /* ============================================================
    SPLASH SCREEN — bigger, centered, no wrap
    ============================================================ */
@@ -1937,8 +1866,6 @@ html
     justify-content: center !important;
     margin: 0 auto !important;
 }
-
-
 
 
 
@@ -2025,11 +1952,9 @@ html
    SPLASH — WAYA ƘARAMA (BIGGER text, no wrap)
    ============================================================ */
 
-
 /* ============================================================
    SPLASH — WAYA MAFI ƘARAMA (BIGGEST text, no wrap)
    ============================================================ */
-
 
 @media (max-width: 340px) {
     .splash-logo {
@@ -2066,12 +1991,6 @@ html
 
 
 
-
-
-
-
-
-
 /* Hide nav-search ONLY on mobile */
 
 /* ============================================================
@@ -2080,27 +1999,14 @@ html
 
 /* Base nav */
 
-
 /* Nav links — visible on DESKTOP */
-
-
-
-
-
 
 
 
 
 /* Nav actions */
 
-
 /* Search — visible on DESKTOP */
-
-
-
-
-
-
 
 
 
@@ -2111,61 +2017,16 @@ html
 
 
 
-
-
-
 /* Mobile menu — hidden by default */
-.mobile-menu {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: -100%;
-    width: 300px;
-    max-width: 85vw;
-    height: 100vh;
-    background: var(--bg-darker);
-    padding: 60px 24px 40px;
-    transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    z-index: 1000;
-    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.8);
-    border-right: 2px solid var(--gold);
-    overflow-y: auto;
-}
 
-.mobile-menu.open { left: 0; }
 
 /* ============================================================
    MOBILE (≤ 900px) — hide nav-links + search, show hamburger
    ============================================================ */
-@media (max-width: 900px) {
-    .nav-links {
-        display: none !important;
-    }
-    .nav-search {
-        display: none !important;
-    }
-    
 
 /* ============================================================
    SMALL PHONES
    ============================================================ */
-@media (max-width: 600px) {
-    nav {
-        padding: 0 10px !important;
-        height: 60px !important;
-    }
-    .brand-title {
-        font-size: 0.8rem !important;
-        letter-spacing: 0.3px !important;
-    }
-    
-    .theme-toggle {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 0.9rem !important;
-    }
-    
-    
 
 @media (max-width: 400px) {
     nav {
@@ -2174,14 +2035,15 @@ html
     .brand-title {
         font-size: 0.72rem !important;
     }
-    
-    
+        .hamburger span {
+        width: 18px !important;
+    }
+}
 /* ============================================================
-   HEADER / NAV — kamar img
+   NAVIGATION — Clean, like the reference image
    ============================================================ */
-
 nav {
-    background: var(--bg-nav);
+    background: var(--bg-nav, rgba(0, 0, 0, 0.95));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     padding: 0 32px;
@@ -2192,13 +2054,14 @@ nav {
     align-items: center;
     justify-content: space-between;
     height: 80px;
-    border-bottom: 3px solid var(--gold);
+    border-bottom: 3px solid var(--gold, #f9e508);
     box-shadow: 0 4px 40px rgba(0, 0, 0, 0.6);
     transition: background 0.4s ease;
     gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* Logo (hagu) */
 .nav-logo {
     cursor: pointer;
     padding: 0;
@@ -2207,20 +2070,20 @@ nav {
     flex-shrink: 0;
 }
 
+.nav-logo .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .nav-logo .logo-img {
     width: 55px;
     height: 55px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2.5px solid var(--gold);
+    border: 2.5px solid var(--gold, #f9e508);
     box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
     background: #000;
-}
-
-.nav-logo .logo-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
 }
 
 .nav-logo .brand-title {
@@ -2232,7 +2095,6 @@ nav {
     font-family: 'Playfair Display', serif;
 }
 
-/* Nav links (tsakiya) */
 .nav-links {
     display: flex;
     gap: 36px;
@@ -2261,19 +2123,13 @@ nav {
     left: 0;
     width: 0;
     height: 2px;
-    background: var(--gold);
+    background: var(--gold, #f9e508);
     transition: width 0.3s ease;
 }
 
-.nav-links a:hover {
-    color: var(--gold);
-}
+.nav-links a:hover { color: var(--gold, #f9e508); }
+.nav-links a:hover::after { width: 100%; }
 
-.nav-links a:hover::after {
-    width: 100%;
-}
-
-/* Nav actions (dama) */
 .nav-actions {
     display: flex;
     align-items: center;
@@ -2281,20 +2137,19 @@ nav {
     flex-shrink: 0;
 }
 
-/* Search */
 .nav-search {
     display: flex;
     align-items: center;
     background: rgba(255, 255, 255, 0.06);
     border-radius: 50px;
     padding: 6px 18px;
-    border: 1.5px solid var(--border-gold);
+    border: 1.5px solid var(--border-gold, rgba(212, 175, 55, 0.4));
     transition: all 0.3s ease;
     gap: 6px;
 }
 
 .nav-search:focus-within {
-    border-color: var(--gold);
+    border-color: var(--gold, #f9e508);
     background: rgba(255, 255, 255, 0.1);
 }
 
@@ -2316,7 +2171,7 @@ nav {
 .nav-search button {
     background: transparent;
     border: none;
-    color: var(--gold);
+    color: var(--gold, #f9e508);
     cursor: pointer;
     font-size: 1.05rem;
     transition: all 0.3s ease;
@@ -2326,15 +2181,12 @@ nav {
     justify-content: center;
 }
 
-.nav-search button:hover {
-    transform: scale(1.15);
-}
+.nav-search button:hover { transform: scale(1.15); }
 
-/* Theme toggle */
 .theme-toggle {
     background: transparent;
-    border: 2px solid var(--gold);
-    color: var(--gold);
+    border: 2px solid var(--gold, #f9e508);
+    color: var(--gold, #f9e508);
     width: 42px;
     height: 42px;
     border-radius: 50%;
@@ -2348,12 +2200,11 @@ nav {
 }
 
 .theme-toggle:hover {
-    background: var(--gold);
+    background: var(--gold, #f9e508);
     color: #000;
     transform: rotate(30deg);
 }
 
-/* Cart */
 .cart-icon-container {
     position: relative;
     cursor: pointer;
@@ -2368,7 +2219,7 @@ nav {
 
 .cart-icon-container i {
     font-size: 1.5rem;
-    color: var(--gold);
+    color: var(--gold, #f9e508);
 }
 
 .cart-icon-container .cart-count {
@@ -2386,14 +2237,11 @@ nav {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--bg-nav);
+    border: 2px solid var(--bg-nav, #000);
 }
 
-.cart-icon-container .cart-count.hidden {
-    display: none;
-}
+.cart-icon-container .cart-count.hidden { display: none; }
 
-/* Hamburger (waya) — ɓoye a PC */
 .hamburger {
     display: none;
     flex-direction: column;
@@ -2412,11 +2260,8 @@ nav {
     transition: all 0.3s ease;
 }
 
-.hamburger:hover span {
-    background: var(--gold);
-}
+.hamburger:hover span { background: var(--gold, #f9e508); }
 
-/* Mobile menu — ɓoye ta default */
 .mobile-menu {
     display: none;
     position: fixed;
@@ -2425,147 +2270,63 @@ nav {
     width: 300px;
     max-width: 85vw;
     height: 100vh;
-    background: var(--bg-darker);
+    background: var(--bg-darker, #050505);
     padding: 60px 24px 40px;
     transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 1000;
     box-shadow: 4px 0 40px rgba(0, 0, 0, 0.9);
-    border-right: 2px solid var(--gold);
+    border-right: 2px solid var(--gold, #f9e508);
     overflow-y: auto;
 }
 
-.mobile-menu.open {
-    left: 0;
-}
+.mobile-menu.open { left: 0; }
 
 /* ============================================================
-   RESPONSIVE
+   RESPONSIVE — Tablet + Mobile
    ============================================================ */
-
-/* TABLET + MOBILE (≤ 1024px) — ɓoye nav-links, nuna hamburger */
 @media (max-width: 1024px) {
-    nav {
-        padding: 0 20px;
-        gap: 12px;
-    }
-    .nav-links {
-        display: none !important;
-    }
-    .nav-search {
-        display: none !important;
-    }
-    .hamburger {
-        display: flex !important;
-    }
-    .mobile-menu {
-        display: block !important;
-    }
-    .nav-logo .logo-img {
-        width: 48px;
-        height: 48px;
-    }
-    .nav-logo .brand-title {
-        font-size: 1rem;
-    }
-    .theme-toggle {
-        width: 38px;
-        height: 38px;
-        font-size: 1rem;
-    }
-    .cart-icon-container i {
-        font-size: 1.35rem;
-    }
+    nav { padding: 0 20px; gap: 12px; }
+    .nav-links { display: none !important; }
+    .nav-search { display: none !important; }
+    .hamburger { display: flex !important; }
+    .mobile-menu { display: block !important; }
+    .nav-logo .logo-img { width: 48px; height: 48px; }
+    .nav-logo .brand-title { font-size: 1rem; }
+    .theme-toggle { width: 38px; height: 38px; font-size: 1rem; }
+    .cart-icon-container i { font-size: 1.35rem; }
 }
 
-/* WAYA (≤ 768px) */
 @media (max-width: 768px) {
-    nav {
-        padding: 0 14px;
-        height: 68px;
-        gap: 8px;
-    }
-    .nav-logo .logo-img {
-        width: 42px;
-        height: 42px;
-    }
-    .nav-logo .brand-title {
-        font-size: 0.9rem;
-        letter-spacing: 0.5px;
-    }
-    .theme-toggle {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
-    }
-    .cart-icon-container i {
-        font-size: 1.25rem;
-    }
-    .nav-actions {
-        gap: 6px;
-    }
-    .hamburger span {
-        width: 24px;
-    }
+    nav { padding: 0 14px; height: 68px; gap: 8px; }
+    .nav-logo .logo-img { width: 42px; height: 42px; }
+    .nav-logo .brand-title { font-size: 0.9rem; letter-spacing: 0.5px; }
+    .theme-toggle { width: 36px; height: 36px; font-size: 1rem; }
+    .cart-icon-container i { font-size: 1.25rem; }
+    .nav-actions { gap: 6px; }
+    .hamburger span { width: 24px; }
 }
 
-/* WAYA ƘARAMA (≤ 500px) */
 @media (max-width: 500px) {
-    nav {
-        padding: 0 10px;
-        height: 62px;
-    }
-    .nav-logo .logo-img {
-        width: 38px;
-        height: 38px;
-    }
-    .nav-logo .brand-title {
-        font-size: 0.8rem;
-        letter-spacing: 0.3px;
-    }
-    .theme-toggle {
-        width: 32px;
-        height: 32px;
-        font-size: 0.9rem;
-    }
-    .cart-icon-container i {
-        font-size: 1.15rem;
-    }
-    .hamburger span {
-        width: 22px;
-    }
-    .nav-actions {
-        gap: 4px;
-    }
+    nav { padding: 0 10px; height: 62px; }
+    .nav-logo .logo-img { width: 38px; height: 38px; }
+    .nav-logo .brand-title { font-size: 0.8rem; letter-spacing: 0.3px; }
+    .theme-toggle { width: 32px; height: 32px; font-size: 0.9rem; }
+    .cart-icon-container i { font-size: 1.15rem; }
+    .hamburger span { width: 22px; }
+    .nav-actions { gap: 4px; }
 }
 
-/* WAYA MAFI ƘARAMA (≤ 380px) */
 @media (max-width: 380px) {
-    nav {
-        padding: 0 8px;
-    }
-    .nav-logo .logo-img {
-        width: 34px;
-        height: 34px;
-    }
-    .nav-logo .brand-title {
-        font-size: 0.72rem;
-        letter-spacing: 0;
-    }
-    .theme-toggle {
-        width: 30px;
-        height: 30px;
-        font-size: 0.85rem;
-    }
-    .cart-icon-container i {
-        font-size: 1.05rem;
-    }
-    .hamburger span {
-        width: 20px;
-    }
+    nav { padding: 0 8px; }
+    .nav-logo .logo-img { width: 34px; height: 34px; }
+    .nav-logo .brand-title { font-size: 0.72rem; letter-spacing: 0; }
+    .theme-toggle { width: 30px; height: 30px; font-size: 0.85rem; }
+    .cart-icon-container i { font-size: 1.05rem; }
+    .hamburger span { width: 20px; }
 }
 
 /* ============================================================
-   HEADER CLEAN — Cire Success message
+   HIDE TOAST (Success)
    ============================================================ */
 #toast {
     display: none !important;
