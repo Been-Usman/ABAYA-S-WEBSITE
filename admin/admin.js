@@ -341,6 +341,7 @@ async function warmCache() {
 // ============================================================
 function loadSection(section) {
     currentSection = section;
+    bumpViewToken();
     const myToken = bumpViewToken();
 
     if (section !== 'dashboard' && salesChartInstance) {
@@ -373,6 +374,7 @@ function loadSection(section) {
 // DASHBOARD
 // ============================================================
 async function renderDashboard() {
+    const myToken = viewToken;
     $('pageTitle').textContent = 'Dashboard';
     $('topbarDate').textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     currentSection = 'dashboard';
@@ -389,6 +391,7 @@ async function renderDashboard() {
             apiGet('orders'),
             apiGet('settings')
         ]);
+        if (!isViewCurrent(myToken)) return;
         if (!isViewCurrent(myToken)) return;
         cachedProducts = p || [];
         cachedOrders = o || [];
@@ -516,6 +519,7 @@ function drawDashboard() {
 // PRODUCTS — WITH SEARCH + BULK TOOLBAR + CHECKBOXES
 // ============================================================
 async function renderProducts() {
+    const myToken = viewToken;
     $('pageTitle').textContent = 'Products';
     currentSection = 'products';
     const myToken = viewToken;
@@ -1681,6 +1685,7 @@ async function deleteProduct(id) {
 // ORDERS — WITH WHATSAPP STATUS NOTIFICATION
 // ============================================================
 async function renderOrders() {
+    const myToken = viewToken;
     $('pageTitle').textContent = 'Orders';
     currentSection = 'orders';
     const myToken = viewToken;
@@ -1915,6 +1920,7 @@ async function generateReceipt(orderId) {
 // CUSTOMERS
 // ============================================================
 async function renderCustomers() {
+    const myToken = viewToken;
     $('pageTitle').textContent = 'Customers';
     currentSection = 'customers';
     const myToken = viewToken;
@@ -1963,6 +1969,7 @@ function drawCustomersSection() {
 // SETTINGS
 // ============================================================
 async function renderSettings() {
+    const myToken = viewToken;
     $('pageTitle').textContent = 'Settings';
     currentSection = 'settings';
     const myToken = viewToken;
@@ -2019,6 +2026,7 @@ function drawSettingsSection() {
 // USERS
 // ============================================================
 async function renderUsers() {
+    const myToken = viewToken;
     $('pageTitle').textContent = 'Users';
     currentSection = 'users';
     const myToken = viewToken;
