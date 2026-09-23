@@ -1284,33 +1284,71 @@ function setupMobileMenu() {
     const themeLink = document.getElementById('mobileThemeToggle');
     const trackLink = document.getElementById('mobileTrackLink');
 
-    if (btn && menu) btn.addEventListener('click', () => menu.classList.add('open'));
-    if (close && menu) close.addEventListener('click', () => menu.classList.remove('open'));
-    if (menu) {
-        menu.addEventListener('click', e => {
-            if (e.target.tagName === 'A' && !e.target.id) menu.classList.remove('open');
+    // Hamburger open
+    if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            menu.classList.add('open');
+            document.body.style.overflow = 'hidden';
         });
     }
-    if (cartLink) {
-        cartLink.addEventListener('click', e => {
+
+    // Close button
+    if (close && menu) {
+        close.addEventListener('click', function(e) {
             e.preventDefault();
             menu.classList.remove('open');
-            document.getElementById('cartSidebar').classList.add('open');
-            document.getElementById('cartOverlay').classList.add('active');
+            document.body.style.overflow = '';
         });
     }
-    if (themeLink) {
-        themeLink.addEventListener('click', e => {
+
+    // Click outside to close
+    if (menu) {
+        menu.addEventListener('click', function(e) {
+            // Close if clicked on background (not a link inside)
+            if (e.target === menu) {
+                menu.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+            // Close when a link is clicked
+            if (e.target.tagName === 'A' && !e.target.id) {
+                menu.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+
+    // Cart link
+    if (cartLink) {
+        cartLink.addEventListener('click', function(e) {
             e.preventDefault();
-            const cur = document.documentElement.getAttribute('data-theme');
+            menu.classList.remove('open');
+            document.body.style.overflow = '';
+            const sidebar = document.getElementById('cartSidebar');
+            const overlay = document.getElementById('cartOverlay');
+            if (sidebar) sidebar.classList.add('open');
+            if (overlay) overlay.classList.add('active');
+        });
+    }
+
+    // Theme toggle
+    if (themeLink) {
+        themeLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const cur = document.documentElement.getAttribute('data-theme') || 'black';
             setTheme(cur === 'navy' ? 'black' : 'navy');
             menu.classList.remove('open');
+            document.body.style.overflow = '';
         });
     }
+
+    // Track order
     if (trackLink) {
-        trackLink.addEventListener('click', e => {
+        trackLink.addEventListener('click', function(e) {
             e.preventDefault();
             menu.classList.remove('open');
+            document.body.style.overflow = '';
             openTrackingModal();
         });
     }

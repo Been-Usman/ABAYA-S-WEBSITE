@@ -2046,40 +2046,16 @@ html
    ============================================================ */
 
 /* TABLET / SMALL LAPTOP */
-@media (max-width: 1024px) {
-    .nav-links { display: none !important; }
-    
-    .hamburger { display: flex !important; }
-}
+
 
 /* PHONE (large) — wayoyi masu fadi kamar iPhone Pro Max, Samsung Ultra */
-@media (max-width: 900px) {
-    .nav-links { display: none !important; }
-    
-    .hamburger { display: flex !important; }
-}
+
 
 /* PHONE (standard) */
 
 
 /* PHONE (small) */
-@media (max-width: 600px) {
-    nav {
-    background: var(--bg-nav);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0 16px;
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: var(--header-height);
-    border-bottom: 2px solid var(--gold);
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
-    transition: background 0.4s ease;
-}
+
     .brand-title {
         font-size: 0.8rem !important;
         letter-spacing: 0.3px !important;
@@ -2143,23 +2119,7 @@ html
 }
 
 /* PHONE (very small) */
-@media (max-width: 400px) {
-    nav {
-    background: var(--bg-nav);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0 16px;
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: var(--header-height);
-    border-bottom: 2px solid var(--gold);
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
-    transition: background 0.4s ease;
-}
+
     .brand-title {
         font-size: 0.72rem !important;
     }
@@ -2195,27 +2155,7 @@ html
 }
 
 /* Force hamburger to show whenever nav-links is hidden */
-@media (max-width: 1100px) {
-    .nav-links { display: none !important; }
-    .hamburger {
-        display: flex !important;
-    }
-    .mobile-menu {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: -100%;
-    width: 300px;
-    max-width: 85vw;
-    height: 100vh;
-    background: var(--bg-darker);
-    padding: 60px 24px 40px;
-    transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.4s ease;
-    z-index: 1000;
-    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.8);
-    border-right: 2px solid var(--gold);
-    overflow-y: auto;
-}
+
 }
 /* ============================================================
    PRODUCT GRID — RESPONSIVE
@@ -2261,37 +2201,13 @@ html
    ============================================================ */
 
 /* TABLET / SMALL LAPTOP */
-@media (max-width: 1024px) {
-    .nav-links { display: none !important; }
-    
-    .hamburger { display: flex !important; }
-}
+
 
 /* PHONE (large) — wayoyi masu fadi kamar iPhone Pro Max, Samsung Ultra */
-@media (max-width: 900px) {
-    .nav-links { display: none !important; }
-    
-    .hamburger { display: flex !important; }
-}
+
 
 /* PHONE (standard) */
-@media (max-width: 768px) {
-    nav {
-    background: var(--bg-nav);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0 16px;
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: var(--header-height);
-    border-bottom: 2px solid var(--gold);
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
-    transition: background 0.4s ease;
-}
+
     .nav-links { display: none !important; }
     .hamburger {
         display: flex !important;
@@ -2364,23 +2280,7 @@ html
 }
 
 /* PHONE (small) */
-@media (max-width: 600px) {
-    nav {
-    background: var(--bg-nav);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0 16px;
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: var(--header-height);
-    border-bottom: 2px solid var(--gold);
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
-    transition: background 0.4s ease;
-}
+
     .brand-title {
         font-size: 0.8rem !important;
         letter-spacing: 0.3px !important;
@@ -2444,23 +2344,7 @@ html
 }
 
 /* PHONE (very small) */
-@media (max-width: 400px) {
-    nav {
-    background: var(--bg-nav);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0 16px;
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: var(--header-height);
-    border-bottom: 2px solid var(--gold);
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
-    transition: background 0.4s ease;
-}
+
     .brand-title {
         font-size: 0.72rem !important;
     }
@@ -2496,27 +2380,7 @@ html
 }
 
 /* Force hamburger to show whenever nav-links is hidden */
-@media (max-width: 1100px) {
-    .nav-links { display: none !important; }
-    .hamburger {
-        display: flex !important;
-    }
-    .mobile-menu {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: -100%;
-    width: 300px;
-    max-width: 85vw;
-    height: 100vh;
-    background: var(--bg-darker);
-    padding: 60px 24px 40px;
-    transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.4s ease;
-    z-index: 1000;
-    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.8);
-    border-right: 2px solid var(--gold);
-    overflow-y: auto;
-}
+
 }
 /* ============================================================
    TOAST — HIDDEN BY DEFAULT (force)
@@ -2538,12 +2402,7 @@ html
 
 
 /* RESPONSIVE — splash on all phones */
-@media (max-width: 768px) {
-    
-    
-    
-    
-}
+
 
 @media (max-width: 500px) {
     
@@ -2582,12 +2441,7 @@ html
 
 
 
-@media (max-width: 768px) {
-    
-    
-    
-    
-}
+
 
 @media (max-width: 500px) {
     
@@ -2670,23 +2524,7 @@ html
 /* ============================================================
    SPLASH — BABBAR WAYA (kada ka canza sosai)
    ============================================================ */
-@media (max-width: 768px) {
-    .splash-logo {
-        width: 120px !important;
-        height: 120px !important;
-    }
-    .splash-title {
-        font-size: 2rem !important;
-        letter-spacing: 1.5px !important;
-    }
-    .splash-subtitle {
-        font-size: 0.9rem !important;
-        letter-spacing: 4px !important;
-    }
-    .splash-loader {
-        width: 230px !important;
-    }
-}
+
 
 /* ============================================================
    SPLASH — WAYA ƘARAMA (BIGGER text, no wrap)
@@ -2808,8 +2646,209 @@ html
 }
 
 /* Hide nav-search ONLY on mobile */
+
+/* ============================================================
+   NAVIGATION — Desktop: full nav | Mobile: hamburger
+   ============================================================ */
+
+/* Base nav */
+nav {
+    background: var(--bg-nav);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-height);
+    border-bottom: 2px solid var(--gold);
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
+    transition: background 0.4s ease;
+}
+
+/* Nav links — visible on DESKTOP */
+.nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+    align-items: center;
+}
+
+.nav-links a {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    position: relative;
+    text-decoration: none;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gold);
+    transition: var(--transition);
+}
+
+.nav-links a:hover { color: var(--gold); }
+.nav-links a:hover::after { width: 100%; }
+
+/* Nav actions */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Search — visible on DESKTOP */
+.nav-search {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50px;
+    padding: 4px 14px;
+    border: 1px solid var(--border-gold);
+    transition: var(--transition);
+}
+
+.nav-search:focus-within { border-color: var(--gold); }
+
+.nav-search input {
+    background: transparent;
+    border: none;
+    padding: 8px 10px;
+    color: #ffffff;
+    width: 140px;
+    font-size: 16px;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-search input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+.nav-search button {
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.nav-search button:hover { transform: scale(1.15); }
+
+/* Hamburger — hidden on DESKTOP */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.hamburger span {
+    width: 26px;
+    height: 2.5px;
+    background: #ffffff;
+    border-radius: 2px;
+    transition: var(--transition);
+}
+
+.hamburger:hover span { background: var(--gold); }
+
+/* Mobile menu — hidden by default */
+.mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 300px;
+    max-width: 85vw;
+    height: 100vh;
+    background: var(--bg-darker);
+    padding: 60px 24px 40px;
+    transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 1000;
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.8);
+    border-right: 2px solid var(--gold);
+    overflow-y: auto;
+}
+
+.mobile-menu.open { left: 0; }
+
+/* ============================================================
+   MOBILE (≤ 900px) — hide nav-links + search, show hamburger
+   ============================================================ */
 @media (max-width: 900px) {
+    .nav-links {
+        display: none !important;
+    }
     .nav-search {
         display: none !important;
+    }
+    .hamburger {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+    .mobile-menu {
+        display: block !important;
+    }
+}
+
+/* ============================================================
+   SMALL PHONES
+   ============================================================ */
+@media (max-width: 600px) {
+    nav {
+        padding: 0 10px !important;
+        height: 60px !important;
+    }
+    .brand-title {
+        font-size: 0.8rem !important;
+        letter-spacing: 0.3px !important;
+    }
+    .nav-logo .logo-img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    .theme-toggle {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.9rem !important;
+    }
+    .cart-icon-container i {
+        font-size: 1.1rem !important;
+    }
+    .hamburger span {
+        width: 20px !important;
+    }
+    .nav-actions {
+        gap: 2px !important;
+    }
+}
+
+@media (max-width: 400px) {
+    nav {
+        padding: 0 8px !important;
+    }
+    .brand-title {
+        font-size: 0.72rem !important;
+    }
+    .nav-logo .logo-img {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    .hamburger span {
+        width: 18px !important;
     }
 }
