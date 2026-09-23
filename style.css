@@ -2604,6 +2604,50 @@ html
     margin: 0 auto !important;
 }
 
+
+
+
+
+
+
+
+
+@media (max-width: 768px) {
+    
+    
+    
+    
+}
+
+@media (max-width: 500px) {
+    
+    
+    
+    
+}
+
+@media (max-width: 380px) {
+    
+    
+    
+    
+}
+/* ============================================================
+   SPLASH SCREEN — PC + BIG PHONE (unchanged)
+   ============================================================ */
+.splash-content {
+    position: relative;
+    z-index: 2;
+    text-align: center !important;
+    max-width: 95% !important;
+    padding: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+}
+
 .splash-logo {
     width: 140px !important;
     height: 140px !important;
@@ -2653,23 +2697,89 @@ html
     margin-right: auto !important;
 }
 
+/* ============================================================
+   SPLASH — BABBAR WAYA (kada ka canza sosai)
+   ============================================================ */
 @media (max-width: 768px) {
-    .splash-logo { width: 120px !important; height: 120px !important; }
-    .splash-title { font-size: 1.9rem !important; letter-spacing: 1.5px !important; }
-    .splash-subtitle { font-size: 0.85rem !important; letter-spacing: 4px !important; }
-    .splash-loader { width: 220px !important; }
+    .splash-logo {
+        width: 120px !important;
+        height: 120px !important;
+    }
+    .splash-title {
+        font-size: 2rem !important;
+        letter-spacing: 1.5px !important;
+    }
+    .splash-subtitle {
+        font-size: 0.9rem !important;
+        letter-spacing: 4px !important;
+    }
+    .splash-loader {
+        width: 230px !important;
+    }
 }
 
+/* ============================================================
+   SPLASH — WAYA ƘARAMA (BIGGER text, no wrap)
+   ============================================================ */
 @media (max-width: 500px) {
-    .splash-logo { width: 110px !important; height: 110px !important; }
-    .splash-title { font-size: 1.5rem !important; letter-spacing: 0.8px !important; }
-    .splash-subtitle { font-size: 0.7rem !important; letter-spacing: 3px !important; }
-    .splash-loader { width: 180px !important; }
+    .splash-logo {
+        width: 115px !important;
+        height: 115px !important;
+        margin-bottom: 22px !important;
+    }
+    .splash-title {
+        font-size: 1.65rem !important;
+        letter-spacing: 0.5px !important;
+        line-height: 1.15 !important;
+    }
+    .splash-subtitle {
+        font-size: 0.85rem !important;
+        letter-spacing: 3px !important;
+    }
+    .splash-loader {
+        width: 200px !important;
+        margin-top: 30px !important;
+    }
 }
 
+/* ============================================================
+   SPLASH — WAYA MAFI ƘARAMA (BIGGEST text, no wrap)
+   ============================================================ */
 @media (max-width: 380px) {
-    .splash-logo { width: 95px !important; height: 95px !important; }
-    .splash-title { font-size: 1.2rem !important; letter-spacing: 0.3px !important; }
-    .splash-subtitle { font-size: 0.6rem !important; letter-spacing: 2px !important; }
-    .splash-loader { width: 160px !important; }
+    .splash-logo {
+        width: 105px !important;
+        height: 105px !important;
+        margin-bottom: 20px !important;
+    }
+    .splash-title {
+        font-size: 1.45rem !important;
+        letter-spacing: 0.2px !important;
+        line-height: 1.2 !important;
+    }
+    .splash-subtitle {
+        font-size: 0.75rem !important;
+        letter-spacing: 2.5px !important;
+    }
+    .splash-loader {
+        width: 180px !important;
+        margin-top: 25px !important;
+    }
+}
+
+@media (max-width: 340px) {
+    .splash-logo {
+        width: 95px !important;
+        height: 95px !important;
+    }
+    .splash-title {
+        font-size: 1.25rem !important;
+        letter-spacing: 0.1px !important;
+    }
+    .splash-subtitle {
+        font-size: 0.68rem !important;
+        letter-spacing: 2px !important;
+    }
+    .splash-loader {
+        width: 160px !important;
+    }
 }

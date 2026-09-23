@@ -115,7 +115,11 @@ function applyVideo10sLoop(container) {
 // ============================================================
 function renderPrice(actualPrice) {
     const actual = parseFloat(actualPrice) || 0;
-    return `<span class="price-actual">₦${actual.toLocaleString()}</span>`;
+    const fake = actual + 5000;
+    return `
+        <span class="price-actual">₦${actual.toLocaleString()}</span>
+        <span class="price-fake">₦${fake.toLocaleString()}</span>
+    `;
 }
 
 function getPriceHTML(actualPrice) {
@@ -125,7 +129,7 @@ function getPriceHTML(actualPrice) {
 // ============================================================
 // SPLASH
 // ============================================================
-const SPLASH_TIME = 3000;
+const SPLASH_TIME = 5000;
 const splashStart = Date.now();
 let splashHidden = false;
 
@@ -135,24 +139,9 @@ function hideSplash() {
     const s = document.getElementById('splashScreen');
     if (s) {
         s.classList.add('fade-out');
-        setTimeout(() => {
-            s.style.display = 'none';
-            s.style.visibility = 'hidden';
-            s.style.opacity = '0';
-        }, 800);
+        setTimeout(() => { s.style.display = 'none'; }, 800);
     }
 }
-
-// FORCE hide — safety net: after 5 seconds, splash MUST be gone
-setTimeout(() => {
-    const s = document.getElementById('splashScreen');
-    if (s) {
-        s.style.display = 'none';
-        s.style.visibility = 'hidden';
-        s.style.opacity = '0';
-    }
-    splashHidden = true;
-}, 5000);
 
 // ============================================================
 // TOAST
@@ -373,25 +362,6 @@ function getFirstImage(p) {
     if (typeof p.images === 'string' && p.images) return p.images.split(',')[0].trim();
     return '';
 }
-// ============================================================
-// COLOR HELPERS — normalize + dedupe variants
-// ============================================================
-function normalizeColor(name) {
-    return (name || '').trim().toLowerCase();
-}
-
-function dedupeVariants(variants) {
-    if (!Array.isArray(variants)) return [];
-    const seen = new Set();
-    const out = [];
-    for (const v of variants) {
-        const key = normalizeColor(v.colorName);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push(v);
-    }
-    return out;
-}
 
 // ============================================================
 // DYNAMIC COUNTRY FILTERS
@@ -439,72 +409,152 @@ function renderProducts() {
         filtered = filtered.filter(p => p.country === currentCountryFilter);
     }
 
-    if (currentPriceFilter === '35k') {
-        // 35k & Below = ₦30,000 - ₦35,000
+    if (currentPriceFilter !== 'all') {
+        const limit = currentPriceFilter === '35k' ? 35000 : 40000;
         filtered = filtered.filter(p => {
             const price = getProductPrice(p);
-            return price >= 30000 && price <= 35000;
-        });
-    } else if (currentPriceFilter === '40k') {
-        // 40k & Below = ₦36,000 - ₦45,000
-        filtered = filtered.filter(p => {
-            const price = getProductPrice(p);
-            return price >= 36000 && price <= 45000;
+            return price > 0 && price <= limit;
         });
     }
-    // 'all' → babu filter, nuna duk abayas else {
-                    // Swipe RIGHT → previous color (one step only)
-                    if (currentIndex > 0) {
-                        updateToIndex(currentIndex - 1);
-                    }
+
+    const display = document.getElementById('productCountDisplay');
+    if (display) display.textContent = filtered.length;
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state">✨ No Abayas found — try another filter.</div>';
+        return;
+    }
+
+    grid.innerHTML = filtered.map(p => renderProductCard(p)).join('');
+    attachProductListeners();
+    applyVideo10sLoop(grid);
+}
+
+function renderProductCard(p) {
+    const variants = (p.variants && Array.isArray(p.variants)) ? p.variants : [];
+    const firstVariant = variants[0] || {
+        image: getFirstImage(p),
+        colorName: 'Default',
+        colorValue: '#d4af37',
+        price: p.price || 0,
+        code: p.code || ''
+    };
+
+    const mainImage = optimizeImage(firstVariant.image, 500, 500);
+    const firstVideo = (p.videos && Array.isArray(p.videos) && p.videos.length > 0) ? p.videos[0] : null;
+    const country = p.country || 'Egypt';
+    const flag = country === 'Egypt' ? '🇪🇬' : '';
+    const sizes = Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === 'string' ? p.sizes.split(',').map(s => s.trim()) : []);
+
+    // Color circles — ONLY from admin-added variants, show EXACTLY how many exist
+    let colorCirclesHTML = '';
+    if (variants.length > 0) {
+        colorCirclesHTML = `
+            <div class="color-circles" data-product-id="${escapeHtml(p.id)}">
+                ${variants.map((v, i) => `
+                    <button class="color-circle ${i === 0 ? 'selected' : ''}"
+                            data-color-index="${i}"
+                            data-image="${escapeHtml(v.image || '')}"
+                            data-color-name="${escapeHtml(v.colorName || '')}"
+                            data-color-value="${escapeHtml(v.colorValue || '')}"
+                            data-price="${v.price || p.price || 0}"
+                            data-code="${escapeHtml(v.code || p.code || '')}"
+                            style="background-color: ${v.colorValue || '#ccc'};"
+                            title="${escapeHtml(v.colorName || '')}"
+                            aria-label="${escapeHtml(v.colorName || '')}"></button>
+                `).join('')}
+            </div>
+            <div class="selected-color-name" data-product-id="${escapeHtml(p.id)}">${escapeHtml(firstVariant.colorName || '')}</div>
+        `;
+    }
+
+    return `
+        <div class="product-card" data-id="${escapeHtml(p.id)}">
+            <div class="product-image">
+                ${firstVideo
+                    ? `<video src="${firstVideo}" muted autoplay loop playsinline data-autoplay-video></video>`
+                    : `<img src="${mainImage}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="imgFallback(this)" />`
                 }
-            }
+                ${flag ? `<span class="country-badge">${flag} ${escapeHtml(country)}</span>` : ''}
+                <div class="quick-view-overlay">
+                    <button class="btn-quick-view" data-id="${escapeHtml(p.id)}">Quick View</button>
+                </div>
+            </div>
+            <div class="product-info">
+                <div class="product-name">${escapeHtml(p.name)}</div>
+                <div class="product-code">${escapeHtml(firstVariant.code || p.code || '')}</div>
+                ${colorCirclesHTML}
+                <div class="product-price" data-product-id="${escapeHtml(p.id)}">${getPriceHTML(firstVariant.price || 0)}</div>
+                <div class="product-sizes">
+                    ${sizes.map(s => `<span>${escapeHtml(s)}</span>`).join('')}
+                </div>
+                <button class="btn-order" data-id="${escapeHtml(p.id)}">
+                    <i class="fas fa-shopping-cart"></i> Order Now
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function attachProductListeners() {
+    // Color circle clicks — swap image IN-PLACE
+    document.querySelectorAll('.color-circles').forEach(group => {
+        group.querySelectorAll('.color-circle').forEach(circle => {
+            circle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = group.dataset.productId;
+                const card = document.querySelector(`.product-card[data-id="${productId}"]`);
+                if (!card) return;
+
+                group.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+
+                const newImage = this.dataset.image;
+                const newColorName = this.dataset.colorName;
+                const newPrice = this.dataset.price;
+                const newCode = this.dataset.code;
+
+                const imgEl = card.querySelector('.product-image img');
+                const videoEl = card.querySelector('.product-image video');
+                if (imgEl && newImage) {
+                    imgEl.src = optimizeImage(newImage, 500, 500);
+                } else if (videoEl && newImage) {
+                    videoEl.outerHTML = `<img src="${optimizeImage(newImage, 500, 500)}" alt="" onerror="imgFallback(this)" />`;
+                }
+
+                const nameEl = document.querySelector(`.selected-color-name[data-product-id="${productId}"]`);
+                if (nameEl) nameEl.textContent = newColorName;
+
+                const priceEl = document.querySelector(`.product-price[data-product-id="${productId}"]`);
+                if (priceEl && newPrice) priceEl.innerHTML = getPriceHTML(newPrice);
+
+                const codeEl = card.querySelector('.product-code');
+                if (codeEl && newCode) codeEl.textContent = newCode;
+
+                card.dataset.selectedColor = newColorName;
+                card.dataset.selectedImage = newImage;
+                card.dataset.selectedPrice = newPrice;
+                card.dataset.selectedCode = newCode;
+            });
         });
-
-        const endDrag = () => {
-            isDragging = false;
-        };
-
-        imageWrap.addEventListener('pointerup', endDrag);
-        imageWrap.addEventListener('pointercancel', endDrag);
-        imageWrap.addEventListener('pointerleave', endDrag);
-
-        // Prevent accidental click after swipe
-        imageWrap.addEventListener('click', (e) => {
-            if (hasMoved) {
-                e.stopPropagation();
-                e.preventDefault();
-                hasMoved = false;
-            }
-        }, true);
-
-        // Prevent click firing after swipe
-        imageWrap.addEventListener('click', (e) => {
-            if (hasMoved) {
-                e.stopPropagation();
-                e.preventDefault();
-                hasMoved = false;
-            }
-        }, true);
-
-        // ============================================================
-        // MOUSE WHEEL (desktop) — optional horizontal scroll
-        // ============================================================
-        imageWrap.addEventListener('wheel', (e) => {
-            if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20) {
-                e.preventDefault();
-                if (e.deltaX > 0) updateToIndex(currentIndex + 1);
-                else updateToIndex(currentIndex - 1);
-            }
-        }, { passive: false });
-
-        // Initialize first
-        updateToIndex(0);
     });
 
-    // ============================================================
-    // ORDER NOW
-    // ============================================================
+    document.querySelectorAll('.btn-quick-view').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const p = products.find(x => String(x.id) === String(this.dataset.id));
+            if (p) openQuickView(p);
+        });
+    });
+
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-order') || e.target.closest('.color-circle') || e.target.closest('.btn-quick-view')) return;
+            const p = products.find(x => String(x.id) === String(this.dataset.id));
+            if (p) openQuickView(p);
+        });
+    });
+
     document.querySelectorAll('.btn-order').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -512,10 +562,10 @@ function renderProducts() {
             const p = products.find(x => String(x.id) === String(this.dataset.id));
             if (!p) return;
 
-            const variants = dedupeVariants(p.variants || []);
             const selectedColor = card.dataset.selectedColor;
+            const variants = p.variants || [];
             let variant = variants[0];
-            if (selectedColor && variants.length > 0) {
+            if (selectedColor && variants.length > 1) {
                 const found = variants.find(v => v.colorName === selectedColor);
                 if (found) variant = found;
             }
@@ -538,7 +588,124 @@ function renderProducts() {
 // ============================================================
 // QUICK VIEW
 // ============================================================
+function openQuickView(product) {
+    const modal = document.getElementById('quickViewModal');
+    const content = document.getElementById('quickViewContent');
+    if (!modal || !content) return;
 
+    const variants = (product.variants && Array.isArray(product.variants)) ? product.variants : [];
+    const firstVariant = variants[0] || {
+        image: getFirstImage(product),
+        colorName: 'Default',
+        colorValue: '#d4af37',
+        price: product.price || 0,
+        code: product.code || ''
+    };
+
+    const firstVideo = (product.videos && Array.isArray(product.videos) && product.videos.length > 0) ? product.videos[0] : null;
+    const sizes = Array.isArray(product.sizes) ? product.sizes : (typeof product.sizes === 'string' ? product.sizes.split(',').map(s => s.trim()) : []);
+
+    content.innerHTML = `
+        <div class="modal-gallery">
+            ${firstVideo
+                ? `<video src="${firstVideo}" muted autoplay loop playsinline data-autoplay-video></video>`
+                : `<img id="qvImage" src="${optimizeImage(firstVariant.image, 800, 800)}" alt="${escapeHtml(product.name)}" onerror="imgFallback(this)" />`
+            }
+        </div>
+        ${variants.length > 0 ? `
+            <div class="color-circles" id="qvColorCircles">
+                ${variants.map((v, i) => `
+                    <button class="color-circle ${i === 0 ? 'selected' : ''}"
+                            data-color-index="${i}"
+                            data-image="${escapeHtml(v.image || '')}"
+                            data-color-name="${escapeHtml(v.colorName || '')}"
+                            data-price="${v.price || 0}"
+                            data-code="${escapeHtml(v.code || '')}"
+                            style="background-color: ${v.colorValue || '#ccc'};"
+                            title="${escapeHtml(v.colorName || '')}"></button>
+                `).join('')}
+            </div>
+            <div class="selected-color-name" id="qvSelectedColor">${escapeHtml(firstVariant.colorName || '')}</div>
+        ` : ''}
+        <h3>${escapeHtml(product.name)}</h3>
+        <div class="modal-details">
+            <p><strong>Code:</strong> <span id="qvCode">${escapeHtml(firstVariant.code || product.code || '')}</span></p>
+            <p><strong>Country:</strong> ${product.country === 'Egypt' ? '🇪🇬' : ''} ${escapeHtml(product.country || 'Egypt')}</p>
+            <p><strong>Price:</strong> <span id="qvPrice">${getPriceHTML(firstVariant.price || 0)}</span></p>
+            <p><strong>Sizes:</strong> ${sizes.map(escapeHtml).join(' · ') || '—'}</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+            <select id="qvSize" style="flex:1;min-width:120px;padding:10px;border-radius:8px;border:1px solid var(--border-gold);background:rgba(255,255,255,0.06);color:#fff;">
+                <option value="">Select Size</option>
+                ${sizes.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('')}
+            </select>
+            <input type="number" id="qvQty" value="1" min="1" style="width:80px;padding:10px;border-radius:8px;border:1px solid var(--border-gold);background:rgba(255,255,255,0.06);color:#fff;" />
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+            <button class="btn-outline-gold" style="flex:1;min-width:120px;" id="qvAddToCart">
+                <i class="fas fa-shopping-cart"></i> Add to Cart
+            </button>
+            <button class="btn-gold" style="flex:1;min-width:120px;" id="qvOrderNow">
+                <i class="fas fa-bolt"></i> Order Now
+            </button>
+        </div>
+    `;
+
+    modal.classList.add('open');
+    applyVideo10sLoop(content);
+
+    let selectedVariant = { ...firstVariant };
+
+    const qvGroup = document.getElementById('qvColorCircles');
+    if (qvGroup) {
+        qvGroup.querySelectorAll('.color-circle').forEach(circle => {
+            circle.addEventListener('click', function() {
+                qvGroup.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+
+                selectedVariant = {
+                    image: this.dataset.image,
+                    colorName: this.dataset.colorName,
+                    price: this.dataset.price,
+                    code: this.dataset.code
+                };
+
+                const img = document.getElementById('qvImage');
+                const vid = document.querySelector('.modal-gallery video');
+                if (img && this.dataset.image) {
+                    img.src = optimizeImage(this.dataset.image, 800, 800);
+                } else if (vid && this.dataset.image) {
+                    vid.outerHTML = `<img id="qvImage" src="${optimizeImage(this.dataset.image, 800, 800)}" alt="" onerror="imgFallback(this)" />`;
+                }
+
+                const selColorNameEl = document.getElementById('qvSelectedColor');
+                if (selColorNameEl) selColorNameEl.textContent = this.dataset.colorName;
+                const qvPriceEl = document.getElementById('qvPrice');
+                if (qvPriceEl) qvPriceEl.innerHTML = getPriceHTML(this.dataset.price);
+                const qvCodeEl = document.getElementById('qvCode');
+                if (qvCodeEl) qvCodeEl.textContent = this.dataset.code;
+            });
+        });
+    }
+
+    document.getElementById('qvAddToCart').addEventListener('click', () => {
+        const size = document.getElementById('qvSize').value;
+        const qty = parseInt(document.getElementById('qvQty').value) || 1;
+        if (!size) { showToast('Please select a size', '⚠️'); return; }
+        addToCart(product, selectedVariant, size, qty);
+        modal.classList.remove('open');
+    });
+
+    document.getElementById('qvOrderNow').addEventListener('click', () => {
+        const size = document.getElementById('qvSize').value;
+        const qty = parseInt(document.getElementById('qvQty').value) || 1;
+        if (!size) { showToast('Please select a size', '⚠️'); return; }
+        modal.classList.remove('open');
+        setTimeout(() => {
+            openOrderModal(product, selectedVariant, size, qty);
+        }, 200);
+    });
+}
 
 // ============================================================
 // ORDER MODAL
@@ -595,7 +762,7 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
         document.getElementById('sumTotal').textContent = (price * q).toLocaleString();
     });
 
-    document.getElementById('confirmOrderBtn').addEventListener('click', function() {
+    document.getElementById('confirmOrderBtn').addEventListener('click', async function() {
         const name = document.getElementById('orderName').value.trim();
         const phone = document.getElementById('orderPhone').value.trim();
         const address = document.getElementById('orderAddress').value.trim();
@@ -631,24 +798,29 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             time: now.toLocaleTimeString('en-US', { hour12: false }).substring(0, 5)
         };
 
-        // Build WhatsApp message
+        // Build WhatsApp message (box style)
         const waNumber = (settings.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '');
-        const L = '────────────────────────────';
+        const L = '────────────────────────────────';
         const pad = (label, value, width) => {
-            width = width || 15;
-            return label + ' '.repeat(Math.max(1, width - label.length)) + value;
+            width = width || 33;
+            return label + ' '.repeat(Math.max(1, width - label.length - String(value).length)) + value;
         };
         const waLines = [
             "NEW ORDER — NAKOWA ABAYA'S COLLECTIONS",
             '',
             L,
-            '',
-            pad('Product', product.name),
+            pad('Order ID', tempOrderId),
+            L,
             pad('Code', order.productCode),
+            L,
             pad('Color', order.colorName),
+            L,
             pad('Size', size),
+            L,
             pad('Price', '₦' + price.toLocaleString()),
+            L,
             pad('Quantity', qty),
+            L,
             pad('Total', '₦' + (price * qty).toLocaleString()),
             '',
             L,
@@ -656,13 +828,14 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
             'CUSTOMER DETAILS',
             '',
             pad('Name', name),
+            L,
             pad('Phone', phone),
+            L,
             pad('Address', address),
             '',
             L,
             '',
             pad('Date/Time', dateStr + ' | ' + order.time),
-            pad('Order ID', tempOrderId),
             '',
             L
         ];
@@ -673,27 +846,30 @@ function openOrderModal(product, variant, presetSize = '', presetQty = 1) {
         const waMessage = waLines.join('\n');
         const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(waMessage);
 
-        // ⭐ OPEN WHATSAPP NAN TAKE — babu jira
+        // ⭐ OPEN WHATSAPP NAN TAKE
         window.open(waUrl, '_blank');
 
-        // Update UI nan take
-        modal.classList.remove('open');
+        // Update UI immediately
+        this.innerHTML = '<i class="fas fa-check"></i> Sent to WhatsApp!';
+        this.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
         showToast('Order sent! Opening WhatsApp...', '✅');
+        modal.classList.remove('open');
 
-        // Save to backend A BANGO
-        apiPost('saveOrder', { order: order }).then(function(res) {
+        // Save to backend IN BACKGROUND
+        try {
+            const res = await apiPost('saveOrder', { order: order });
             const orderId = (res && res.success && res.orderId) ? res.orderId : tempOrderId;
             const myOrders = JSON.parse(localStorage.getItem('nakowa_my_orders') || '[]');
             myOrders.unshift(Object.assign({}, order, { orderId: orderId }));
             localStorage.setItem('nakowa_my_orders', JSON.stringify(myOrders.slice(0, 50)));
             clearAbandonedCart();
-        }).catch(function(err) {
+        } catch (err) {
             console.error('Background save failed:', err);
             const myOrders = JSON.parse(localStorage.getItem('nakowa_my_orders') || '[]');
             myOrders.unshift(Object.assign({}, order, { orderId: tempOrderId }));
             localStorage.setItem('nakowa_my_orders', JSON.stringify(myOrders.slice(0, 50)));
             clearAbandonedCart();
-        });
+        }
     });;
 
     // Clear abandoned cart if modal is closed via X
@@ -1275,17 +1451,10 @@ function setupModalCloses() {
 
 function checkAndShowTrackingOnReturn() {
     try {
-        // Tabbatacce: tracking yana bayyana SAU DAYA KAWAII ga customer
-        // (har abada — ba kowace shiga ba)
-        if (localStorage.getItem('nakowa_tracking_seen') === 'true') return;
-
+        if (sessionStorage.getItem('tracking_shown')) return;
         const myOrders = JSON.parse(localStorage.getItem('nakowa_my_orders') || '[]');
         if (myOrders.length === 0) return;
-
-        // Mark as seen FOREVER
-        localStorage.setItem('nakowa_tracking_seen', 'true');
-
-        // Show tracking modal
+        sessionStorage.setItem('tracking_shown', 'true');
         setTimeout(() => {
             openTrackingModal();
         }, 1500);
@@ -1296,18 +1465,13 @@ function checkAndShowTrackingOnReturn() {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
-    // Force hide splash after DOM ready + 3s max
-    setTimeout(hideSplash, 3000);
-    // ============================================================
-    // SPLASH — tabbatacce zai rufe bayan 4s (ba ya dogara da window.load)
-    // ============================================================
-    setTimeout(hideSplash, SPLASH_TIME);
-
-    // Fallback na ƙarshe — ko da komai ya faru, rufe bayan 6s
-    setTimeout(hideSplash, 6000);
-
-    // Fallback na biyu — bayan 8s (idan har yanzu yana nan)
-    setTimeout(hideSplash, 8000);
+    window.addEventListener('load', () => {
+        const elapsed = Date.now() - splashStart;
+        const remaining = SPLASH_TIME - elapsed;
+        if (remaining > 0) setTimeout(hideSplash, remaining);
+        else hideSplash();
+    });
+    setTimeout(hideSplash, SPLASH_TIME + 1000);
 
     setupTheme();
     setupBackToTop();
@@ -1328,3 +1492,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     checkAndShowTrackingOnReturn();
 });
+// ============================================================
+// FORCE HIDE SPLASH — safety net (5 seconds max)
+// ============================================================
+setTimeout(function() {
+    var s = document.getElementById('splashScreen');
+    if (s) {
+        s.style.display = 'none';
+        s.style.visibility = 'hidden';
+        s.style.opacity = '0';
+        s.style.pointerEvents = 'none';
+    }
+    window.splashHidden = true;
+}, 5000);
+
+// Extra fallback — 8 seconds max
+setTimeout(function() {
+    var s = document.getElementById('splashScreen');
+    if (s) {
+        s.style.display = 'none';
+        s.style.visibility = 'hidden';
+        s.style.opacity = '0';
+        s.style.pointerEvents = 'none';
+    }
+}, 8000);
