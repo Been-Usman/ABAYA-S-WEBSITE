@@ -4,31 +4,488 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes" />
     <meta name="format-detection" content="telephone=no" />
-    <meta name="theme-color" content="#f9e508" />
     <title>NAKOWA ABAYAS COLLECTIONS — Premium Imported Abayas</title>
     <meta name="description" content="Premium imported Abayas from Egypt. Elegance in every stitch." />
 
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json" />
+    <!-- Favicons (browser tab icons) -->
     <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="shortcut icon" href="favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="ABAYAS" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link rel="stylesheet" href="style.css" />
+
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="style.css?v=76" />
+
     <!-- ============================================================
-         Shared image fallback (see admin/admin.html for the full note).
+         EMERGENCY HEADER FIX — Inline styles that override everything.
+         This guarantees the header renders correctly even if
+         style.css fails to load or has a syntax error.
+         ============================================================ -->
+    <style>
+        /* --- HEADER WRAPPER --- */
+        header {
+            display: block !important;
+            width: 100% !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 999 !important;
+        }
+
+        /* --- NAV: ONE HORIZONTAL ROW --- */
+        nav {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            height: 76px !important;
+            padding: 0 28px !important;
+            background: #000000 !important;
+            border-bottom: 2px solid #f9e508 !important;
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.7) !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+            gap: 20px !important;
+            flex-wrap: nowrap !important;
+            margin: 0 !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+        }
+
+        /* --- LOGO + BRAND (LEFT) --- */
+        .nav-logo {
+            display: flex !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+            cursor: pointer !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .nav-logo .logo-container {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            flex-wrap: nowrap !important;
+            white-space: nowrap !important;
+        }
+        .nav-logo .logo-img {
+            display: block !important;
+            width: 56px !important;
+            height: 56px !important;
+            min-width: 56px !important;
+            min-height: 56px !important;
+            border-radius: 50% !important;
+            border: 2px solid #f9e508 !important;
+            background: #000 !important;
+            object-fit: cover !important;
+            box-shadow: 0 0 24px rgba(212, 175, 55, 0.45) !important;
+            flex-shrink: 0 !important;
+        }
+        .nav-logo .brand-title {
+            display: inline-block !important;
+            font-family: 'Playfair Display', serif !important;
+            font-size: 1.2rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 1.5px !important;
+            color: #ffffff !important;
+            white-space: nowrap !important;
+            line-height: 1.2 !important;
+        }
+        .nav-logo .brand-title .gold-text {
+            color: #f9e508 !important;
+        }
+
+        /* --- NAV LINKS (CENTER) --- */
+        .nav-links {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 36px !important;
+            list-style: none !important;
+            align-items: center !important;
+            flex: 1 !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .nav-links li {
+            display: inline-block !important;
+            list-style: none !important;
+        }
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.92) !important;
+            font-family: 'Poppins', sans-serif !important;
+            font-weight: 500 !important;
+            font-size: 0.95rem !important;
+            letter-spacing: 0.2px !important;
+            text-decoration: none !important;
+            white-space: nowrap !important;
+            padding: 6px 0 !important;
+            transition: color 0.3s ease !important;
+        }
+        .nav-links a:hover {
+            color: #f9e508 !important;
+        }
+
+        /* --- NAV ACTIONS (RIGHT) --- */
+        .nav-actions {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 18px !important;
+            flex-shrink: 0 !important;
+            margin-left: auto !important;
+        }
+
+        /* --- SEARCH BAR (pill, matches reference) --- */
+        .nav-search {
+            display: flex !important;
+            align-items: center !important;
+            padding: 6px 8px 6px 20px !important;
+            border: 1px solid rgba(249, 229, 8, 0.55) !important;
+            border-radius: 50px !important;
+            background: rgba(255, 255, 255, 0.04) !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+            min-width: 0 !important;
+        }
+        .nav-search input {
+            width: 170px !important;
+            background: transparent !important;
+            border: none !important;
+            color: #ffffff !important;
+            font-size: 14px !important;
+            outline: none !important;
+            font-family: 'Poppins', sans-serif !important;
+            padding: 6px 4px !important;
+        }
+        .nav-search input::placeholder {
+            color: rgba(255, 255, 255, 0.55) !important;
+        }
+        .nav-search button {
+            background: transparent !important;
+            border: none !important;
+            color: #f9e508 !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            padding: 4px 8px 4px 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .nav-search button:hover {
+            transform: scale(1.15) !important;
+        }
+
+        /* --- THEME TOGGLE (outline ring, matches reference) --- */
+        .theme-toggle {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 44px !important;
+            height: 44px !important;
+            background: transparent !important;
+            color: #f9e508 !important;
+            border: 2px solid #f9e508 !important;
+            border-radius: 50% !important;
+            font-size: 1.1rem !important;
+            cursor: pointer !important;
+            flex-shrink: 0 !important;
+            box-shadow: none !important;
+            transition: all 0.3s ease !important;
+        }
+        .theme-toggle i {
+            color: #f9e508 !important;
+        }
+        .theme-toggle:hover {
+            background: rgba(249, 229, 8, 0.12) !important;
+            transform: rotate(20deg) scale(1.05) !important;
+        }
+
+        /* --- CART (plain gold icon, matches reference) --- */
+        .cart-icon-container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: relative !important;
+            padding: 8px !important;
+            cursor: pointer !important;
+            flex-shrink: 0 !important;
+            border-radius: 50% !important;
+            transition: transform 0.3s ease !important;
+        }
+        .cart-icon-container:hover {
+            transform: scale(1.08) !important;
+        }
+        .cart-icon-container i {
+            font-size: 1.45rem !important;
+            color: #f9e508 !important;
+        }
+        .cart-icon-container .cart-count {
+            position: absolute !important;
+            top: 0 !important;
+            right: 0 !important;
+            background: #e74c3c !important;
+            color: #fff !important;
+            font-size: 0.65rem !important;
+            font-weight: 700 !important;
+            min-width: 20px !important;
+            height: 20px !important;
+            padding: 0 5px !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: 2px solid #000 !important;
+        }
+        .cart-icon-container .cart-count.hidden {
+            display: none !important;
+        }
+
+        /* --- HAMBURGER (hidden on desktop) --- */
+        .hamburger {
+            display: none !important;
+            flex-direction: column !important;
+            gap: 5px !important;
+            background: transparent !important;
+            border: none !important;
+            cursor: pointer !important;
+            padding: 8px !important;
+            flex-shrink: 0 !important;
+        }
+        .hamburger span {
+            width: 26px !important;
+            height: 2.5px !important;
+            background: #f9e508 !important;
+            border-radius: 2px !important;
+            display: block !important;
+        }
+
+        /* ============================================================
+           DESKTOP (>= 900px): show nav-links + search, NO hamburger
+           ============================================================ */
+        @media (min-width: 900px) {
+            .nav-links { display: flex !important; }
+            .nav-search { display: flex !important; }
+            .theme-toggle { display: flex !important; }
+            .cart-icon-container { display: flex !important; }
+            .hamburger { display: none !important; }
+            .mobile-menu { display: none !important; }
+        }
+
+        /* ============================================================
+           TABLET (768 - 899px): same mobile header behaviour
+           (nav/search hidden until hamburger; hamburger visible)
+           ============================================================ */
+        @media (min-width: 768px) and (max-width: 899px) {
+            .nav-links { display: none !important; }
+            .nav-search { display: none !important; }
+            .mobile-menu { display: block !important; }
+            .hamburger { display: flex !important; }
+        }
+
+        /* ============================================================
+           MOBILE (< 768px): logo+name | theme | cart | hamburger
+           ============================================================ */
+        @media (max-width: 767px) {
+            nav {
+                padding: 0 14px !important;
+                height: 70px !important;
+                gap: 6px !important;
+            }
+            .nav-logo {
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+                overflow: hidden !important;
+            }
+            .nav-logo .logo-container {
+                gap: 8px !important;
+            }
+            .nav-logo .logo-img {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px !important;
+                min-height: 44px !important;
+                border-width: 2.5px !important;
+            }
+            .nav-logo .brand-title {
+                font-size: 0.9rem !important;
+                letter-spacing: 0.5px !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            /* Hide desktop-only items */
+            .nav-links { display: none !important; }
+            .nav-search { display: none !important; }
+
+            /* Show mobile items */
+            .theme-toggle {
+                display: flex !important;
+                width: 38px !important;
+                height: 38px !important;
+                font-size: 1.05rem !important;
+            }
+            .cart-icon-container {
+                display: flex !important;
+            }
+            .cart-icon-container i {
+                font-size: 1.35rem !important;
+            }
+            .hamburger {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 6px !important;
+            }
+            .hamburger span {
+                width: 22px !important;
+            }
+            .nav-actions {
+                gap: 6px !important;
+            }
+            .mobile-menu {
+                display: block !important;
+            }
+        }
+
+        /* ============================================================
+           SMALL PHONE (< 500px)
+           ============================================================ */
+        @media (max-width: 500px) {
+            nav { padding: 0 10px !important; height: 64px !important; }
+            .nav-logo .logo-img { width: 38px !important; height: 38px !important; min-width: 38px !important; min-height: 38px !important; }
+            .nav-logo .brand-title { font-size: 0.78rem !important; }
+            .nav-logo .logo-container { gap: 6px !important; }
+            .theme-toggle { width: 34px !important; height: 34px !important; font-size: 0.95rem !important; }
+            .cart-icon-container i { font-size: 1.2rem !important; }
+            .hamburger span { width: 20px !important; }
+            .nav-actions { gap: 4px !important; }
+        }
+
+        /* ============================================================
+           VERY SMALL PHONE (< 380px)
+           ============================================================ */
+        @media (max-width: 380px) {
+            nav { padding: 0 8px !important; height: 60px !important; }
+            .nav-logo .logo-img { width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important; border-width: 2px !important; }
+            .nav-logo .brand-title { font-size: 0.7rem !important; letter-spacing: 0 !important; }
+            .nav-logo .logo-container { gap: 5px !important; }
+            .theme-toggle { width: 30px !important; height: 30px !important; font-size: 0.85rem !important; }
+            .cart-icon-container i { font-size: 1.1rem !important; }
+            .hamburger span { width: 18px !important; }
+            .nav-actions { gap: 3px !important; }
+        }
+
+        /* ============================================================
+           ABOUT SECTION — PC: image LEFT + text RIGHT
+                           Mobile: image TOP + text BOTTOM
+           ============================================================ */
+        #about {
+            background: #0a1240 !important;
+            padding: 80px 0 !important;
+        }
+        .about-grid {
+            display: grid !important;
+            grid-template-columns: 380px 1fr !important;
+            gap: 60px !important;
+            align-items: start !important;
+            margin-top: 0 !important;
+        }
+        .about-image-wrapper {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            order: 1 !important;
+        }
+        .about-image {
+            width: 100% !important;
+            max-width: 380px !important;
+            height: 460px !important;
+            object-fit: cover !important;
+            border-radius: 20px !important;
+            border: 3px solid #f9e508 !important;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.25), 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+            background: #000 !important;
+            display: block !important;
+        }
+        .about-text {
+            order: 2 !important;
+            text-align: left !important;
+            padding-top: 10px !important;
+        }
+        .about-text .section-title {
+            text-align: left !important;
+            font-size: 2.8rem !important;
+            margin-bottom: 28px !important;
+            letter-spacing: -0.5px !important;
+            line-height: 1.1 !important;
+            color: #ffffff !important;
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+        }
+        .about-text .section-title .gold-text {
+            color: #f9e508 !important;
+        }
+        .about-text p {
+            font-size: 1.12rem !important;
+            line-height: 1.85 !important;
+            color: rgba(255, 255, 255, 0.92) !important;
+            margin-bottom: 22px !important;
+            text-align: left !important;
+        }
+        .about-text strong {
+            color: #f9e508 !important;
+            font-weight: 700 !important;
+        }
+
+        /* About — Mobile: image TOP, text BOTTOM */
+        @media (max-width: 899px) {
+            #about { padding: 50px 0 !important; }
+            .about-grid {
+                grid-template-columns: 1fr !important;
+                gap: 30px !important;
+            }
+            .about-image-wrapper {
+                order: 1 !important;
+                justify-content: center !important;
+            }
+            .about-image {
+                max-width: 280px !important;
+                height: 340px !important;
+                border-radius: 16px !important;
+            }
+            .about-text {
+                order: 2 !important;
+                text-align: center !important;
+            }
+            .about-text .section-title {
+                text-align: center !important;
+                font-size: 2rem !important;
+                margin-bottom: 20px !important;
+            }
+            .about-text p {
+                font-size: 1rem !important;
+                line-height: 1.75 !important;
+                text-align: center !important;
+            }
+        }
+        @media (max-width: 500px) {
+            .about-text .section-title { font-size: 1.75rem !important; }
+            .about-image { max-width: 240px !important; height: 300px !important; }
+        }
+        @media (max-width: 380px) {
+            .about-image { max-width: 200px !important; height: 260px !important; }
+        }
+    </style>
+
+    <!-- Shared image fallback (see admin/admin.html for the full note).
          ROOT-CAUSE FIX: https://via.placeholder.com is dead, so any
          onerror that re-assigned it looped forever and flooded the
-         console. The fallback is now a local data-URI applied once.
-         ============================================================ -->
+         console. The fallback is now a local data-URI applied once. -->
     <script>
         window.FALLBACK_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20viewBox%3D%220%200%20400%20400%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%3Crect%20width%3D%22400%22%20height%3D%22400%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%22200%22%20y%3D%22200%22%20fill%3D%22%23d4af37%22%20font-family%3D%22Poppins%2CArial%2Csans-serif%22%20font-size%3D%2256%22%20font-weight%3D%22700%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3ENAKOWA%3C%2Ftext%3E%3C%2Fsvg%3E";
         window.imgFallback = function (img) {
@@ -61,50 +518,48 @@
     <!-- ===== PUBLIC WEBSITE ===== -->
     <div id="publicWebsite">
 
-        <div id="toast">
-            <span class="toast-icon">✅</span>
-            <span id="toastMessage">Success!</span>
-        </div>
-
-        <button id="backToTop" aria-label="Back to top">
-            <i class="fas fa-arrow-up"></i>
-        </button>
-
-        <!-- NAVBAR -->
-        <nav>
-            <div class="nav-logo" id="logoTrigger">
-                <div class="logo-container">
-                    <img src="images/logo.png" alt="NAKOWA ABAYAS" class="logo-img site-logo" onerror="imgFallback(this)" />
-                    <span class="brand-title">NAKOWA <span class="gold-text">ABAYAS</span></span>
+        <!-- ===== HEADER / NAVIGATION ===== -->
+        <header>
+            <nav>
+                <!-- LEFT: LOGO + BRAND NAME -->
+                <div class="nav-logo" id="logoTrigger">
+                    <div class="logo-container">
+                        <img src="images/logo.png" alt="NAKOWA ABAYAS" class="logo-img site-logo" onerror="imgFallback(this)" />
+                        <span class="brand-title">NAKOWA <span class="gold-text">ABAYAS</span></span>
+                    </div>
                 </div>
-            </div>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About Us</a></li>
-                <li><a href="#products">Our Products</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-            <div class="nav-actions">
-                <div class="nav-search">
-                    <input type="text" id="searchInput" placeholder="Search Abaya..." />
-                    <button id="searchBtn"><i class="fas fa-search"></i></button>
-                </div>
-                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <div class="cart-icon-container" id="cartIcon">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count hidden" id="cartCount">0</span>
-                </div>
-                <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
-                    <span></span><span></span><span></span>
-                </button>
-            </div>
-        </nav>
 
-        <!-- MOBILE MENU -->
+                <!-- CENTER: NAV LINKS (desktop only) -->
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#products">Our Products</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+
+                <!-- RIGHT: SEARCH + THEME + CART + HAMBURGER -->
+                <div class="nav-actions">
+                    <div class="nav-search">
+                        <input type="text" id="searchInput" placeholder="Search Abaya..." />
+                        <button id="searchBtn" aria-label="Search"><i class="fas fa-search"></i></button>
+                    </div>
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="cart-icon-container" id="cartIcon" aria-label="Open cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count hidden" id="cartCount">0</span>
+                    </div>
+                    <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+                        <span></span><span></span><span></span>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- ===== MOBILE MENU ===== -->
         <div class="mobile-menu" id="mobileMenu">
-            <button class="close-mobile" id="closeMobile">&times;</button>
+            <button class="close-mobile" id="closeMobile" aria-label="Close menu">&times;</button>
             <img src="images/logo.png" alt="NAKOWA" class="mobile-logo site-logo" onerror="imgFallback(this)" />
             <a href="#home">Home</a>
             <a href="#about">About Us</a>
@@ -121,7 +576,7 @@
             </a>
         </div>
 
-        <!-- HERO -->
+        <!-- ===== HERO ===== -->
         <section id="home" class="hero">
             <div class="hero-overlay"></div>
             <div class="hero-content container">
@@ -131,7 +586,7 @@
             </div>
         </section>
 
-        <!-- ABOUT -->
+        <!-- ===== ABOUT ===== -->
         <section id="about" class="bg-dark">
             <div class="container">
                 <div class="about-grid">
@@ -166,7 +621,7 @@
             </div>
         </section>
 
-        <!-- PRODUCTS -->
+        <!-- ===== PRODUCTS ===== -->
         <section id="products" class="bg-black">
             <div class="container">
                 <h2 class="section-title">Our <span class="gold-text">Abayas</span></h2>
@@ -190,7 +645,7 @@
             </div>
         </section>
 
-        <!-- CONTACT -->
+        <!-- ===== CONTACT ===== -->
         <section id="contact" class="bg-dark">
             <div class="container">
                 <h2 class="section-title">Get in <span class="gold-text">Touch</span></h2>
@@ -205,18 +660,18 @@
                     <div class="social-section">
                         <p class="social-label">Follow us</p>
                         <div class="social-links">
-                            <a href="#" class="social-fb"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-ig"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="social-tt"><i class="fab fa-tiktok"></i></a>
-                            <a href="#" class="social-yt"><i class="fab fa-youtube"></i></a>
-                            <a href="#" class="social-wa"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#" class="social-fb" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-ig" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-tt" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                            <a href="#" class="social-yt" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                            <a href="#" class="social-wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- FOOTER -->
+        <!-- ===== FOOTER ===== -->
         <footer>
             <div class="container">
                 <div class="footer-grid">
@@ -250,11 +705,11 @@
                     <div>
                         <h4>Follow</h4>
                         <div class="footer-social">
-                            <a href="#" class="social-fb"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-ig"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="social-tt"><i class="fab fa-tiktok"></i></a>
-                            <a href="#" class="social-yt"><i class="fab fa-youtube"></i></a>
-                            <a href="#" class="social-wa"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#" class="social-fb" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-ig" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-tt" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                            <a href="#" class="social-yt" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                            <a href="#" class="social-wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                         </div>
                     </div>
                 </div>
@@ -265,12 +720,12 @@
             </div>
         </footer>
 
-        <!-- FLOATING WHATSAPP -->
+        <!-- ===== FLOATING WHATSAPP ===== -->
         <a href="https://wa.me/201500766295" target="_blank" class="whatsapp-float" aria-label="Chat on WhatsApp" id="floatWhatsapp">
             <i class="fab fa-whatsapp"></i>
         </a>
 
-        <!-- LIVE CHAT -->
+        <!-- ===== LIVE CHAT ===== -->
         <button class="chat-float" id="chatFloat" aria-label="Live Chat">
             <i class="fas fa-comment-dots"></i>
             <span class="chat-badge"></span>
@@ -278,78 +733,95 @@
         <div class="chat-modal" id="chatModal">
             <div class="chat-header">
                 <h4><i class="fas fa-headset" style="color:var(--gold);margin-right:8px;"></i>Live Support</h4>
-                <button id="chatClose"><i class="fas fa-times"></i></button>
+                <button id="chatClose" aria-label="Close chat"><i class="fas fa-times"></i></button>
             </div>
             <div class="chat-messages" id="chatMessages">
                 <div class="chat-message bot">👋 Hello! Welcome to NAKOWA ABAYAS. How can we help you today?</div>
             </div>
             <div class="chat-input-group">
                 <input type="text" id="chatInput" placeholder="Type your message..." />
-                <button id="chatSend"><i class="fas fa-paper-plane"></i></button>
+                <button id="chatSend" aria-label="Send"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
 
-        
+        <!-- ===== BACK TO TOP ===== -->
+        <button id="backToTop" aria-label="Back to top">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+
+        <!-- ===== TOAST (hidden) ===== -->
+        <div id="toast">
+            <span class="toast-icon">✅</span>
+            <span id="toastMessage">Added to cart!</span>
         </div>
 
-        <!-- ORDER MODAL -->
-        <div id="orderModal" class="modal-overlay order-modal">
-            <div class="modal-box glass">
-                <button class="close-modal" id="closeOrderModal">&times;</button>
-                <div class="order-modal-header">
-                    <img src="images/logo.png" alt="NAKOWA" class="logo-img modal-logo site-logo" onerror="imgFallback(this)" />
-                    <h3>Order Abaya</h3>
-                </div>
-                <div id="orderFormContainer"></div>
+    </div>
+    <!-- ===== END #publicWebsite ===== -->
+
+    <!-- ===== ORDER MODAL ===== -->
+    <div id="orderModal" class="modal-overlay order-modal">
+        <div class="modal-box glass">
+            <button class="close-modal" id="closeOrderModal" aria-label="Close">&times;</button>
+            <div class="order-modal-header">
+                <img src="images/logo.png" alt="NAKOWA" class="logo-img modal-logo site-logo" onerror="imgFallback(this)" />
+                <h3>Order Abaya</h3>
+            </div>
+            <div id="orderFormContainer"></div>
+        </div>
+    </div>
+
+    <!-- ===== ORDER TRACKING MODAL ===== -->
+    <div id="trackingModal" class="modal-overlay tracking-modal">
+        <div class="modal-box glass">
+            <button class="close-modal" id="closeTrackingModal" aria-label="Close">&times;</button>
+            <div id="trackingContent"></div>
+        </div>
+    </div>
+
+    <!-- ===== CART SIDEBAR ===== -->
+    <div class="cart-sidebar-overlay" id="cartOverlay"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3><i class="fas fa-shopping-cart" style="color:var(--gold);margin-right:10px;"></i>Your Cart</h3>
+            <button class="cart-close" id="cartClose" aria-label="Close cart">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="cart-empty">
+                <i class="fas fa-shopping-bag"></i>
+                Your cart is empty.
             </div>
         </div>
-
-        <!-- ORDER TRACKING MODAL -->
-        <div id="trackingModal" class="modal-overlay tracking-modal">
-            <div class="modal-box glass">
-                <button class="close-modal" id="closeTrackingModal">&times;</button>
-                <div id="trackingContent"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotalAmount">₦0</span>
             </div>
+            <button class="btn-gold" style="width:100%;" id="checkoutBtn">
+                <i class="fab fa-whatsapp"></i> Checkout via WhatsApp
+            </button>
         </div>
-
-        <!-- CART SIDEBAR -->
-        <div class="cart-sidebar-overlay" id="cartOverlay"></div>
-        <div class="cart-sidebar" id="cartSidebar">
-            <div class="cart-header">
-                <h3><i class="fas fa-shopping-cart" style="color:var(--gold);margin-right:10px;"></i>Your Cart</h3>
-                <button class="cart-close" id="cartClose">&times;</button>
-            </div>
-            <div class="cart-items" id="cartItems">
-                <div class="cart-empty">
-                    <i class="fas fa-shopping-bag"></i>
-                    Your cart is empty.
-                </div>
-            </div>
-            <div class="cart-footer">
-                <div class="cart-total">
-                    <span>Total:</span>
-                    <span id="cartTotalAmount">₦0</span>
-                </div>
-                <button class="btn-gold" style="width:100%;" id="checkoutBtn">
-                    <i class="fab fa-whatsapp"></i> Checkout via WhatsApp
-                </button>
-            </div>
-        </div>
-
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- Service Worker Registration (PWA) -->
+    <!-- One-time cleanup: kill any OLD cached service worker so the
+         fixed header HTML/CSS always loads fresh (plain site, no PWA) -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(function(reg) { console.log('SW registered:', reg.scope); })
-                    .catch(function(err) { console.warn('SW registration failed:', err); });
-            });
-        }
+        (function () {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (regs) {
+                    regs.forEach(function (r) { r.unregister().catch(function () {}); });
+                }).catch(function () {});
+            }
+            try {
+                if (window.caches && caches.keys) {
+                    caches.keys().then(function (names) {
+                        names.forEach(function (n) { caches.delete(n).catch(function () {}); });
+                    }).catch(function () {});
+                }
+            } catch (e) {}
+        })();
     </script>
 
     <script src="script.js"></script>

@@ -1,29 +1,25 @@
 ﻿/* ============================================================
-   NAKOWA ABAYAS COLLECTIONS — Public Styles (v30 — REFERENCE MATCH)
-   Matches user's reference screenshots exactly
+   NAKOWA ABAYAS COLLECTIONS — Public Styles (v28 — FINAL)
+   Black + Navy theme, mobile-first
    ============================================================ */
 
-/* ============================================================
-   ROOT VARIABLES
-   ============================================================ */
 :root {
     --black: #000000;
     --navy: #080e33;
-    --navy-dark: #0a1240;
+    --navy-dark: #050d32;
     --navy-darker: #030826;
     --bg-main: #000000;
     --bg-card: #0a1240;
     --bg-card-hover: #0e1850;
-    --bg-nav: rgba(0, 0, 0, 0.98);
+    --bg-nav: rgba(0, 0, 0, 0.95);
     --bg-footer: #000000;
     --bg-modal: rgba(8, 14, 51, 0.95);
     --bg-cart: #080e33;
     --gold: #f9e508;
-    --gold-light: #ffe81f;
-    --gold-dark: #d4af37;
-    --gold-soft: #d4c303;
+    --gold-light: #d4c303;
+    --gold-dark: #b89b00;
     --white: #ffffff;
-    --border-gold: rgba(212, 175, 55, 0.5);
+    --border-gold: rgba(212, 175, 55, 0.4);
     --gold-gradient: linear-gradient(135deg, #d4af37, #f6ea0f);
     --shadow-gold: 0 8px 32px rgba(212, 175, 55, 0.25);
     --shadow-dark: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -31,7 +27,7 @@
     --radius-sm: 10px;
     --radius-pill: 50px;
     --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --header-height: 88px;
+    --header-height: 70px;
     --whatsapp: #25D366;
     --facebook: #1877F2;
     --youtube: #FF0000;
@@ -43,26 +39,41 @@ html[data-theme="dark"] {
     --bg-main: #000000;
     --bg-card: #0a1240;
     --bg-card-hover: #0e1850;
-    --bg-nav: rgba(0, 0, 0, 0.98);
+    --bg-nav: rgba(0, 0, 0, 0.95);
     --bg-footer: #000000;
     --bg-modal: rgba(8, 14, 51, 0.95);
     --bg-cart: #080e33;
 }
 
 /* LIGHT — navy */
-html[data-theme="light"] {
-    --bg-main: #080e33;
-    --bg-card: #0a1240;
-    --bg-card-hover: #0e1850;
-    --bg-nav: rgba(8, 14, 51, 0.95);
-    --bg-footer: #080e33;
-    --bg-modal: rgba(8, 14, 51, 0.95);
-    --bg-cart: #080e33;
+
+html[data-theme="dark"] {
+    --bg-main: #000000;
+    --card-bg: #0a1240;
 }
 
-/* ============================================================
-   RESET
-   ============================================================ */
+
+
+html[data-theme="dark"] {
+    --bg-main: #000000;
+    --card-bg: #0a1240;
+    --navy: #080e33;
+    --navy-darker: #030826;
+}
+
+
+
+/* Dark mode (default) — black + navy */
+html[data-theme="dark"] {
+    --black: #000000;
+    --navy: #080e33;
+    --navy-dark: #050d32;
+    --navy-darker: #030826;
+}
+
+/* "Light" mode — still navy, kaman yadda kake so */
+
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html {
@@ -71,7 +82,6 @@ html {
     text-size-adjust: 100%;
     overflow-x: hidden;
     width: 100%;
-    max-width: 100vw;
 }
 
 body {
@@ -109,9 +119,7 @@ h1, h2, h3, h4, .brand-title {
 a { text-decoration: none; color: inherit; }
 img { max-width: 100%; display: block; }
 
-/* ============================================================
-   GLOBAL LOGO (splash, mobile menu, footer, modals)
-   ============================================================ */
+/* ===== LOGO ===== */
 .logo-img {
     width: 70px;
     height: 70px;
@@ -121,7 +129,6 @@ img { max-width: 100%; display: block; }
     box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
     flex-shrink: 0;
     background: var(--black);
-    display: block;
 }
 
 .logo-container {
@@ -141,11 +148,9 @@ img { max-width: 100%; display: block; }
 }
 
 .brand-title .gold-text { color: var(--gold); }
-.gold-text { color: var(--gold); }
+.gold-text { color: var(--gold); text-shadow: 0 0 40px rgba(212, 175, 55, 0.25); }
 
-/* ============================================================
-   BUTTONS
-   ============================================================ */
+/* ===== BUTTONS ===== */
 .btn-gold {
     background: var(--gold-gradient);
     color: #000;
@@ -186,9 +191,7 @@ img { max-width: 100%; display: block; }
     transform: translateY(-2px);
 }
 
-/* ============================================================
-   TYPOGRAPHY
-   ============================================================ */
+/* ===== TYPOGRAPHY ===== */
 .section-title {
     font-size: 2.2rem;
     margin-bottom: 12px;
@@ -241,6 +244,10 @@ img { max-width: 100%; display: block; }
     background: radial-gradient(circle at 30% 40%, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
 }
 
+
+    100% { transform: scale(1.4) rotate(5deg); }
+}
+
 .splash-content {
     position: relative;
     z-index: 2;
@@ -281,7 +288,9 @@ img { max-width: 100%; display: block; }
     white-space: nowrap;
     line-height: 1.1;
 }
-.splash-title .gold-text { color: var(--gold); }
+.splash-title .gold-text {
+    color: var(--gold);
+}
 
 .splash-subtitle {
     font-family: 'Poppins', sans-serif;
@@ -313,40 +322,45 @@ img { max-width: 100%; display: block; }
     animation: splashLoad 4s linear forwards;
 }
 
-.splash-word {
-    display: inline-block;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: splashWordIn 0.6s ease forwards;
-}
 
-.word-1 { animation-delay: 0.15s; }
-.word-2 { animation-delay: 0.75s; }
-.word-3 { animation-delay: 1.35s; }
-.word-4 { animation-delay: 1.95s; }
-
-@keyframes splashWordIn {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes splashLogoIn {
-    0% { opacity: 0; transform: scale(0.7); }
-    100% { opacity: 1; transform: scale(1); }
-}
-@keyframes splashLoad {
-    0% { width: 0%; }
     100% { width: 100%; }
 }
 
 /* ============================================================
-   TOAST (hidden)
+   TOAST
    ============================================================ */
 #toast {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    right: 20px;
+    margin: 0 auto;
+    max-width: 400px;
+    background: var(--gold-gradient);
+    color: #000;
+    padding: 14px 24px;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transform: translateY(120px);
+    opacity: 0;
+    transition: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 9999;
+    box-shadow: var(--shadow-gold);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
 }
+
+#toast.show {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#toast .toast-icon { font-size: 1.3rem; }
 
 /* ============================================================
    BACK TO TOP
@@ -369,261 +383,159 @@ img { max-width: 100%; display: block; }
     box-shadow: var(--shadow-gold);
     transform: scale(0.8);
 }
+
 #backToTop.show { opacity: 1; transform: scale(1); }
 #backToTop:hover { transform: scale(1.1); }
 
 /* ============================================================
-   HEADER / NAVIGATION — MATCHES SCREENSHOT 1
-   PC:     Logo+Name | Nav Links | Search | Theme | Cart
-   Mobile: Logo+Name | Theme | Cart | Hamburger
+   NAVBAR
    ============================================================ */
-header {
-    display: block;
-    width: 100%;
+nav {
+    background: var(--bg-nav);
+    backdrop-filter: blur(12px);
+    padding: 0 16px;
     position: sticky;
     top: 0;
     z-index: 999;
-}
-
-nav {
-    background: #000000;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 0 28px;
-    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 76px;
+    height: var(--header-height);
     border-bottom: 2px solid var(--gold);
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.7);
-    gap: 30px;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-    margin: 0;
-    transition: background 0.4s ease;
-    overflow: visible;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.8);
+    gap: 8px;
 }
 
-/* ---- LOGO + BRAND (LEFT) ---- */
 .nav-logo {
     cursor: pointer;
-    display: flex !important;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: flex;
     align-items: center;
     flex-shrink: 0;
-    min-width: 0;
-    padding: 0;
-    visibility: visible !important;
-    opacity: 1 !important;
 }
 
-.nav-logo .logo-container {
-    display: flex !important;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: nowrap;
-    white-space: nowrap;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+.nav-logo .logo-img { width: 50px; height: 50px; }
+.nav-logo .brand-title { font-size: 0.95rem; letter-spacing: 1px; }
 
-.nav-logo .logo-img {
-    display: block !important;
-    width: 56px;
-    height: 56px;
-    min-width: 56px;
-    min-height: 56px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--gold);
-    box-shadow: 0 0 24px rgba(212, 175, 55, 0.45);
-    background: #000;
-    flex-shrink: 0;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-.nav-logo .brand-title {
-    display: inline-block !important;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    color: #ffffff;
-    white-space: nowrap;
-    line-height: 1.2;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-.nav-logo .brand-title .gold-text { color: var(--gold); }
-
-/* ---- NAV LINKS (CENTER, desktop only) ---- */
 .nav-links {
     display: flex;
-    gap: 36px;
+    gap: 28px;
     list-style: none;
     align-items: center;
-    flex: 1;
-    justify-content: center;
-    margin: 0;
-    padding: 0;
 }
-
 .nav-links a {
-    color: rgba(255, 255, 255, 0.92);
+    color: rgba(255, 255, 255, 0.85);
     font-weight: 500;
-    font-size: 0.95rem;
-    letter-spacing: 0.2px;
-    text-decoration: none;
-    padding: 6px 0;
-    white-space: nowrap;
+    font-size: 0.9rem;
+    transition: var(--transition);
     position: relative;
-    transition: color 0.3s ease;
 }
-
-.nav-links a:hover { color: var(--gold); }
-
 .nav-links a::after {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: -6px;
     left: 0;
     width: 0;
     height: 2px;
     background: var(--gold);
-    transition: width 0.3s ease;
+    transition: var(--transition);
 }
-
+.nav-links a:hover { color: var(--gold); }
 .nav-links a:hover::after { width: 100%; }
 
-/* ---- NAV ACTIONS (RIGHT) ---- */
 .nav-actions {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 8px;
     flex-shrink: 0;
-    margin-left: auto;
 }
 
-/* Search — slim pill matching screenshot */
 .nav-search {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 50px;
-    padding: 6px 8px 6px 20px;
-    border: 1px solid rgba(249, 229, 8, 0.55);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-pill);
+    padding: 4px 14px;
+    border: 1px solid var(--border-gold);
     transition: var(--transition);
-    gap: 10px;
 }
-
-.nav-search:focus-within {
-    border-color: var(--gold-light);
-    background: rgba(0, 0, 0, 0.6);
-    box-shadow: 0 0 20px rgba(249, 229, 8, 0.15);
-}
-
+.nav-search:focus-within { border-color: var(--gold); }
 .nav-search input {
     background: transparent;
     border: none;
-    padding: 6px 4px;
-    color: #ffffff;
-    width: 170px;
-    font-size: 14px;
+    padding: 8px 10px;
+    color: var(--white);
+    width: 140px;
+    font-size: 16px;
     outline: none;
-    font-family: 'Poppins', sans-serif;
 }
-
-.nav-search input::placeholder { color: rgba(255, 255, 255, 0.55); }
-
+.nav-search input::placeholder { color: rgba(255, 255, 255, 0.4); }
 .nav-search button {
     background: transparent;
     border: none;
     color: var(--gold);
     cursor: pointer;
     font-size: 1rem;
-    padding: 4px 8px 4px 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s ease;
+    transition: var(--transition);
 }
-
 .nav-search button:hover { transform: scale(1.15); }
 
-/* Theme toggle — OUTLINE gold ring with gold icon (matches PC screenshot) */
 .theme-toggle {
-    width: 44px;
-    height: 44px;
     background: transparent;
-    color: var(--gold);
     border: 2px solid var(--gold);
+    color: var(--gold);
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     cursor: pointer;
     font-size: 1.1rem;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: var(--transition);
-    box-shadow: none;
 }
-
-.theme-toggle i {
-    color: var(--gold);
-}
-
 .theme-toggle:hover {
-    background: rgba(249, 229, 8, 0.12);
-    transform: rotate(20deg) scale(1.05);
-    box-shadow: none;
+    background: var(--gold);
+    color: #000;
+    transform: rotate(30deg);
 }
 
-/* Cart — bigger, bright gold */
 .cart-icon-container {
     position: relative;
     cursor: pointer;
-    padding: 8px;
+    padding: 6px;
     border-radius: 50%;
+    transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: var(--transition);
 }
-
-.cart-icon-container:hover {
-    transform: scale(1.08);
-}
-
 .cart-icon-container i {
-    font-size: 1.45rem;
+    font-size: 1.3rem;
     color: var(--gold);
 }
-
 .cart-icon-container .cart-count {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: -2px;
+    right: -2px;
     background: #e74c3c;
     color: #fff;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #000;
+    transition: var(--transition);
 }
+.cart-icon-container .cart-count.hidden { transform: scale(0); }
 
-.cart-icon-container .cart-count.hidden { display: none; }
-
-/* Hamburger (hidden on desktop) */
 .hamburger {
     display: none;
     flex-direction: column;
@@ -634,17 +546,15 @@ nav {
     padding: 8px;
     flex-shrink: 0;
 }
-
 .hamburger span {
     width: 26px;
     height: 2.5px;
-    background: var(--gold);
+    background: var(--white);
     border-radius: 2px;
-    display: block;
     transition: var(--transition);
+    display: block;
 }
-
-.hamburger:hover span { background: var(--gold-light); }
+.hamburger:hover span { background: var(--gold); }
 
 /* ============================================================
    MOBILE MENU
@@ -665,9 +575,7 @@ nav {
     border-right: 2px solid var(--gold);
     overflow-y: auto;
 }
-
 .mobile-menu.open { left: 0; }
-
 .mobile-menu .mobile-logo {
     width: 80px;
     height: 80px;
@@ -677,7 +585,6 @@ nav {
     margin-bottom: 24px;
     display: block;
 }
-
 .mobile-menu a {
     display: block;
     color: var(--white);
@@ -687,7 +594,6 @@ nav {
     font-size: 1.05rem;
     transition: var(--transition);
 }
-
 .mobile-menu a:hover { color: var(--gold); padding-left: 10px; }
 
 .close-mobile {
@@ -702,15 +608,14 @@ nav {
     transition: var(--transition);
     line-height: 1;
 }
-
 .close-mobile:hover { color: var(--gold); transform: rotate(90deg); }
 
 /* ============================================================
    HERO
    ============================================================ */
 .hero {
-    height: 78vh;
-    min-height: 480px;
+    height: 70vh;
+    min-height: 420px;
     background-size: cover;
     background-position: center 30%;
     display: flex;
@@ -731,7 +636,7 @@ nav {
     position: relative;
     z-index: 2;
     color: var(--white);
-    max-width: 900px;
+    max-width: 750px;
     padding: 0 20px;
     animation: fadeUp 1s ease;
     text-align: center;
@@ -739,23 +644,21 @@ nav {
 }
 
 .hero-content h1 {
-    font-size: 4rem;
-    line-height: 1.1;
-    margin-bottom: 22px;
+    font-size: 2.2rem;
+    line-height: 1.15;
+    margin-bottom: 16px;
     font-weight: 700;
-    text-shadow: 0 4px 40px rgba(0,0,0,0.6);
-    letter-spacing: -1px;
+    text-shadow: 0 4px 40px rgba(0,0,0,0.5);
 }
 .hero-content h1 .gold-text {
     color: var(--gold);
-    text-shadow: 0 0 60px rgba(249, 229, 8, 0.3);
+    text-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
 }
 .hero-content p {
-    font-size: 1.35rem;
-    margin-bottom: 38px;
-    opacity: 0.95;
+    font-size: 1.05rem;
+    margin-bottom: 28px;
+    opacity: 0.9;
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.95);
 }
 
 @keyframes fadeUp {
@@ -764,74 +667,42 @@ nav {
 }
 
 /* ============================================================
-   ABOUT — MATCHES SCREENSHOT 2
-   PC: navy bg, black+gold image card LEFT, left-aligned text RIGHT
-   Mobile: image TOP, text BOTTOM (centered)
+   ABOUT
    ============================================================ */
-.about {
-    padding: 80px 0;
-}
-
-#about {
-    background: #0a1240;
-}
+.about { padding: 60px 0; }
 
 .about-grid {
     display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 60px;
-    align-items: start;
-    margin-top: 0;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    align-items: center;
+    margin-top: 24px;
 }
 
 .about-image-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
-    order: 1;
 }
 
 .about-image {
-    width: 100%;
-    max-width: 380px;
-    height: 460px;
+    width: 240px;
+    height: 320px;
     object-fit: cover;
-    border-radius: 20px;
-    border: 3px solid var(--gold);
-    box-shadow: 0 0 40px rgba(212, 175, 55, 0.25), 0 20px 60px rgba(0, 0, 0, 0.5);
-    background: #000;
+    border-radius: var(--radius);
+    border: 2px solid var(--gold);
+    box-shadow: var(--shadow-gold);
+    background: var(--navy-dark);
 }
 
-.about-text {
-    order: 2;
-    text-align: left;
-    padding-top: 10px;
-}
-
-.about-text .section-title {
-    text-align: left;
-    font-size: 2.8rem;
-    margin-bottom: 28px;
-    letter-spacing: -0.5px;
-    line-height: 1.1;
-}
-
-.about-text .section-title .gold-text {
-    color: var(--gold);
-}
-
+.about-text { text-align: center; }
 .about-text p {
-    font-size: 1.12rem;
-    line-height: 1.85;
-    color: rgba(255, 255, 255, 0.92);
-    margin-bottom: 22px;
-    text-align: left;
+    margin-bottom: 16px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.98rem;
+    line-height: 1.8;
 }
-
-.about-text strong {
-    color: var(--gold);
-    font-weight: 700;
-}
+.about-text strong { color: var(--gold); }
 
 /* ============================================================
    PRODUCTS
@@ -870,7 +741,6 @@ nav {
     flex-wrap: wrap;
     gap: 12px;
 }
-
 .product-count-text {
     font-size: 0.85rem;
     opacity: 0.7;
@@ -878,23 +748,10 @@ nav {
 }
 .product-count-text strong { color: var(--gold); opacity: 1; }
 
-/* ---- PRODUCT GRID ---- */
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    width: 100%;
-    margin-top: 20px;
-}
+/* ---------- GRID: 2 columns (mobile), 4 (PC) ---------- */
 
-@media (min-width: 640px) {
-    .product-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
-    }
-}
 
-/* ---- PRODUCT CARD ---- */
+/* ---------- PRODUCT CARD ---------- */
 .product-card {
     min-width: 0;
     overflow: hidden;
@@ -938,8 +795,12 @@ nav {
     flex-shrink: 0;
 }
 
+
+
 @media (min-width: 1440px) {
-    .product-card .product-image { max-height: 380px; }
+    .product-card .product-image {
+        max-height: 380px;
+    }
 }
 
 .product-card .product-image img,
@@ -970,6 +831,29 @@ nav {
     color: var(--gold);
     z-index: 2;
     pointer-events: none;
+}
+
+.quick-view-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition);
+    z-index: 3;
+}
+.product-card:hover .quick-view-overlay { opacity: 1; }
+.quick-view-overlay .btn-quick-view {
+    background: var(--gold-gradient);
+    color: #000;
+    border: none;
+    padding: 8px 18px;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
 }
 
 .product-info,
@@ -1148,7 +1032,6 @@ nav {
     color: var(--gold);
     text-align: center;
 }
-
 .social-links {
     display: flex;
     gap: 12px;
@@ -1293,23 +1176,23 @@ footer {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 60px;
-    height: 60px;
+    width: 54px;
+    height: 54px;
     background: var(--whatsapp);
     color: #fff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    box-shadow: 0 8px 30px rgba(37, 211, 102, 0.5);
+    font-size: 1.8rem;
+    box-shadow: 0 8px 30px rgba(37, 211, 102, 0.4);
     transition: var(--transition);
     z-index: 500;
     text-decoration: none;
 }
 .whatsapp-float:hover {
     transform: scale(1.1);
-    box-shadow: 0 12px 40px rgba(37, 211, 102, 0.6);
+    box-shadow: 0 12px 40px rgba(37, 211, 102, 0.5);
 }
 
 /* ============================================================
@@ -1317,17 +1200,17 @@ footer {
    ============================================================ */
 .chat-float {
     position: fixed;
-    bottom: 95px;
+    bottom: 88px;
     right: 20px;
-    width: 60px;
-    height: 60px;
+    width: 54px;
+    height: 54px;
     background: var(--gold-gradient);
     color: #000;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     box-shadow: var(--shadow-gold);
     cursor: pointer;
     transition: var(--transition);
@@ -1337,18 +1220,18 @@ footer {
 .chat-float:hover { transform: scale(1.1); }
 .chat-float .chat-badge {
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 16px;
-    height: 16px;
+    top: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
     background: #2ecc71;
     border-radius: 50%;
-    border: 2px solid #0a1240;
+    border: 2px solid var(--navy-darker);
 }
 
 .chat-modal {
     position: fixed;
-    bottom: 165px;
+    bottom: 152px;
     right: 20px;
     left: 20px;
     max-width: 340px;
@@ -1530,6 +1413,22 @@ footer {
 /* ============================================================
    ORDER MODAL
    ============================================================ */
+.order-modal .modal-box {
+    max-width: 700px;
+    width: 100%;
+    border-radius: var(--radius);
+    padding: 24px;
+    max-height: 92vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: var(--shadow-dark);
+    color: var(--white);
+    background: var(--bg-modal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-gold);
+    transition: background 0.4s;
+}
+
 .order-modal-header {
     display: flex;
     align-items: center;
@@ -1614,6 +1513,22 @@ footer {
 /* ============================================================
    TRACKING MODAL
    ============================================================ */
+.tracking-modal .modal-box {
+    max-width: 700px;
+    width: 100%;
+    border-radius: var(--radius);
+    padding: 24px;
+    max-height: 92vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: var(--shadow-dark);
+    color: var(--white);
+    background: var(--bg-modal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-gold);
+    transition: background 0.4s;
+}
+
 .tracking-header {
     text-align: center;
     padding-bottom: 16px;
@@ -1707,7 +1622,10 @@ footer {
     border: 1px solid var(--border-gold);
     flex-shrink: 0;
 }
-.tracking-product-info { flex: 1; min-width: 0; }
+.tracking-product-info {
+    flex: 1;
+    min-width: 0;
+}
 .tracking-product-info .tp-name {
     font-size: 0.95rem;
     font-weight: 600;
@@ -1866,9 +1784,11 @@ footer {
 .cart-empty i { font-size: 2.5rem; margin-bottom: 10px; display: block; }
 
 .cart-footer {
-    background: transparent;
-    padding: 16px 0 0;
+    background: var(--bg-footer);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 50px 0 24px;
     border-top: 2px solid var(--gold);
+    transition: background 0.4s;
 }
 .cart-total {
     display: flex;
@@ -1896,7 +1816,10 @@ footer {
     padding: 4px 8px;
     border-radius: 50%;
 }
-.login-close:hover { color: var(--gold); transform: rotate(90deg); }
+.login-close:hover {
+    color: var(--gold);
+    transform: rotate(90deg);
+}
 
 .login-back {
     display: inline-flex;
@@ -1913,19 +1836,882 @@ footer {
     border-radius: var(--radius-pill);
     font-family: 'Poppins', sans-serif;
 }
-.login-back:hover { color: var(--gold); background: rgba(212, 175, 55, 0.1); }
-.login-back i { font-size: 0.8rem; }
-
-/* ============================================================
-   RESPONSIVE — TABLET (600px+)
-   ============================================================ */
-@media (min-width: 600px) {
-    .modal-details { grid-template-columns: 1fr 1fr; }
+.login-back:hover {
+    color: var(--gold);
+    background: rgba(212, 175, 55, 0.1);
+}
+.login-back i {
+    font-size: 0.8rem;
 }
 
 /* ============================================================
-   RESPONSIVE — DESKTOP (>= 900px)
-   Logo | Nav Links | Search | Theme | Cart (NO hamburger)
+   RESPONSIVE — TABLET (min 600px)
+   ============================================================ */
+
+    .modal-details { grid-template-columns: 1fr 1fr; }
+
+    
+    .splash-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+.splash-title .gold-text {
+    color: var(--gold);
+}
+    .splash-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+}
+
+/* ============================================================
+   RESPONSIVE — NAV
+   ============================================================ */
+
+/* A WAYA (max 768px) — hamburger + logo + theme + cart */
+
+    .theme-toggle { display: flex !important; }
+    .cart-icon-container { display: flex !important; }
+    .nav-logo .brand-title { font-size: 0.85rem; }
+    .nav-logo .logo-img { width: 42px; height: 42px; }
+    .theme-toggle { width: 36px; height: 36px; font-size: 1rem; }
+    .nav-actions { gap: 4px; }
+}
+
+/* A PC (min 769px) — duk su bayyana */
+
+    .nav-links { display: flex !important; }
+    .nav-search { display: flex !important; }
+    .theme-toggle { display: flex !important; }
+    .cart-icon-container { display: flex !important; }
+}
+
+/* ============================================================
+   RESPONSIVE — GRID
+   ============================================================ */
+
+/* Tablet — 2 columns */
+@media (min-width: 640px) and (max-width: 899px) {
+    
+}
+
+/* PC — 4 columns */
+
+
+/* ============================================================
+   RESPONSIVE — SMALL PHONE (max 380px)
+   ============================================================ */
+
+.splash-title .gold-text {
+    color: var(--gold);
+}
+    .splash-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+    .product-info .product-name,
+    .product-content .product-name { font-size: 0.7rem; }
+    .price-actual { font-size: 0.85rem; }
+    .btn-order { font-size: 0.6rem; padding: 6px; }
+}
+/* Small phone splash */
+
+    .splash-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+    .splash-logo {
+    width: clamp(70px, 18vw, 110px);
+    height: clamp(70px, 18vw, 110px);
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #d4af37;
+    box-shadow: 0 0 60px rgba(212, 175, 55, 0.2);
+    margin: 0 auto 18px auto;
+    background: #000;
+    display: block;
+    opacity: 0;
+    transform: scale(0.7);
+    animation: splashLogoIn 0.8s ease forwards;
+}
+    .splash-loader {
+    margin: 24px auto 0 auto;
+    width: clamp(140px, 50vw, 220px);
+    height: 3px;
+    background: rgba(212, 175, 55, 0.15);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    display: block;
+}
+}
+/* PC splash — girma kadan */
+
+    .splash-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+    .splash-logo {
+    width: clamp(70px, 18vw, 110px);
+    height: clamp(70px, 18vw, 110px);
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #d4af37;
+    box-shadow: 0 0 60px rgba(212, 175, 55, 0.2);
+    margin: 0 auto 18px auto;
+    background: #000;
+    display: block;
+    opacity: 0;
+    transform: scale(0.7);
+    animation: splashLogoIn 0.8s ease forwards;
+}
+    .splash-loader {
+    margin: 24px auto 0 auto;
+    width: clamp(140px, 50vw, 220px);
+    height: 3px;
+    background: rgba(212, 175, 55, 0.15);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    display: block;
+}
+}
+/* ============================================================
+   SPLASH WORDS — staggered animation
+   ============================================================ */
+.splash-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: splashWordIn 0.7s ease forwards;
+}
+
+.word-1 { animation-delay: 0.2s; }
+.word-2 { animation-delay: 0.9s; }
+.word-3 { animation-delay: 1.6s; }
+.word-4 { animation-delay: 2.3s; }
+
+@keyframes splashWordIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes splashLogoIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes splashLoad {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+/* ============================================================
+   SPLASH WORDS — staggered animation (4s total)
+   ============================================================ */
+.splash-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: splashWordIn 0.6s ease forwards;
+}
+
+.word-1 { animation-delay: 0.15s; }   /* NAKOWA */
+.word-2 { animation-delay: 0.75s; }   /* ABAYAS */
+.word-3 { animation-delay: 1.35s; }   /* COLLECTIONS */
+.word-4 { animation-delay: 1.95s; }   /* PREMIUM LUXURY ABAYAS */
+
+@keyframes splashWordIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes splashLogoIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes splashLoad {
+    0% { width: 0%; }
+    100% { width: 100%; }
+}
+/* ============================================================
+   THEME — black (dark) da navy (light)
+   ============================================================ */
+html[data-theme="dark"] {
+    --bg-main: #000000;
+    --bg-card: #0a1240;
+    --bg-card-hover: #0e1850;
+    --bg-nav: rgba(0, 0, 0, 0.95);
+    --bg-footer: #000000;
+    --bg-modal: rgba(8, 14, 51, 0.95);
+    --bg-cart: #080e33;
+}
+
+html[data-theme="light"] {
+    --bg-main: #080e33;
+    --bg-card: #0a1240;
+    --bg-card-hover: #0e1850;
+    --bg-nav: rgba(8, 14, 51, 0.95);
+    --bg-footer: #080e33;
+    --bg-modal: rgba(8, 14, 51, 0.95);
+    --bg-cart: #080e33;
+}
+/* ============================================================
+   RESPONSIVE FIX — Mobile (force hamburger + hide desktop nav)
+   ============================================================ */
+
+
+/* Very small phones */
+
+/* ============================================================
+   RESPONSIVE — MOBILE (duk wayoyi)
+   ============================================================ */
+
+/* TABLET / SMALL LAPTOP */
+
+
+/* PHONE (large) — wayoyi masu fadi kamar iPhone Pro Max, Samsung Ultra */
+
+
+/* PHONE (standard) */
+
+
+/* PHONE (small) */
+
+
+/* PHONE (very small) */
+
+
+/* Force hamburger to show whenever nav-links is hidden */
+
+/* ============================================================
+   PRODUCT GRID — RESPONSIVE
+   Mobile: 2 columns | Tablet: 3 columns | Desktop: 4 columns
+   ============================================================ */
+
+
+/* TABLET — 3 columns */
+@media (min-width: 640px) {
+    
+}
+
+/* DESKTOP — 4 columns */
+
+
+/* LARGE DESKTOP — keep 4 but bigger cards */
+@media (min-width: 1440px) {
+    
+}
+/* ============================================================
+   PRODUCT GRID — FINAL
+   Mobile: 2 columns | Tablet: 4 columns | PC: 4 columns
+   ============================================================ */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* TABLET — 4 columns */
+@media (min-width: 640px) {
+    .product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+}
+
+/* PC — 4 columns */
+
+
+/* ============================================================
+   HIDE SUCCESS TOAST
+   ============================================================ */
+#toast {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ============================================================
+   NAV — DESKTOP: full nav | MOBILE: hamburger
+   ============================================================ */
+
+/* DESKTOP + TABLET (>= 900px): nav-links + search visible */
+
+
+/* MOBILE (< 900px): hamburger visible, nav-links + search hidden */
+
+
+/* ============================================================
+   MOBILE ADJUSTMENTS
+   ============================================================ */
+
+
+
+
+
+/* ============================================================
+   HEADER / NAVIGATION — Reference design
+   ============================================================ */
+nav {
+    background: var(--bg-nav);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+    border-bottom: 3px solid var(--gold);
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.6);
+    transition: background 0.4s ease;
+    gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+/* Logo */
+.nav-logo {
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.nav-logo .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-logo .logo-img {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2.5px solid var(--gold);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    background: #000;
+}
+
+.nav-logo .brand-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    white-space: nowrap;
+    font-family: 'Playfair Display', serif;
+}
+
+/* Nav links — tsakiya */
+.nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    position: relative;
+    text-decoration: none;
+    padding: 6px 0;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gold);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--gold);
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+/* Nav actions — dama */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+/* Search */
+.nav-search {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50px;
+    padding: 6px 18px;
+    border: 1.5px solid var(--border-gold);
+    transition: all 0.3s ease;
+    gap: 6px;
+}
+
+.nav-search:focus-within {
+    border-color: var(--gold);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-search input {
+    background: transparent;
+    border: none;
+    padding: 6px 4px;
+    color: #ffffff;
+    width: 180px;
+    font-size: 15px;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-search input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.nav-search button {
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-search button:hover {
+    transform: scale(1.15);
+}
+
+/* Theme toggle */
+.theme-toggle {
+    background: transparent;
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.15rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+    background: var(--gold);
+    color: #000;
+    transform: rotate(30deg);
+}
+
+/* Cart */
+.cart-icon-container {
+    position: relative;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cart-icon-container i {
+    font-size: 1.5rem;
+    color: var(--gold);
+}
+
+.cart-icon-container .cart-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-nav);
+}
+
+.cart-icon-container .cart-count.hidden {
+    display: none;
+}
+
+/* Hamburger — ɓoye a PC */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.hamburger span {
+    width: 26px;
+    height: 2.5px;
+    background: #ffffff;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.hamburger:hover span {
+    background: var(--gold);
+}
+
+/* ============================================================
+   HIDE TOAST (Success)
+   ============================================================ */
+#toast {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ============================================================
+   DESKTOP (>= 900px) — full nav + search
+   ============================================================ */
+
+
+/* ============================================================
+   MOBILE (< 900px) — hamburger only
+   ============================================================ */
+
+
+/* ============================================================
+   SMALL PHONE (< 500px)
+   ============================================================ */
+
+
+/* ============================================================
+   VERY SMALL PHONE (< 380px)
+   ============================================================ */
+
+/* ============================================================
+   HEADER / NAVIGATION — FINAL
+   PC:     Logo+Name | Navigation | Search | Theme | Cart
+   Mobile: Logo+Name | Theme | Cart | Hamburger
+   ============================================================ */
+
+nav {
+    background: var(--bg-nav, rgba(0, 0, 0, 0.95));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+    border-bottom: 3px solid var(--gold, #f9e508);
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.6);
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+/* Logo (hagu) */
+.nav-logo {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.nav-logo .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-logo .logo-img {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2.5px solid var(--gold, #f9e508);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    background: #000;
+}
+
+.nav-logo .brand-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    white-space: nowrap;
+    font-family: 'Playfair Display', serif;
+}
+
+/* Navigation (tsakiya) */
+.nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none;
+    padding: 6px 0;
+    white-space: nowrap;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--gold, #f9e508);
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gold, #f9e508);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+/* Nav actions (dama) */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+/* Search */
+.nav-search {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50px;
+    padding: 6px 16px;
+    border: 1.5px solid var(--border-gold, rgba(212, 175, 55, 0.4));
+    gap: 6px;
+}
+
+.nav-search:focus-within {
+    border-color: var(--gold, #f9e508);
+}
+
+.nav-search input {
+    background: transparent;
+    border: none;
+    padding: 6px 4px;
+    color: #ffffff;
+    width: 140px;
+    font-size: 14px;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-search input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.nav-search button {
+    background: transparent;
+    border: none;
+    color: var(--gold, #f9e508);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+}
+
+/* Theme */
+.theme-toggle {
+    background: transparent;
+    border: 2px solid var(--gold, #f9e508);
+    color: var(--gold, #f9e508);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Cart */
+.cart-icon-container {
+    position: relative;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cart-icon-container i {
+    font-size: 1.4rem;
+    color: var(--gold, #f9e508);
+}
+
+.cart-icon-container .cart-count {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-icon-container .cart-count.hidden {
+    display: none;
+}
+
+/* Hamburger */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    flex-shrink: 0;
+}
+
+.hamburger span {
+    width: 24px;
+    height: 2.5px;
+    background: #ffffff;
+    border-radius: 2px;
+    display: block;
+}
+
+.hamburger:hover span {
+    background: var(--gold, #f9e508);
+}
+
+/* Hide Success Toast */
+#toast {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ============================================================
+   PC / DESKTOP (>= 900px)
+   Logo+Name | Navigation | Search | Theme | Cart
    ============================================================ */
 @media (min-width: 900px) {
     .nav-links { display: flex !important; }
@@ -1934,94 +2720,48 @@ footer {
     .cart-icon-container { display: flex !important; }
     .hamburger { display: none !important; }
     .mobile-menu { display: none !important; }
-
-    /* About — image LEFT, text RIGHT */
-    .about-grid {
-        grid-template-columns: 380px 1fr !important;
-        gap: 60px !important;
-        align-items: start !important;
-    }
-    .about-image-wrapper {
-        justify-content: center !important;
-        order: 1 !important;
-    }
-    .about-text {
-        order: 2 !important;
-        text-align: left !important;
-    }
-    .about-text .section-title {
-        text-align: left !important;
-        font-size: 2.8rem !important;
-    }
-    .about-text p { text-align: left !important; }
 }
 
 /* ============================================================
-   RESPONSIVE — TABLET (768px - 899px)
+   TABLET (768px - 899px)
    ============================================================ */
 @media (min-width: 768px) and (max-width: 899px) {
-    nav { padding: 0 20px; gap: 14px; }
-    .nav-links { gap: 20px; }
-    .nav-links a { font-size: 0.85rem; }
-    .nav-logo .logo-img { width: 50px; height: 50px; min-width: 50px; min-height: 50px; }
-    .nav-logo .brand-title { font-size: 1rem; }
-    .nav-search { padding: 6px 14px; }
-    .nav-search input { width: 120px; font-size: 13px; }
-    .theme-toggle { width: 40px; height: 40px; font-size: 1.05rem; }
-    .cart-icon-container i { font-size: 1.4rem; }
+    nav { padding: 0 16px; gap: 12px; }
+    .nav-links { gap: 16px; }
+    .nav-links a { font-size: 0.8rem; }
+    .nav-logo .logo-img { width: 44px; height: 44px; }
+    .nav-logo .brand-title { font-size: 0.9rem; }
+    .nav-search { padding: 4px 12px; }
+    .nav-search input { width: 100px; font-size: 13px; }
+    .theme-toggle { width: 36px; height: 36px; font-size: 1rem; }
+    .cart-icon-container i { font-size: 1.25rem; }
     .hamburger { display: none !important; }
     .mobile-menu { display: none !important; }
 }
 
 /* ============================================================
-   RESPONSIVE — MOBILE (< 768px)
+   MOBILE (< 768px)
    Logo+Name | Theme | Cart | Hamburger
    ============================================================ */
 @media (max-width: 767px) {
-    nav {
-        padding: 0 14px;
-        height: 70px;
-        gap: 6px;
-    }
+    nav { padding: 0 14px; height: 66px; gap: 8px; }
 
-    /* Logo + brand MUST stay visible */
-    .nav-logo {
-        flex: 1 1 auto;
-        min-width: 0;
-        overflow: hidden;
-    }
+    .nav-logo .logo-img { width: 42px; height: 42px; }
+    .nav-logo .brand-title { font-size: 0.85rem; letter-spacing: 0.5px; }
 
-    .nav-logo .logo-container { gap: 8px; }
-
-    .nav-logo .logo-img {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
-        border-width: 2.5px;
-    }
-
-    .nav-logo .brand-title {
-        font-size: 0.9rem;
-        letter-spacing: 0.5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Hide desktop items */
+    /* HIDDEN */
     .nav-links { display: none !important; }
     .nav-search { display: none !important; }
 
-    /* Show mobile items */
+    /* VISIBLE */
     .theme-toggle {
         display: flex !important;
-        width: 38px;
-        height: 38px;
-        font-size: 1.05rem;
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
     }
     .cart-icon-container { display: flex !important; }
-    .cart-icon-container i { font-size: 1.35rem; }
+    .cart-icon-container i { font-size: 1.2rem; }
     .hamburger {
         display: flex !important;
         align-items: center;
@@ -2032,105 +2772,30 @@ footer {
 
     .nav-actions { gap: 6px; }
     .mobile-menu { display: block !important; }
-
-    /* Hero — smaller */
-    .hero { height: 62vh; min-height: 400px; }
-    .hero-content h1 { font-size: 2.3rem; letter-spacing: -0.5px; margin-bottom: 16px; }
-    .hero-content p { font-size: 1rem; margin-bottom: 26px; }
-    .hero-content .btn-gold { padding: 12px 30px; font-size: 0.85rem; }
-
-    /* About — image TOP, text BELOW */
-    #about { padding: 50px 0; }
-    .about-grid {
-        grid-template-columns: 1fr !important;
-        gap: 30px !important;
-    }
-    .about-image-wrapper {
-        order: 1 !important;
-        justify-content: center !important;
-    }
-    .about-image {
-        max-width: 280px !important;
-        height: 340px !important;
-        border-radius: 16px !important;
-    }
-    .about-text {
-        order: 2 !important;
-        text-align: center !important;
-    }
-    .about-text .section-title {
-        text-align: center !important;
-        font-size: 2rem !important;
-        margin-bottom: 20px !important;
-    }
-    .about-text p {
-        font-size: 1rem !important;
-        line-height: 1.75 !important;
-        text-align: center !important;
-    }
 }
 
 /* ============================================================
-   RESPONSIVE — SMALL PHONE (< 500px)
+   SMALL PHONE (< 500px)
    ============================================================ */
 @media (max-width: 500px) {
-    nav { padding: 0 10px; height: 64px; }
-    .nav-logo .logo-img { width: 38px; height: 38px; min-width: 38px; min-height: 38px; }
-    .nav-logo .brand-title { font-size: 0.78rem; }
-    .nav-logo .logo-container { gap: 6px; }
-    .theme-toggle { width: 34px; height: 34px; font-size: 0.95rem; }
-    .cart-icon-container i { font-size: 1.2rem; }
+    nav { padding: 0 10px; height: 62px; }
+    .nav-logo .logo-img { width: 38px; height: 38px; }
+    .nav-logo .brand-title { font-size: 0.75rem; }
+    .theme-toggle { width: 32px; height: 32px; font-size: 0.9rem; }
+    .cart-icon-container i { font-size: 1.15rem; }
     .hamburger span { width: 20px; }
     .nav-actions { gap: 4px; }
-
-    .hero-content h1 { font-size: 1.9rem; }
-    .hero-content p { font-size: 0.92rem; }
-    .hero-content .btn-gold { padding: 11px 26px; font-size: 0.8rem; }
-
-    .about-text .section-title { font-size: 1.75rem !important; }
-    .about-image { max-width: 240px !important; height: 300px !important; }
 }
 
 /* ============================================================
-   RESPONSIVE — VERY SMALL PHONE (< 380px)
+   VERY SMALL PHONE (< 380px)
    ============================================================ */
 @media (max-width: 380px) {
-    nav { padding: 0 8px; height: 60px; }
-    .nav-logo .logo-img { width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-width: 2px; }
-    .nav-logo .brand-title { font-size: 0.7rem; letter-spacing: 0; }
-    .nav-logo .logo-container { gap: 5px; }
+    nav { padding: 0 8px; height: 58px; }
+    .nav-logo .logo-img { width: 34px; height: 34px; border-width: 2px; }
+    .nav-logo .brand-title { font-size: 0.68rem; letter-spacing: 0; }
     .theme-toggle { width: 30px; height: 30px; font-size: 0.85rem; }
-    .cart-icon-container i { font-size: 1.1rem; }
+    .cart-icon-container i { font-size: 1.05rem; }
     .hamburger span { width: 18px; }
     .nav-actions { gap: 3px; }
-
-    .hero-content h1 { font-size: 1.6rem; }
-    .hero-content p { font-size: 0.85rem; }
-
-    .about-image { max-width: 200px !important; height: 260px !important; }
-}
-
-/* ============================================================
-   RESPONSIVE — SPLASH (small phones)
-   ============================================================ */
-@media (max-width: 480px) {
-    .splash-title { font-size: 1.6rem; letter-spacing: 1.5px; }
-    .splash-subtitle { font-size: 0.72rem; letter-spacing: 3px; }
-    .splash-logo { width: 80px; height: 80px; }
-}
-
-@media (max-width: 360px) {
-    .splash-title { font-size: 1.3rem; letter-spacing: 1px; }
-    .splash-subtitle { font-size: 0.62rem; letter-spacing: 2px; }
-    .splash-logo { width: 68px; height: 68px; }
-}
-
-/* ============================================================
-   RESPONSIVE — PRODUCT CARDS (small phones)
-   ============================================================ */
-@media (max-width: 380px) {
-    .product-info .product-name,
-    .product-content .product-name { font-size: 0.7rem; }
-    .price-actual { font-size: 0.85rem; }
-    .btn-order { font-size: 0.6rem; padding: 6px; }
 }

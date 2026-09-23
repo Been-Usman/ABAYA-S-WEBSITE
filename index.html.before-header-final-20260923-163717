@@ -1,0 +1,350 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#f9e508" />
+    <title>NAKOWA ABAYAS COLLECTIONS — Premium Imported Abayas</title>
+    <meta name="description" content="Premium imported Abayas from Egypt. Elegance in every stitch." />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ABAYAS" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <!-- ============================================================
+         Shared image fallback (see admin/admin.html for the full note).
+         ROOT-CAUSE FIX: https://via.placeholder.com is dead, so any
+         onerror that re-assigned it looped forever and flooded the
+         console. The fallback is now a local data-URI applied once.
+         ============================================================ -->
+    <script>
+        window.FALLBACK_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20viewBox%3D%220%200%20400%20400%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%3Crect%20width%3D%22400%22%20height%3D%22400%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%22200%22%20y%3D%22200%22%20fill%3D%22%23d4af37%22%20font-family%3D%22Poppins%2CArial%2Csans-serif%22%20font-size%3D%2256%22%20font-weight%3D%22700%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3ENAKOWA%3C%2Ftext%3E%3C%2Fsvg%3E";
+        window.imgFallback = function (img) {
+            if (!img || img.dataset.fbApplied === '1') return; // hard guard: never loop
+            img.dataset.fbApplied = '1';
+            img.onerror = null;
+            img.src = window.FALLBACK_IMG;
+        };
+    </script>
+</head>
+<body>
+
+    <!-- ===== SPLASH SCREEN ===== -->
+    <div id="splashScreen">
+        <div class="splash-bg"></div>
+        <div class="splash-content">
+            <img src="images/logo.png" alt="NAKOWA ABAYAS" class="splash-logo" onerror="imgFallback(this)" />
+            <h1 class="splash-title">
+                <span class="splash-word word-1">NAKOWA</span>
+                <span class="splash-word word-2 gold-text">ABAYAS</span>
+                <span class="splash-word word-3">COLLECTIONS</span>
+            </h1>
+            <p class="splash-subtitle">
+                <span class="splash-word word-4">PREMIUM LUXURY ABAYAS</span>
+            </p>
+            <div class="splash-loader"><div class="splash-loader-line"></div></div>
+        </div>
+    </div>
+
+    <!-- ===== PUBLIC WEBSITE ===== -->
+    <div id="publicWebsite">
+
+        
+            <nav>
+            <div class="nav-logo" id="logoTrigger">
+                <div class="logo-container">
+                    <img src="images/logo.png" alt="NAKOWA ABAYAS" class="logo-img site-logo" onerror="imgFallback(this)" />
+                    <span class="brand-title">NAKOWA <span class="gold-text">ABAYAS</span></span>
+                </div>
+            </div>
+
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#products">Our Products</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <div class="nav-search">
+                    <input type="text" id="searchInput" placeholder="Search Abaya..." />
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="cart-icon-container" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count hidden" id="cartCount">0</span>
+                </div>
+                <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- MOBILE MENU -->
+        <div class="mobile-menu" id="mobileMenu">
+            <button class="close-mobile" id="closeMobile">&times;</button>
+            <img src="images/logo.png" alt="NAKOWA" class="mobile-logo site-logo" onerror="imgFallback(this)" />
+            <a href="#home">Home</a>
+            <a href="#about">About Us</a>
+            <a href="#products">Our Products</a>
+            <a href="#contact">Contact</a>
+            <a href="#" id="mobileCartLink" style="color:var(--gold);">
+                <i class="fas fa-shopping-cart"></i> Cart (<span id="mobileCartCount">0</span>)
+            </a>
+            <a href="#" id="mobileThemeToggle" style="color:var(--gold);">
+                <i class="fas fa-moon"></i> Toggle Theme
+            </a>
+            <a href="#" id="mobileTrackLink" style="color:var(--gold);">
+                <i class="fas fa-box"></i> Track My Order
+            </a>
+        </div>
+
+        <!-- HERO -->
+        <section id="home" class="hero">
+            <div class="hero-overlay"></div>
+            <div class="hero-content container">
+                <h1>Elegance in <span class="gold-text">Every Stitch</span></h1>
+                <p>Discover premium Abayas imported from Egypt.</p>
+                <a href="#products" class="btn-gold">Shop Now</a>
+            </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section id="about" class="bg-dark">
+            <div class="container">
+                <div class="about-grid">
+                    <div class="about-image-wrapper">
+                        <img src="images/About.jpg" alt="About NAKOWA ABAYAS" class="about-image" onerror="imgFallback(this)" />
+                    </div>
+                    <div class="about-text">
+                        <h2 class="section-title">About <span class="gold-text">NAKOWA</span></h2>
+
+                        <p>
+                            <strong>WELCOME TO NAKOWA ABAYAS COLLECTIONS</strong> tana kawo muku
+                            kyawawan Abaya daga <strong>Egypt 🇪🇬</strong> zuwa
+                            <strong>Nigeria 🇳🇬</strong>. Muna da kaya masu
+                            <strong>kyau, sauƙi da inganci</strong> domin ku samu
+                            Abaya masu kyau cikin kwanciyar hankali Kuyi Order A Wajan Mu
+                        </p>
+
+                        <p>
+                            <strong>Yadda ake yin Order:</strong> Zaɓi kayan da kake so,
+                            cike bayananka, sannan ka tura order ɗinka ta
+                            <strong>WhatsApp</strong>. Za mu tura maka
+                            <strong>account number</strong> ta WhatsApp domin biyan kuɗi.
+                        </p>
+
+                        <p>
+                            Da zarar mun tabbatar da biyan kuɗinka,
+                            <strong>za mu shirya mu kawo maka kayan har gida Nigeria,
+                            In Sha Allah</strong>, cikin kwanciyar hankali da aminci.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section id="products" class="bg-black">
+            <div class="container">
+                <h2 class="section-title">Our <span class="gold-text">Abayas</span></h2>
+
+                <div class="product-count-bar">
+                    <div class="product-count-text">Showing <strong id="productCountDisplay">0</strong> products</div>
+                </div>
+
+                <div class="filter-buttons" id="countryFilters">
+                    <button class="filter-btn active" data-country="all">All</button>
+                    <button class="filter-btn" data-country="Egypt">🇪🇬 Egypt</button>
+                </div>
+
+                <div class="filter-buttons" id="priceFilters">
+                    <button class="filter-btn active" data-price="all">All Prices</button>
+                    <button class="filter-btn" data-price="35k">35k &amp; Below</button>
+                    <button class="filter-btn" data-price="40k">40k &amp; Below</button>
+                </div>
+
+                <div id="productGrid" class="product-grid"></div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact" class="bg-dark">
+            <div class="container">
+                <h2 class="section-title">Get in <span class="gold-text">Touch</span></h2>
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone-alt"></i> <span id="contactPhone">+20 150 076 6295</span></p>
+                        <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/201500766295" target="_blank" id="contactWhatsappLink"><span id="contactWhatsappText">+20 150 076 6295</span></a></p>
+                        <p><i class="fas fa-envelope"></i> <span id="contactEmail">info@nakowaabayas.com</span></p>
+                        <p><i class="fas fa-map-marker-alt"></i> <span id="contactAddress">EGYPT CAIRO</span></p>
+                        <p><i class="fas fa-clock"></i> Mon–Sat: 9am – 7pm</p>
+                    </div>
+                    <div class="social-section">
+                        <p class="social-label">Follow us</p>
+                        <div class="social-links">
+                            <a href="#" class="social-fb"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-ig"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-tt"><i class="fab fa-tiktok"></i></a>
+                            <a href="#" class="social-yt"><i class="fab fa-youtube"></i></a>
+                            <a href="#" class="social-wa"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="container">
+                <div class="footer-grid">
+                    <div>
+                        <div class="logo-container">
+                            <img src="images/logo.png" alt="NAKOWA ABAYAS" class="logo-img site-logo" onerror="imgFallback(this)" />
+                            <span class="brand-title">NAKOWA <span class="gold-text">ABAYAS</span></span>
+                        </div>
+                        <p style="margin-top:12px;line-height:1.8;">Premium imported Abayas from Egypt.</p>
+                        <div style="margin-top:16px;">
+                            <p style="color:var(--gold);font-weight:600;font-size:0.9rem;margin-bottom:6px;">Subscribe to our newsletter</p>
+                            <form class="newsletter-form" id="newsletterForm">
+                                <input type="email" id="newsletterEmail" placeholder="Enter your email" required />
+                                <button type="submit" class="btn-gold" style="padding:10px 20px;font-size:0.85rem;">Subscribe</button>
+                            </form>
+                            <div id="newsletterMsg" style="font-size:0.8rem;margin-top:6px;color:var(--gold);display:none;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4>Quick Links</h4>
+                        <a href="#home">Home</a>
+                        <a href="#about">About Us</a>
+                        <a href="#products">Our Products</a>
+                        <a href="#contact">Contact</a>
+                    </div>
+                    <div>
+                        <h4>Contact</h4>
+                        <p id="footerPhone">+201500766295</p>
+                        <p id="footerEmail">info@nakowaabayas.com</p>
+                    </div>
+                    <div>
+                        <h4>Follow</h4>
+                        <div class="footer-social">
+                            <a href="#" class="social-fb"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-ig"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-tt"><i class="fab fa-tiktok"></i></a>
+                            <a href="#" class="social-yt"><i class="fab fa-youtube"></i></a>
+                            <a href="#" class="social-wa"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="copy">&copy; 2026 NAKOWA ABAYAS COLLECTIONS. All rights reserved.</div>
+                <div class="copy powered-copy" style="border-top:none;padding-top:8px;opacity:0.7;font-size:0.85rem;">
+                    Powered by <a href="https://been-usman.github.io/MY-PROFILE/" target="_blank" class="powered-link">Manu's Smart Web Developer</a>
+                </div>
+            </div>
+        </footer>
+
+        <!-- FLOATING WHATSAPP -->
+        <a href="https://wa.me/201500766295" target="_blank" class="whatsapp-float" aria-label="Chat on WhatsApp" id="floatWhatsapp">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+
+        <!-- LIVE CHAT -->
+        <button class="chat-float" id="chatFloat" aria-label="Live Chat">
+            <i class="fas fa-comment-dots"></i>
+            <span class="chat-badge"></span>
+        </button>
+        <div class="chat-modal" id="chatModal">
+            <div class="chat-header">
+                <h4><i class="fas fa-headset" style="color:var(--gold);margin-right:8px;"></i>Live Support</h4>
+                <button id="chatClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message bot">👋 Hello! Welcome to NAKOWA ABAYAS. How can we help you today?</div>
+            </div>
+            <div class="chat-input-group">
+                <input type="text" id="chatInput" placeholder="Type your message..." />
+                <button id="chatSend"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        
+        </div>
+
+        <!-- ORDER MODAL -->
+        <div id="orderModal" class="modal-overlay order-modal">
+            <div class="modal-box glass">
+                <button class="close-modal" id="closeOrderModal">&times;</button>
+                <div class="order-modal-header">
+                    <img src="images/logo.png" alt="NAKOWA" class="logo-img modal-logo site-logo" onerror="imgFallback(this)" />
+                    <h3>Order Abaya</h3>
+                </div>
+                <div id="orderFormContainer"></div>
+            </div>
+        </div>
+
+        <!-- ORDER TRACKING MODAL -->
+        <div id="trackingModal" class="modal-overlay tracking-modal">
+            <div class="modal-box glass">
+                <button class="close-modal" id="closeTrackingModal">&times;</button>
+                <div id="trackingContent"></div>
+            </div>
+        </div>
+
+        <!-- CART SIDEBAR -->
+        <div class="cart-sidebar-overlay" id="cartOverlay"></div>
+        <div class="cart-sidebar" id="cartSidebar">
+            <div class="cart-header">
+                <h3><i class="fas fa-shopping-cart" style="color:var(--gold);margin-right:10px;"></i>Your Cart</h3>
+                <button class="cart-close" id="cartClose">&times;</button>
+            </div>
+            <div class="cart-items" id="cartItems">
+                <div class="cart-empty">
+                    <i class="fas fa-shopping-bag"></i>
+                    Your cart is empty.
+                </div>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotalAmount">₦0</span>
+                </div>
+                <button class="btn-gold" style="width:100%;" id="checkoutBtn">
+                    <i class="fab fa-whatsapp"></i> Checkout via WhatsApp
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Service Worker Registration (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(reg) { console.log('SW registered:', reg.scope); })
+                    .catch(function(err) { console.warn('SW registration failed:', err); });
+            });
+        }
+    </script>
+
+    <script src="script.js"></script>
+</body>
+</html>
