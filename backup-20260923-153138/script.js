@@ -373,25 +373,6 @@ function getFirstImage(p) {
     if (typeof p.images === 'string' && p.images) return p.images.split(',')[0].trim();
     return '';
 }
-// ============================================================
-// COLOR HELPERS — normalize + dedupe variants
-// ============================================================
-function normalizeColor(name) {
-    return (name || '').trim().toLowerCase();
-}
-
-function dedupeVariants(variants) {
-    if (!Array.isArray(variants)) return [];
-    const seen = new Set();
-    const out = [];
-    for (const v of variants) {
-        const key = normalizeColor(v.colorName);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push(v);
-    }
-    return out;
-}
 
 // ============================================================
 // DYNAMIC COUNTRY FILTERS
@@ -439,72 +420,127 @@ function renderProducts() {
         filtered = filtered.filter(p => p.country === currentCountryFilter);
     }
 
-    if (currentPriceFilter === '35k') {
-        // 35k & Below = ₦30,000 - ₦35,000
+    if (currentPriceFilter !== 'all') {
+        const limit = currentPriceFilter === '35k' ? 35000 : 40000;
         filtered = filtered.filter(p => {
             const price = getProductPrice(p);
-            return price >= 30000 && price <= 35000;
-        });
-    } else if (currentPriceFilter === '40k') {
-        // 40k & Below = ₦36,000 - ₦45,000
-        filtered = filtered.filter(p => {
-            const price = getProductPrice(p);
-            return price >= 36000 && price <= 45000;
+            return price > 0 && price <= limit;
         });
     }
-    // 'all' → babu filter, nuna duk abayas else {
-                    // Swipe RIGHT → previous color (one step only)
-                    if (currentIndex > 0) {
-                        updateToIndex(currentIndex - 1);
-                    }
+
+    const display = document.getElementById('productCountDisplay');
+    if (display) display.textContent = filtered.length;
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state">✨ No Abayas found — try another filter.</div>';
+        return;
+    }
+
+    grid.innerHTML = filtered.map(p => renderProductCard(p)).join('');
+    attachProductListeners();
+    applyVideo10sLoop(grid);
+}
+
+function renderProductCard(p) {
+    const variants = (p.variants && Array.isArray(p.variants)) ? p.variants : [];
+    const firstVariant = variants[0] || {
+        image: getFirstImage(p),
+        colorName: 'Default',
+        colorValue: '#d4af37',
+        price: p.price || 0,
+        code: p.code || ''
+    };
+
+    const mainImage = optimizeImage(firstVariant.image, 500, 500);
+    const firstVideo = (p.videos && Array.isArray(p.videos) && p.videos.length > 0) ? p.videos[0] : null;
+    const country = p.country || 'Egypt';
+    const flag = country === 'Egypt' ? '🇪🇬' : '';
+
+    // Color circles — centered, no name below
+    let colorCirclesHTML = '';
+    if (variants.length > 0) {
+        colorCirclesHTML = `
+            <div class="color-circles" data-product-id="${escapeHtml(p.id)}">
+                ${variants.map((v, i) => `
+                    <button class="color-circle ${i === 0 ? 'selected' : ''}"
+                            data-color-index="${i}"
+                            data-image="${escapeHtml(v.image || '')}"
+                            data-color-name="${escapeHtml(v.colorName || '')}"
+                            data-color-value="${escapeHtml(v.colorValue || '')}"
+                            data-price="${v.price || p.price || 0}"
+                            data-code="${escapeHtml(v.code || p.code || '')}"
+                            style="background-color: ${v.colorValue || '#ccc'};"
+                            title="${escapeHtml(v.colorName || '')}"
+                            aria-label="${escapeHtml(v.colorName || '')}"></button>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    return `
+        <div class="product-card" data-id="${escapeHtml(p.id)}">
+            <div class="product-image">
+                ${firstVideo
+                    ? `<video src="${firstVideo}" muted autoplay loop playsinline data-autoplay-video></video>`
+                    : `<img src="${mainImage}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="imgFallback(this)" />`
                 }
-            }
+                ${flag ? `<span class="country-badge">${flag} ${escapeHtml(country)}</span>` : ''}
+            </div>
+            <div class="product-info">
+                <div class="product-name">${escapeHtml(p.name)}</div>
+                <div class="product-code">${escapeHtml(firstVariant.code || p.code || '')}</div>
+                ${colorCirclesHTML}
+                <div class="product-price" data-product-id="${escapeHtml(p.id)}">${getPriceHTML(firstVariant.price || 0)}</div>
+                <button class="btn-order" data-id="${escapeHtml(p.id)}">
+                    <i class="fas fa-shopping-cart"></i> Order Now
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function attachProductListeners() {
+    // Color circle clicks — swap image IN-PLACE
+    document.querySelectorAll('.color-circles').forEach(group => {
+        group.querySelectorAll('.color-circle').forEach(circle => {
+            circle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = group.dataset.productId;
+                const card = document.querySelector(`.product-card[data-id="${productId}"]`);
+                if (!card) return;
+
+                group.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+
+                const newImage = this.dataset.image;
+                const newColorName = this.dataset.colorName;
+                const newPrice = this.dataset.price;
+                const newCode = this.dataset.code;
+
+                const imgEl = card.querySelector('.product-image img');
+                const videoEl = card.querySelector('.product-image video');
+                if (imgEl && newImage) {
+                    imgEl.src = optimizeImage(newImage, 500, 500);
+                } else if (videoEl && newImage) {
+                    videoEl.outerHTML = `<img src="${optimizeImage(newImage, 500, 500)}" alt="" onerror="imgFallback(this)" />`;
+                }
+
+                
+
+                const priceEl = document.querySelector(`.product-price[data-product-id="${productId}"]`);
+                if (priceEl && newPrice) priceEl.innerHTML = getPriceHTML(newPrice);
+
+                const codeEl = card.querySelector('.product-code');
+                if (codeEl && newCode) codeEl.textContent = newCode;
+
+                card.dataset.selectedColor = newColorName;
+                card.dataset.selectedImage = newImage;
+                card.dataset.selectedPrice = newPrice;
+                card.dataset.selectedCode = newCode;
+            });
         });
-
-        const endDrag = () => {
-            isDragging = false;
-        };
-
-        imageWrap.addEventListener('pointerup', endDrag);
-        imageWrap.addEventListener('pointercancel', endDrag);
-        imageWrap.addEventListener('pointerleave', endDrag);
-
-        // Prevent accidental click after swipe
-        imageWrap.addEventListener('click', (e) => {
-            if (hasMoved) {
-                e.stopPropagation();
-                e.preventDefault();
-                hasMoved = false;
-            }
-        }, true);
-
-        // Prevent click firing after swipe
-        imageWrap.addEventListener('click', (e) => {
-            if (hasMoved) {
-                e.stopPropagation();
-                e.preventDefault();
-                hasMoved = false;
-            }
-        }, true);
-
-        // ============================================================
-        // MOUSE WHEEL (desktop) — optional horizontal scroll
-        // ============================================================
-        imageWrap.addEventListener('wheel', (e) => {
-            if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20) {
-                e.preventDefault();
-                if (e.deltaX > 0) updateToIndex(currentIndex + 1);
-                else updateToIndex(currentIndex - 1);
-            }
-        }, { passive: false });
-
-        // Initialize first
-        updateToIndex(0);
     });
 
-    // ============================================================
-    // ORDER NOW
-    // ============================================================
     document.querySelectorAll('.btn-order').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -512,10 +548,10 @@ function renderProducts() {
             const p = products.find(x => String(x.id) === String(this.dataset.id));
             if (!p) return;
 
-            const variants = dedupeVariants(p.variants || []);
             const selectedColor = card.dataset.selectedColor;
+            const variants = p.variants || [];
             let variant = variants[0];
-            if (selectedColor && variants.length > 0) {
+            if (selectedColor && variants.length > 1) {
                 const found = variants.find(v => v.colorName === selectedColor);
                 if (found) variant = found;
             }
