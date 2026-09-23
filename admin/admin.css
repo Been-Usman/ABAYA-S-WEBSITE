@@ -1,32 +1,4 @@
 ﻿/* ============================================================
-   THEME — DARK (default) + LIGHT
-   ============================================================ */
-:root {
-    --bg-main: #080e33;
-    --bg-dark: #050d32;
-    --bg-darker: #030826;
-    --bg-card: #0a1240;
-    --white: #ffffff;
-    --gold: #f9e508;
-    --gold-light: #d4c303;
-    --gold-gradient: linear-gradient(135deg, #d4af37, #f6ea0f);
-    --border-gold: rgba(212, 175, 55, 0.4);
-    --shadow-gold: 0 8px 32px rgba(212, 175, 55, 0.25);
-    --shadow-dark: 0 12px 40px rgba(0, 0, 0, 0.6);
-    --radius: 16px;
-    --radius-sm: 10px;
-    --radius-pill: 50px;
-    --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-[data-theme="light"] {
-    --bg-main: #f5f5f5;
-    --bg-dark: #ececec;
-    --bg-darker: #ffffff;
-    --bg-card: #ffffff;
-}
-
-/* ============================================================
    NAKOWA ABAYAS COLLECTIONS — Admin Styles
    v2 — Added: fake price, bulk toolbar, checkboxes, progress
    ============================================================ */
@@ -51,18 +23,17 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: 'Poppins', sans-serif;
-    background: var(--bg-main);
+    background: var(--black);
     color: var(--white);
     line-height: 1.6;
     min-height: 100vh;
-    transition: background 0.4s ease;
 }
 h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 
 /* ===== BUTTONS ===== */
 .btn-gold {
     background: var(--gold-gradient);
-    color: var(--bg-main);
+    color: var(--black);
     border: none;
     padding: 12px 28px;
     border-radius: var(--radius-pill);
@@ -92,7 +63,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     transition: var(--transition);
     font-size: 0.85rem;
 }
-.btn-outline-gold:hover { background: var(--gold); color: var(--bg-main); }
+.btn-outline-gold:hover { background: var(--gold); color: var(--black); }
 
 .btn-danger {
     background: #e74c3c;
@@ -130,7 +101,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     z-index: 1;
     max-width: 420px;
     width: 100%;
-    background: var(--bg-main);
+    background: var(--black);
     padding: 40px 30px;
     border-radius: var(--radius);
     box-shadow: var(--shadow-dark);
@@ -146,7 +117,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
     margin: 0 auto 16px;
     display: block;
-    background: var(--bg-main);
+    background: var(--black);
 }
 .login-box h2 {
     color: var(--gold);
@@ -187,13 +158,13 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 #dashboard {
     display: flex;
     min-height: 100vh;
-    background: var(--bg-main);
+    background: var(--black);
 }
 
 /* Sidebar */
 .sidebar {
     width: 260px;
-    background: var(--bg-main);
+    background: var(--black);
     border-right: 2px solid var(--gold);
     position: sticky;
     top: 0;
@@ -217,7 +188,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--gold);
-    background: var(--bg-main);
+    background: var(--black);
 }
 .sidebar-header h3 {
     color: var(--gold);
@@ -267,7 +238,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 .main-content {
     flex: 1;
     padding: 20px;
-    background: var(--bg-darker);
+    background: var(--darker);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -282,7 +253,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 }
 .topbar .hamburger-admin {
     display: none;
-    background: var(--bg-main);
+    background: var(--black);
     border: 1px solid var(--border-gold);
     color: var(--white);
     font-size: 1.3rem;
@@ -317,7 +288,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 
 /* ===== CARDS ===== */
 .admin-card {
-    background: var(--bg-main);
+    background: var(--black);
     padding: 20px;
     border-radius: var(--radius);
     margin-bottom: 20px;
@@ -346,7 +317,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     margin-bottom: 20px;
 }
 .admin-stat-card {
-    background: var(--bg-main);
+    background: var(--black);
     color: var(--white);
     padding: 18px 14px;
     border-radius: var(--radius);
@@ -382,7 +353,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     gap: 14px;
 }
 .admin-product-card {
-    background: var(--bg-main);
+    background: var(--black);
     border-radius: var(--radius-sm);
     padding: 12px;
     border: 1px solid var(--border-gold);
@@ -439,7 +410,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     align-items: center;
     gap: 4px;
 }
-.admin-actions .edit-btn { background: var(--gold); color: var(--bg-main); }
+.admin-actions .edit-btn { background: var(--gold); color: var(--black); }
 .admin-actions .edit-btn:hover { background: var(--gold-light); }
 .admin-actions .delete-btn { background: #e74c3c; color: #fff; }
 .admin-actions .delete-btn:hover { background: #c0392b; }
@@ -513,13 +484,13 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 }
 
 .bulk-toolbar select option {
-    background: var(--bg-main);
+    background: var(--black);
     color: var(--white);
 }
 
 .bulk-toolbar .btn-bulk-apply {
     background: var(--gold-gradient);
-    color: var(--bg-main);
+    color: var(--black);
     border: none;
     padding: 9px 20px;
     border-radius: var(--radius-pill);
@@ -668,7 +639,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     width: 100%;
     border-collapse: collapse;
     min-width: 800px;
-    background: var(--bg-main);
+    background: var(--black);
 }
 .orders-table th {
     background: rgba(212, 175, 55, 0.1);
@@ -707,7 +678,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     outline: none;
     font-family: 'Poppins', sans-serif;
 }
-.orders-table .status-select option { background: var(--bg-main); }
+.orders-table .status-select option { background: var(--black); }
 
 .order-status-badge {
     display: inline-block;
@@ -757,7 +728,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 .admin-form input::placeholder,
 .admin-form textarea::placeholder { color: rgba(255, 255, 255, 0.3); }
 .admin-form textarea { min-height: 90px; resize: vertical; }
-.admin-form select option { background: var(--bg-main); color: var(--white); }
+.admin-form select option { background: var(--black); color: var(--white); }
 
 .admin-form .form-actions {
     display: flex;
@@ -889,7 +860,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     object-fit: cover;
     border-radius: 12px;
     border: 2px solid var(--border-gold);
-    background: var(--bg-main);
+    background: var(--black);
 }
 .variant-step-counter {
     font-size: 0.85rem;
@@ -936,7 +907,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
     width: 100%;
     border-collapse: collapse;
     min-width: 600px;
-    background: var(--bg-main);
+    background: var(--black);
 }
 .data-table th {
     background: rgba(212, 175, 55, 0.1);
@@ -1031,7 +1002,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 }
 .modal-overlay-admin.open { display: flex; }
 .modal-box-admin {
-    background: var(--bg-main);
+    background: var(--black);
     border: 1px solid var(--border-gold);
     border-radius: var(--radius);
     padding: 24px;
