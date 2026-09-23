@@ -1060,9 +1060,19 @@ function setupSearch() {
         if (display) display.textContent = filtered.length;
 
         if (filtered.length === 0) {
-            grid.innerHTML = '<div class="empty-state">✨ No results found.</div>';
-            return;
+        let emptyMsg = '';
+        if (currentPriceFilter === '35k') {
+            emptyMsg = 'Babu Abaya a ₦30,000 – ₦35,000 a yanzu.';
+        } else if (currentPriceFilter === '40k') {
+            emptyMsg = 'Babu Abaya a ₦36,000 – ₦45,000 a yanzu.';
+        } else if (currentCountryFilter !== 'all') {
+            emptyMsg = 'Babu Abaya a ' + currentCountryFilter + ' a yanzu.';
+        } else {
+            emptyMsg = 'Babu Abaya a yanzu.';
         }
+        grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; background: var(--bg-card); border-radius: 16px; border: 1.5px solid var(--border-gold); box-shadow: 0 8px 24px rgba(0,0,0,0.4); margin: 20px auto; max-width: 500px;"><i class="fas fa-search" style="font-size: 4rem; color: var(--gold); opacity: 0.6; margin-bottom: 20px; display: block;"></i><h3 style="font-family: Playfair Display, serif; font-size: 1.5rem; color: #ffffff; margin-bottom: 12px; font-weight: 700;">' + emptyMsg + '</h3><p style="color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.6;">Gwada wani filter ko duba duk abayas ɗinmu.</p></div>';
+        return;
+    }
 
         grid.innerHTML = filtered.map(p => renderProductCard(p)).join('');
         attachProductListeners();
