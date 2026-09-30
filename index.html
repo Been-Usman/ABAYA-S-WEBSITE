@@ -824,8 +824,13 @@
         })();
     </script>
 
-    <script src="config.js"></script>
     <script src="queue.js"></script>
+    <script>
+        setTimeout(function () {
+            var s = document.getElementById('splashScreen');
+            if (s) { s.style.display = 'none'; s.style.visibility = 'hidden'; s.style.opacity = '0'; }
+        }, 3000);
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

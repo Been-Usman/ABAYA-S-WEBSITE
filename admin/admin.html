@@ -10,19 +10,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="admin.css" />
 
-    <!-- ============================================================
-         Shared image fallback.
-         ROOT-CAUSE FIX: broken images used to fall back to
-         https://via.placeholder.com — that host is dead (TLS handshake
-         fails / 403), so the onerror handler re-assigned the same dead
-         URL, which fired onerror again, looping forever and flooding the
-         console with red errors. The fallback is now a local data-URI
-         (no network request possible) applied exactly once per <img>.
-         ============================================================ -->
+    <!-- Shared image fallback. Local data-URI applied once per <img>. -->
     <script>
         window.FALLBACK_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22400%22%20viewBox%3D%220%200%20400%20400%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%3Crect%20width%3D%22400%22%20height%3D%22400%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%22200%22%20y%3D%22200%22%20fill%3D%22%23d4af37%22%20font-family%3D%22Poppins%2CArial%2Csans-serif%22%20font-size%3D%2256%22%20font-weight%3D%22700%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3ENAKOWA%3C%2Ftext%3E%3C%2Fsvg%3E";
         window.imgFallback = function (img) {
-            if (!img || img.dataset.fbApplied === '1') return; // hard guard: never loop
+            if (!img || img.dataset.fbApplied === '1') return;
             img.dataset.fbApplied = '1';
             img.onerror = null;
             img.src = window.FALLBACK_IMG;
@@ -111,7 +103,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-    <script src="../config.js"></script>
     <script src="../queue.js"></script>
     <script src="admin.js"></script>
 </body>
