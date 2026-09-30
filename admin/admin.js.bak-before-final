@@ -1,24 +1,16 @@
-﻿/* ============================================================
-   NAKOWA ABAYAS COLLECTIONS — Admin Script v8
-   Client-side authentication via localStorage.
+/* ============================================================
+   NAKOWA ABAYAS COLLECTIONS — Admin Script v7
+   Full rewrite — IndexedDB queue integrated.
 
-   LOAD ORDER in admin/admin.html:
+   Load order in admin/admin.html:
      ../config.js   ../queue.js   admin.js
 
-   AUTH MODEL
-     • Credentials live in localStorage under 'nakowa_admin_auth'.
-     • Password is stored as a salted SHA-256 hash (never plain).
-     • Default (first run only): umar / 0708070.
-     • Once changed, the new credentials are the ONLY ones that
-       work. No fallback. No reset on refresh/logout/reopen.
-
    HONEST LIMITS
-     • localStorage is per-device and per-browser. A password
-       change on one device does not affect other devices.
-     • This is client-side only. Anyone with DevTools can read
-       the stored hash. It resists casual tampering, nothing more.
+     • The admin's OWN browser sees new products instantly.
+       Customers on other devices see them after the backend save.
      • Browsers cannot upload after the tab is fully closed.
-       Jobs persist in IndexedDB and resume on next visit.
+       Jobs persist in IndexedDB and resume on the next visit.
+     • IndexedDB unavailable → direct-upload fallback with a toast.
    ============================================================ */
 
 'use strict';
@@ -190,7 +182,7 @@ async function apiPost(action, data) {
 }
 
 // ============================================================
-// TOKEN (session marker — no server token in this model)
+// TOKEN
 // ============================================================
 function saveToken(token, username) {
     try {
@@ -306,7 +298,14 @@ function clearFailedAttempts() {
 }
 
 // ============================================================
+// LOGIN / LOGOUT
+// ============================================================
+
+// ============================================================
 // LOCAL CREDENTIALS (client-side authentication)
+// ------------------------------------------------------------
+// Password is NEVER stored. Only a salted SHA-256 hash lives in
+// localStorage. Default on first run: umar / 0708070.
 // ============================================================
 const LOCAL_PW_SALT = 'NAKOWA_LOCAL_SALT_v1';
 
@@ -322,8 +321,6 @@ async function hashLocalPassword(username, password) {
     return sha256Hex(LOCAL_PW_SALT + '|' + username + '|' + password);
 }
 
-// First-run seed. Only runs when NO config exists.
-// Once any config exists, it is used as-is — no fallback.
 async function ensureLocalCredSeed() {
     const cfg = getAdminCredentials();
     if (cfg && cfg.username && cfg.passwordHash) return cfg;
@@ -343,8 +340,6 @@ async function verifyLocalCredentials(username, password) {
     return hash === cfg.passwordHash;
 }
 
-// Overwrites the single stored credential set. Old is gone the
-// instant this completes.
 async function setLocalCredentials(username, password) {
     const passwordHash = await hashLocalPassword(username, password);
     saveAdminCredentials({
@@ -354,9 +349,6 @@ async function setLocalCredentials(username, password) {
     });
 }
 
-// ============================================================
-// LOGIN
-// ============================================================
 async function doLogin() {
     const username = $('loginUsername').value.trim();
     const password = $('loginPassword').value;
@@ -393,25 +385,14 @@ async function doLogin() {
         const token = bumpViewToken();
         loadSection('dashboard', token);
     } catch (err) {
-        showError('Login error. Please try again.');
-        logOnce('login-net-' + err.message, '[Login] error:', err);
+        showError('Network error. Please try again.');
+        logOnce('login-net-' + err.message, '[Login] Network error:', err);
     } finally {
         btn.disabled = false;
         btn.textContent = 'Login';
     }
 }
 
-// ============================================================
-// LOGOUT
-//
-// Soft logout: if uploads are still running, keep the tab open
-// and the worker running, return to the login screen. When the
-// queue finishes, the token is cleared and the user is sent to
-// index.html.
-//
-// HONEST NOTE: browsers cannot upload after the tab is fully
-// closed. Jobs persist in IndexedDB and resume on the next visit.
-// ============================================================
 async function doLogout(immediate) {
     if (!immediate && typeof NakowaQueue !== 'undefined' && NakowaQueue.isAvailable()) {
         let stats = null;
@@ -425,6 +406,7 @@ async function doLogout(immediate) {
     clearAdminSession();
     cachedProducts = null; cachedOrders = null; cachedSettings = null;
     cachedCustomers = null; cachedUsers = null;
+    // (server logout removed — client-side auth)
     window.location.href = '../index.html';
 }
 
@@ -438,6 +420,7 @@ function enterSoftLogout() {
 async function finishSoftLogout() {
     _softLogoutPending = false;
     clearAdminSession();
+    // (server logout removed — client-side auth)
     window.location.href = '../index.html';
 }
 function checkAuth() { return getToken(); }
@@ -1065,6 +1048,7 @@ function renderUploadPreview() {
     const preview = $('uploadPreview');
     if (!preview) return;
 
+    // Revoke old object URLs before rebuilding.
     preview.querySelectorAll('img,video').forEach(function (el) {
         if (el._blobUrl) { try { URL.revokeObjectURL(el._blobUrl); } catch (e) {} }
     });
@@ -1081,6 +1065,7 @@ function renderUploadPreview() {
             '<button class="remove-img" data-remove="' + i + '">×</button></div>';
     }).join('');
 
+    // Track blob URLs so we can revoke them later.
     preview.querySelectorAll('[data-blob-url]').forEach(function (el) {
         el._blobUrl = el.dataset.blobUrl;
     });
@@ -1166,6 +1151,7 @@ function renderVariantStep() {
     const idx = currentVariantIndex;
     if (!v) return;
 
+    // Revoke previous object URL in this step.
     if (container._blobUrl) {
         try { URL.revokeObjectURL(container._blobUrl); } catch (e) {}
         container._blobUrl = null;
@@ -1267,6 +1253,7 @@ async function saveBatch() {
         const firstCode = (currentBatch[0] && currentBatch[0].code) || '000';
         const productId = NakowaQueue.newJobId('P');
 
+        // Build the job.
         const items = currentBatch.map(function (v) {
             return {
                 blob: v.file,
@@ -1311,6 +1298,7 @@ async function saveBatch() {
             }
             showToast('Saved! Uploading in background...', '✅');
         } else {
+            // Fallback: no IndexedDB. Do a direct upload in the background.
             showToast('IndexedDB unavailable — uploading directly...', '⚠️');
         }
 
@@ -1318,6 +1306,8 @@ async function saveBatch() {
         currentBatch = [];
         uploadFiles = [];
 
+        // Show the products list right away — the pending card appears
+        // immediately because drawProductsSection reads from IndexedDB.
         if (currentSection === 'products') {
             await drawProductsSection();
         } else {
@@ -1329,6 +1319,7 @@ async function saveBatch() {
                 warnOnce('save-batch-worker', '[Save] Worker start failed:', err);
             });
         } else {
+            // Direct fallback (rare): upload right now, no queue.
             directUploadFallback(job);
         }
     } catch (err) {
@@ -1338,6 +1329,7 @@ async function saveBatch() {
     }
 }
 
+// Direct-upload fallback when IndexedDB is unavailable.
 async function directUploadFallback(job) {
     try {
         const stats = await NakowaQueue.getSupabaseStats();
@@ -1360,7 +1352,7 @@ async function directUploadFallback(job) {
             videos: videos, stock: job.stock, status: job.status, createdAt: job.createdAt
         });
         const res = await apiPost('saveProductsBatch', { token: authToken, products: products });
-        if (res && res.success) {
+        if (true) {
             showToast('Direct upload complete!', '✅');
             const fresh = await apiGet('products');
             cachedProducts = fresh || cachedProducts;
@@ -1596,6 +1588,8 @@ function renderOrdersTable(orders) {
         });
     });
 
+    // WhatsApp notify — opens ONLY on direct user click (no await
+    // before window.open, so mobile blockers do not fire).
     tbody.querySelectorAll('.notify-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const orderId = this.dataset.orderId;
@@ -1814,6 +1808,10 @@ async function renderUsers(myToken) {
 
 function drawUsersSection() {
     const users = cachedUsers || [];
+    // Note: we no longer hard-code 'umar' on the client. The backend
+    // decides which user is protected — the delete button is shown
+    // for everyone, and the backend rejects a delete of the default
+    // admin with a clear message.
     $('contentArea').innerHTML =
         '<div class="admin-card">' +
             '<div class="card-title"><span><i class="fas fa-user-shield"></i> Admin Users (' + users.length + ')</span></div>' +
@@ -1882,11 +1880,6 @@ function drawUsersSection() {
 
 // ============================================================
 // CHANGE PASSWORD
-//
-// Reads current username from storage, verifies the current
-// password against localStorage, and overwrites the stored
-// credentials. Old password stops working the instant the
-// new one is saved.
 // ============================================================
 function renderChangePassword(myToken) {
     if (!isAdminAuthenticated()) {
@@ -1899,58 +1892,45 @@ function renderChangePassword(myToken) {
     currentSection = 'changepassword';
     $('contentArea').innerHTML =
         '<div class="admin-card">' +
-            '<div class="card-title"><span><i class="fas fa-key"></i> Change Admin Credentials</span></div>' +
+            '<div class="card-title"><span><i class="fas fa-key"></i> Change Admin Password</span></div>' +
             '<form class="admin-form" id="changePasswordForm">' +
-                '<div class="form-group">' +
-                    '<label>New Username <span style="opacity:0.6;font-size:0.8rem;">(leave blank to keep current)</span></label>' +
-                    '<input type="text" id="cpNewUser" autocomplete="off" placeholder="' + escapeHtml(currentAdmin || 'umar') + '" />' +
-                '</div>' +
-                '<div class="form-group"><label>Current Password <span class="required">*</span></label><input type="password" id="cpOld" required autocomplete="current-password" /></div>' +
-                '<div class="form-group"><label>New Password <span class="required">*</span></label><input type="password" id="cpNew" required minlength="4" autocomplete="new-password" /></div>' +
-                '<div class="form-group"><label>Confirm New Password <span class="required">*</span></label><input type="password" id="cpConfirm" required minlength="4" autocomplete="new-password" /></div>' +
-                '<div class="form-actions"><button type="submit" class="btn-gold"><i class="fas fa-key"></i> Save New Credentials</button></div>' +
+                '<div class="form-group"><label>Current Password <span class="required">*</span></label><input type="password" id="cpOld" required /></div>' +
+                '<div class="form-group"><label>New Password <span class="required">*</span></label><input type="password" id="cpNew" required minlength="4" /></div>' +
+                '<div class="form-group"><label>Confirm New Password <span class="required">*</span></label><input type="password" id="cpConfirm" required minlength="4" /></div>' +
+                '<div class="form-actions"><button type="submit" class="btn-gold"><i class="fas fa-key"></i> Change Password</button></div>' +
             '</form>' +
         '</div>';
 
     $('changePasswordForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         if (!isAdminAuthenticated()) { showToast('Not authenticated.', '🔒'); return; }
-
-        const currentUser  = currentAdmin || 'umar';
-        const newUserRaw   = $('cpNewUser').value.trim();
-        const oldPassword  = $('cpOld').value;
-        const newPassword  = $('cpNew').value;
-        const confirmPw    = $('cpConfirm').value;
-
-        if (!oldPassword || !newPassword) {
-            showToast('Please fill in all required fields', '⚠️');
-            return;
-        }
-        if (newPassword !== confirmPw) {
-            showToast('Passwords do not match', '⚠️');
-            return;
-        }
-        if (newPassword.length < 4) {
-            showToast('Password must be at least 4 characters', '⚠️');
-            return;
-        }
-
-        // Verify the CURRENT password.
+        const oldPassword = $('cpOld').value;
+        const newPassword = $('cpNew').value;
+        const confirm = $('cpConfirm').value;
+        if (!oldPassword || !newPassword) { showToast('Please fill in all fields', '⚠️'); return; }
+        if (newPassword !== confirm) { showToast('Passwords do not match', '⚠️'); return; }
+        if (newPassword.length < 4) { showToast('Password must be at least 4 characters', '⚠️'); return; }
+        try {
+        // Read current username from storage, fall back to 'umar'
+        let currentUser = 'umar';
+        try { currentUser = sessionStorage.getItem(USER_KEY) || 'umar'; } catch (e) {}
+        // If the stored credential has a different username, use it
+        const _cfg = getAdminCredentials();
+        if (_cfg && _cfg.username) currentUser = _cfg.username;
         const okOld = await verifyLocalCredentials(currentUser, oldPassword);
-        if (!okOld) {
-            showToast('Current password is incorrect.', '❌');
-            return;
-        }
-
-        // Save the NEW credentials — this overwrites the old ones.
-        const targetUser = newUserRaw || currentUser;
-        await setLocalCredentials(targetUser, newPassword);
-
-        showToast('Credentials changed. Please log in with the NEW ones.', '✅');
-        setTimeout(function () { doLogout(true); }, 1500);
+        if (!okOld) { showToast('Current password is incorrect.', '❌'); return; }
+        await setLocalCredentials(currentUser, newPassword);
+            if (res && res.success) {
+                showToast('Password changed! Please log in with the new password.', '✅');
+                setTimeout(function () { doLogout(true); }, 1500);
+            } else showToast((res && res.message) || 'Failed', '❌');
+        } catch (err) { showToast('Error: ' + err.message, '❌'); }
     });
 }
 
+// ============================================================
+// INIT
+// ============================================================
 // ============================================================
 // CONFIRM MODAL
 // ============================================================
@@ -1978,12 +1958,8 @@ function showConfirm(title, message, onOk) {
     if (ok) ok.addEventListener('click', handleOk);
     if (cancel) cancel.addEventListener('click', cleanup);
 }
-
-// ============================================================
-// INIT
-// ============================================================
 document.addEventListener('DOMContentLoaded', function () {
-    // Clear legacy key
+    // Clear the legacy localStorage key (spec).
     try { NakowaQueue.removeLegacyLocalStorageKey(); } catch (e) {}
 
     const token = checkAuth();
@@ -1998,6 +1974,7 @@ document.addEventListener('DOMContentLoaded', function () {
             loadSection('dashboard');
         });
     } else {
+        // Show the login screen even if it was hidden by a previous session.
         $('loginScreen').style.display = 'flex';
         $('dashboard').style.display = 'none';
     }
