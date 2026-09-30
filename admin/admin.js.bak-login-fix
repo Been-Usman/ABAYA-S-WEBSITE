@@ -186,7 +186,7 @@ async function apiPost(action, data) {
 // ============================================================
 function saveToken(token, username) {
     try {
-        sessionStorage.setItem(TOKEN_KEY, 'local-session');
+        sessionStorage.setItem(TOKEN_KEY, token);
         sessionStorage.setItem(TOKEN_TIME_KEY, Date.now().toString());
         sessionStorage.setItem(USER_KEY, username || '');
     } catch (e) {}
@@ -300,55 +300,6 @@ function clearFailedAttempts() {
 // ============================================================
 // LOGIN / LOGOUT
 // ============================================================
-
-// ============================================================
-// LOCAL CREDENTIALS (client-side authentication)
-// ------------------------------------------------------------
-// Password is NEVER stored. Only a salted SHA-256 hash lives in
-// localStorage. Default on first run: umar / 0708070.
-// ============================================================
-const LOCAL_PW_SALT = 'NAKOWA_LOCAL_SALT_v1';
-
-async function sha256Hex(text) {
-    const buf = new TextEncoder().encode(text);
-    const hash = await crypto.subtle.digest('SHA-256', buf);
-    return Array.from(new Uint8Array(hash)).map(function (b) {
-        return b.toString(16).padStart(2, '0');
-    }).join('');
-}
-
-async function hashLocalPassword(username, password) {
-    return sha256Hex(LOCAL_PW_SALT + '|' + username + '|' + password);
-}
-
-async function ensureLocalCredSeed() {
-    const cfg = getAdminCredentials();
-    if (cfg && cfg.username && cfg.passwordHash) return cfg;
-    const username = 'umar';
-    const password = '0708070';
-    const passwordHash = await hashLocalPassword(username, password);
-    const newCfg = { username: username, passwordHash: passwordHash, updatedAt: Date.now() };
-    saveAdminCredentials(newCfg);
-    return newCfg;
-}
-
-async function verifyLocalCredentials(username, password) {
-    const cfg = await ensureLocalCredSeed();
-    if (!cfg || !cfg.username) return false;
-    if (String(username) !== String(cfg.username)) return false;
-    const hash = await hashLocalPassword(username, password);
-    return hash === cfg.passwordHash;
-}
-
-async function setLocalCredentials(username, password) {
-    const passwordHash = await hashLocalPassword(username, password);
-    saveAdminCredentials({
-        username: username,
-        passwordHash: passwordHash,
-        updatedAt: Date.now()
-    });
-}
-
 async function doLogin() {
     const username = $('loginUsername').value.trim();
     const password = $('loginPassword').value;
@@ -370,14 +321,14 @@ async function doLogin() {
     btn.textContent = 'Logging in...';
 
     try {
-        const ok = await verifyLocalCredentials(username, password);
-        if (!ok) {
+        const res = await apiPost('login', { username: username, password: password });
+        if (!res || !res.success) {
             handleFailedLogin();
             showError('Invalid username or password.');
             return;
         }
         clearFailedAttempts();
-        createAdminSession('local-session', username);
+        createAdminSession(res.token, res.username);
         await warmCache();
         $('loginScreen').style.display = 'none';
         $('dashboard').style.display = 'flex';
@@ -406,7 +357,7 @@ async function doLogout(immediate) {
     clearAdminSession();
     cachedProducts = null; cachedOrders = null; cachedSettings = null;
     cachedCustomers = null; cachedUsers = null;
-    // (server logout removed — client-side auth)
+    // logout is client-side now
     window.location.href = '../index.html';
 }
 
@@ -420,7 +371,7 @@ function enterSoftLogout() {
 async function finishSoftLogout() {
     _softLogoutPending = false;
     clearAdminSession();
-    // (server logout removed — client-side auth)
+    // logout is client-side now
     window.location.href = '../index.html';
 }
 function checkAuth() { return getToken(); }
@@ -1352,7 +1303,7 @@ async function directUploadFallback(job) {
             videos: videos, stock: job.stock, status: job.status, createdAt: job.createdAt
         });
         const res = await apiPost('saveProductsBatch', { token: authToken, products: products });
-        if (true) {
+        if (res && res.success) {
             showToast('Direct upload complete!', '✅');
             const fresh = await apiGet('products');
             cachedProducts = fresh || cachedProducts;
@@ -1881,6 +1832,9 @@ function drawUsersSection() {
 // ============================================================
 // CHANGE PASSWORD
 // ============================================================
+// ============================================================
+// CHANGE PASSWORD
+// ============================================================
 function renderChangePassword(myToken) {
     if (!isAdminAuthenticated()) {
         showToast('Please log in first.', '🔒');
@@ -1929,10 +1883,7 @@ function renderChangePassword(myToken) {
         }
 
         const okOld = await verifyLocalCredentials(currentUser, oldPassword);
-        if (!okOld) {
-            showToast('Current password is incorrect.', '❌');
-            return;
-        }
+        if (!okOld) { showToast('Current password is incorrect.', '❌'); return; }
 
         const targetUser = newUserRaw || currentUser;
         await setLocalCredentials(targetUser, newPassword);
@@ -1944,33 +1895,6 @@ function renderChangePassword(myToken) {
 // ============================================================
 // INIT
 // ============================================================
-// ============================================================
-// CONFIRM MODAL
-// ============================================================
-function showConfirm(title, message, onOk) {
-    const modal = $('confirmModal');
-    if (!modal) { onOk(); return; }
-    const titleEl = $('confirmTitle');
-    const msgEl = $('confirmMessage');
-    if (titleEl) titleEl.textContent = title;
-    if (msgEl) msgEl.textContent = message;
-    modal.classList.add('open');
-
-    const ok = $('confirmOk');
-    const cancel = $('confirmCancel');
-
-    function cleanup() {
-        modal.classList.remove('open');
-        if (ok) ok.removeEventListener('click', handleOk);
-        if (cancel) cancel.removeEventListener('click', cleanup);
-    }
-    function handleOk() {
-        cleanup();
-        try { onOk(); } catch (e) { console.error(e); }
-    }
-    if (ok) ok.addEventListener('click', handleOk);
-    if (cancel) cancel.addEventListener('click', cleanup);
-}
 document.addEventListener('DOMContentLoaded', function () {
     // Clear the legacy localStorage key (spec).
     try { NakowaQueue.removeLegacyLocalStorageKey(); } catch (e) {}

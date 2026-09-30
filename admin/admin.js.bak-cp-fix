@@ -1892,55 +1892,42 @@ function renderChangePassword(myToken) {
     currentSection = 'changepassword';
     $('contentArea').innerHTML =
         '<div class="admin-card">' +
-            '<div class="card-title"><span><i class="fas fa-key"></i> Change Admin Credentials</span></div>' +
+            '<div class="card-title"><span><i class="fas fa-key"></i> Change Admin Password</span></div>' +
             '<form class="admin-form" id="changePasswordForm">' +
-                '<div class="form-group">' +
-                    '<label>New Username <span style="opacity:0.6;font-size:0.8rem;">(leave blank to keep current)</span></label>' +
-                    '<input type="text" id="cpNewUser" autocomplete="off" placeholder="' + escapeHtml(currentAdmin || 'umar') + '" />' +
-                '</div>' +
-                '<div class="form-group"><label>Current Password <span class="required">*</span></label><input type="password" id="cpOld" required autocomplete="current-password" /></div>' +
-                '<div class="form-group"><label>New Password <span class="required">*</span></label><input type="password" id="cpNew" required minlength="4" autocomplete="new-password" /></div>' +
-                '<div class="form-group"><label>Confirm New Password <span class="required">*</span></label><input type="password" id="cpConfirm" required minlength="4" autocomplete="new-password" /></div>' +
-                '<div class="form-actions"><button type="submit" class="btn-gold"><i class="fas fa-key"></i> Save New Credentials</button></div>' +
+                '<div class="form-group"><label>Current Password <span class="required">*</span></label><input type="password" id="cpOld" required /></div>' +
+                '<div class="form-group"><label>New Password <span class="required">*</span></label><input type="password" id="cpNew" required minlength="4" /></div>' +
+                '<div class="form-group"><label>Confirm New Password <span class="required">*</span></label><input type="password" id="cpConfirm" required minlength="4" /></div>' +
+                '<div class="form-actions"><button type="submit" class="btn-gold"><i class="fas fa-key"></i> Change Password</button></div>' +
             '</form>' +
         '</div>';
 
     $('changePasswordForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         if (!isAdminAuthenticated()) { showToast('Not authenticated.', '🔒'); return; }
-
-        const currentUser  = currentAdmin || 'umar';
-        const newUserRaw   = $('cpNewUser').value.trim();
-        const oldPassword  = $('cpOld').value;
-        const newPassword  = $('cpNew').value;
-        const confirmPw    = $('cpConfirm').value;
-
-        if (!oldPassword || !newPassword) {
-            showToast('Please fill in all required fields', '⚠️');
-            return;
-        }
-        if (newPassword !== confirmPw) {
-            showToast('Passwords do not match', '⚠️');
-            return;
-        }
-        if (newPassword.length < 4) {
-            showToast('Password must be at least 4 characters', '⚠️');
-            return;
-        }
-
+        const oldPassword = $('cpOld').value;
+        const newPassword = $('cpNew').value;
+        const confirm = $('cpConfirm').value;
+        if (!oldPassword || !newPassword) { showToast('Please fill in all fields', '⚠️'); return; }
+        if (newPassword !== confirm) { showToast('Passwords do not match', '⚠️'); return; }
+        if (newPassword.length < 4) { showToast('Password must be at least 4 characters', '⚠️'); return; }
+        try {
+        // Read current username from storage, fall back to 'umar'
+        let currentUser = 'umar';
+        try { currentUser = sessionStorage.getItem(USER_KEY) || 'umar'; } catch (e) {}
+        // If the stored credential has a different username, use it
+        const _cfg = getAdminCredentials();
+        if (_cfg && _cfg.username) currentUser = _cfg.username;
         const okOld = await verifyLocalCredentials(currentUser, oldPassword);
-        if (!okOld) {
-            showToast('Current password is incorrect.', '❌');
-            return;
-        }
-
-        const targetUser = newUserRaw || currentUser;
-        await setLocalCredentials(targetUser, newPassword);
-
-        showToast('Credentials changed. Please log in with the NEW ones.', '✅');
-        setTimeout(function () { doLogout(true); }, 1500);
+        if (!okOld) { showToast('Current password is incorrect.', '❌'); return; }
+        await setLocalCredentials(currentUser, newPassword);
+            if (res && res.success) {
+                showToast('Password changed! Please log in with the new password.', '✅');
+                setTimeout(function () { doLogout(true); }, 1500);
+            } else showToast((res && res.message) || 'Failed', '❌');
+        } catch (err) { showToast('Error: ' + err.message, '❌'); }
     });
 }
+
 // ============================================================
 // INIT
 // ============================================================
