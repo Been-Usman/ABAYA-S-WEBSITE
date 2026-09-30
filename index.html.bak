@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -824,8 +824,6 @@
         })();
     </script>
 
-    <script src="config.js"></script>
-    <script src="queue.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
