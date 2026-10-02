@@ -38,7 +38,10 @@
     const BC_NAME = 'nakowa-queue';
     const LOCK_NAME = 'nakowa-queue-worker';
     const CONCURRENCY = 6;
-    const MAX_ATTEMPTS = 3;
+    const MAX_ATTEMPTS = 5;
+    // Backoff per retry attempt (ms). Temporary network / DNS hiccups get
+    // up to ~18 s of patience before an item is finally marked 'failed'.
+    const BACKOFF_MS = [500, 1500, 3000, 5000, 8000];
 
     // Fallback config (used only if admin.js/script.js haven't set globals).
     const FB_API_URL = 'https://script.google.com/macros/s/AKfycbxGcW2xkagjfp9Dr3Jz_1sflwM-JRbjPV1LUF4UoWzhAGJU2epWVDhXoQH9TgkevU5D/exec';
@@ -334,18 +337,26 @@
         const S = cfg().SUPABASE;
         const filename = Date.now() + '-' + Math.random().toString(36).substring(2, 8) + '.jpg';
         const url = S.url + '/storage/v1/object/' + supabaseBucket + '/' + filename;
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + S.key,
-                'apikey': S.key,
-                'Content-Type': file.type || 'image/jpeg',
-                'x-upsert': 'false'
-            },
-            body: file
-        });
+        let res;
+        try {
+            res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + S.key,
+                    'apikey': S.key,
+                    'Content-Type': file.type || 'image/jpeg',
+                    'x-upsert': 'false'
+                },
+                body: file
+            });
+        } catch (netErr) {
+            // Network / DNS / CORS — the request never even reached Supabase.
+            console.error('[Supabase] Upload request failed:', netErr);
+            throw netErr;
+        }
         if (!res.ok) {
             const errText = await res.text();
+            console.error('[Supabase] Upload failed:', res.status, errText);
             throw new Error('Supabase upload failed (' + res.status + '): ' + errText);
         }
         return S.url + '/storage/v1/object/public/' + supabaseBucket + '/' + filename;
@@ -358,9 +369,17 @@
         formData.append('upload_preset', C.uploadPreset);
         formData.append('folder', C.folder);
         const endpoint = isVideo ? C.videoUrl : C.imageUrl;
-        const res = await fetch(endpoint, { method: 'POST', body: formData });
-        const data = await res.json();
+        let res, data;
+        try {
+            res = await fetch(endpoint, { method: 'POST', body: formData });
+            data = await res.json();
+        } catch (netErr) {
+            // Network / DNS / CORS — the request never even reached Cloudinary.
+            console.error('[Cloudinary] Upload request failed:', netErr);
+            throw netErr;
+        }
         if (data.error) {
+            console.error('[Cloudinary] Upload failed:', data.error || 'unknown');
             const raw = Array.isArray(data.error) ? data.error[0] : data.error;
             const msg = (raw && raw.message) || 'Cloudinary error';
             throw new Error('Cloudinary: ' + msg);
@@ -375,6 +394,8 @@
             return await uploadToCloudinary(item.blob, true);
         }
 
+        // Quota guard (unchanged): if the Supabase bucket is at its configured
+        // image/ size limit, skip Supabase and use Cloudinary.
         const S = cfg().SUPABASE;
         const counterFull = (jobStats.count + (item._idx || 0)) >= S.maxImages;
         const sizeFull = jobStats.sizeMB >= S.maxSizeMB;
@@ -384,17 +405,21 @@
         const maxW = big ? 1000 : 1200;
         const q    = big ? 0.70 : 0.80;
 
+        // Compress ONCE and reuse the same blob for whichever provider wins.
+        const compressed = await compressImage(item.blob, maxW, q);
+
         if (useSupabase) {
             try {
-                const compressed = await compressImage(item.blob, maxW, q);
                 return await uploadToSupabase(compressed);
-            } catch (e) {
-                // Fall back to Cloudinary on any Supabase error.
-                const compressed = await compressImage(item.blob, maxW, q);
-                return await uploadToCloudinary(compressed, false);
+            } catch (supaErr) {
+                // Supabase failed — ALWAYS fall through to Cloudinary. This must
+                // NOT mark the item as failed: the worker only fails an item
+                // after MAX_ATTEMPTS failed attempts of BOTH providers.
+                console.warn('[Queue] Supabase upload failed, falling back to Cloudinary:', supaErr);
             }
         }
-        const compressed = await compressImage(item.blob, maxW, q);
+
+        // Cloudinary fallback (also used when Supabase is skipped).
         return await uploadToCloudinary(compressed, false);
     }
 
@@ -458,12 +483,13 @@
                         if (attempt >= MAX_ATTEMPTS) {
                             item.status = 'failed';
                             item.lastError = String(err && err.message || err);
+                            console.error('[Queue] Item failed after ' + MAX_ATTEMPTS + ' attempts (both Supabase and Cloudinary):', item.lastError);
                             job.failedCount = job.items.filter(x => x.status === 'failed').length;
                             job.lastError = item.lastError;
                             await put(job);
                             emitProgress(job);
                         } else {
-                            await sleep(500 * Math.pow(3, attempt - 1));
+                            await sleep(BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)]);
                         }
                     }
                 }
