@@ -105,5 +105,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <script src="../queue.js?v=2"></script>
     <script src="admin.js?v=2"></script>
+
+    <!-- ===== LOADING OVERLAY (shown AFTER successful login while warmCache runs, max 4s) ===== -->
+    <div id="adminLoadingOverlay" style="display:none;">
+      <div class="alo-backdrop"></div>
+      <div class="alo-card">
+        <div class="alo-icon"><i class="fas fa-circle-notch fa-spin"></i></div>
+        <div class="alo-title">Loading dashboard...</div>
+        <div class="alo-bar"><div class="alo-bar-fill"></div></div>
+      </div>
+    </div>
 </body>
 </html>

@@ -1045,6 +1045,52 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; }
 }
 
 /* ============================================================
+   ADMIN LOGIN LOADING OVERLAY
+   Shown after credentials validate, while warmCache() runs
+   (capped at 4000 ms). NOTE: the markup carries an inline
+   `display:none`, which outranks these rules — admin.js also
+   sets `style.display` to 'flex'/'none' so the overlay shows.
+   ============================================================ */
+#adminLoadingOverlay {
+  position: fixed; inset: 0; z-index: 100000;
+  display: flex; align-items: center; justify-content: center;
+}
+#adminLoadingOverlay .alo-backdrop {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+}
+#adminLoadingOverlay .alo-card {
+  position: relative; min-width: 280px; padding: 26px 30px 34px;
+  background: #0b1230; border: 1px solid #f9e508;
+  border-radius: 16px; text-align: center; color: #fff;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+#adminLoadingOverlay .alo-icon {
+  font-size: 2.2rem; color: #f9e508; margin-bottom: 12px;
+}
+#adminLoadingOverlay .alo-title {
+  font-family: Poppins, sans-serif; font-size: 1rem;
+  font-weight: 600; margin-bottom: 18px;
+}
+#adminLoadingOverlay .alo-bar {
+  position: absolute; left: 20px; right: 20px; bottom: 14px;
+  height: 4px; border-radius: 4px; background: rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+#adminLoadingOverlay .alo-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg,#22c55e,#4ade80);
+  border-radius: 4px;
+}
+#adminLoadingOverlay.show { display: flex; }
+#adminLoadingOverlay.show .alo-bar-fill {
+  animation: aloBarFill 4000ms linear forwards;
+}
+@keyframes aloBarFill {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (min-width: 600px) {

@@ -406,34 +406,33 @@ async function doLogin() {
         currentAdmin = username;
         authToken = '';
 
-        // Show the dashboard IMMEDIATELY — do not block login on the
-        // 3-endpoint warmCache round-trip. Refresh data in background.
+        // Validation passed. Show the loading overlay while warmCache()
+        // runs, capped at 4000 ms, THEN reveal the dashboard with data
+        // already loaded (Req. 3). The dashboard must NOT appear before this.
+        const overlay = document.getElementById('adminLoadingOverlay');
+        if (overlay) {
+            overlay.classList.add('show');
+            // The overlay markup carries an inline `display:none`, which
+            // outranks the stylesheet's `.show { display:flex }` rule, so
+            // set the inline style as well or the overlay never appears.
+            overlay.style.display = 'flex';
+            // restart the 0% → 100% progress-bar animation
+            const bar = overlay.querySelector('.alo-bar-fill');
+            if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+        }
+
+        const warm = warmCache();
+        const cap = new Promise(function (r) { setTimeout(r, 4000); });
+        try { await Promise.race([warm, cap]); } catch (e) { /* ignore */ }
+
+        if (overlay) {
+            overlay.classList.remove('show');
+            overlay.style.display = 'none';
+        }
+
         $('loginScreen').style.display = 'none';
         $('dashboard').style.display = 'flex';
         loadSection('dashboard');
-
-        (function () {
-            let settled = false;
-            const redraw = function () {
-                if (settled) return;
-                settled = true;
-                try {
-                    if (currentSection === 'dashboard') loadSection('dashboard');
-                } catch (e) {}
-            };
-            const timer = setTimeout(function () {
-                // 5s cap: show dashboard with whatever data is available.
-                redraw();
-            }, 5000);
-            warmCache().then(function () {
-                clearTimeout(timer);
-                redraw();
-            }).catch(function (e) {
-                clearTimeout(timer);
-                warnOnce('warm-cache-on-login', '[AUTH] warmCache failed (non-fatal).', e);
-                redraw();
-            });
-        })();
     } catch (err) {
         errEl.textContent = 'Login error: ' + err.message;
         errEl.style.display = 'block';
@@ -737,6 +736,10 @@ async function renderProductList(filterCountry) {
     const container = $('productsContainer');
     if (!container) return;
 
+    // Capture the active view token so the guard below can detect a
+    // navigation that happened while we awaited IndexedDB (Req. 4.3).
+    const myToken = viewToken;
+
     const countries = [...new Set(cachedProducts.map(p => p.country).filter(Boolean))];
     if (!countries.includes('Egypt')) countries.unshift('Egypt');
 
@@ -766,6 +769,11 @@ async function renderProductList(filterCountry) {
     } catch (e) {
         warnOnce('queue-read-failed', '[Queue] Could not read pending jobs.', e);
     }
+
+    // Latest-click-wins guard (Req. 4.3): if the user switched section while
+    // we were awaiting window.NakowaQueue.getPendingProducts(), bail out
+    // before writing anything to the DOM.
+    if (!isViewCurrent(myToken)) return;
 
     // Skip pending jobs already present in cachedProducts (backend already saved them).
     const cachedIds = new Set(cachedProducts.map(p => String(p.id)));
@@ -842,7 +850,10 @@ function renderAdminProductCard(p) {
     const isPending = !!pending;
     const uploadedCount = pending ? (pending.uploadedCount || 0) : 0;
     const totalCount = pending ? (pending.totalCount || 0) : 0;
-    const hasFailed = pending ? (pending.failedCount > 0) : false;
+    // Show "Retry failed" ONLY when the job is really in state 'error' AND it
+    // has failed items. While 'queued' / 'uploading' / 'saving' we show the
+    // "Uploading X/Y" badge only — never the retry button (Req. 2D).
+    const hasFailed = isPending && (pending.state === 'error') && ((pending.failedCount || 0) > 0);
 
     let colorCirclesHTML = '';
     if (variants.length > 0) {
@@ -2218,6 +2229,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentSection === 'products') {
                 renderProductList('all');
             }
+        });
+    }
+
+    // When every job has finished (backend save succeeded and the job was
+    // deleted from IndexedDB), swap the pending card for the real saved
+    // product with no page reload (Req. 2E).
+    if (window.NakowaQueue && typeof window.NakowaQueue.onDrain === 'function') {
+        window.NakowaQueue.onDrain(function () {
+            if (currentSection !== 'products') return;
+            apiGet('products').then(function (p) {
+                cachedProducts = p || [];
+                if (currentSection === 'products') drawProductsSection();
+            }).catch(function () {
+                if (currentSection === 'products') drawProductsSection();
+            });
         });
     }
 });

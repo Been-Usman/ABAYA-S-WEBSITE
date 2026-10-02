@@ -543,32 +543,10 @@
             return;
         }
 
-        // Verify: fetch products and confirm the id exists with real URLs.
-        job.state = 'verifying';
-        await put(job);
-        emitProgress(job);
-
-        let verified = false;
-        try {
-            const products = await fetch(cfg().API_URL + '?action=products').then(r => r.json());
-            const found = Array.isArray(products) && products.find(p => String(p.id) === String(job.id));
-            if (found) {
-                const variants = Array.isArray(found.variants) ? found.variants : [];
-                const hasBlob = variants.some(v => typeof v.image === 'string' && v.image.startsWith('blob:'));
-                const urlsOk = variants.length === job.totalCount && !hasBlob;
-                if (urlsOk) verified = true;
-            }
-        } catch (e) { /* retry later */ }
-
-        if (!verified) {
-            job.state = 'verifying';
-            job.lastError = 'Backend save not verified yet.';
-            await put(job);
-            emitProgress(job);
-            return;
-        }
-
-        // Confirmed. Delete the job.
+        // All items uploaded AND the backend save reported success.
+        // Finalise immediately — do not wait for a separate verify
+        // round-trip (Req. 2C). emitProgress('done') makes the pending
+        // card disappear, then del() removes the job from IndexedDB.
         job.state = 'done';
         await put(job);
         emitProgress(job);
