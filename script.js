@@ -31,10 +31,10 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbxGcW2xkagjfp9Dr3Jz_1sflwM-JRbjPV1LUF4UoWzhAGJU2epWVDhXoQH9TgkevU5D/exec';
 
 const CLOUDINARY = {
-    cloudName: 'ldtixrva',
+    cloudName: 'Idtixrva',
     uploadPreset: 'NAKOWA-ABAYAS',
     folder: 'ABAYAS-VIDEO-IMGS',
-    baseUrl: 'https://api.cloudinary.com/v1_1/ldtixrva'
+    baseUrl: 'https://api.cloudinary.com/v1_1/Idtixrva'
 };
 
 const SUPABASE = {

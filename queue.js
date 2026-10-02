@@ -43,11 +43,11 @@
     // Fallback config (used only if admin.js/script.js haven't set globals).
     const FB_API_URL = 'https://script.google.com/macros/s/AKfycbxGcW2xkagjfp9Dr3Jz_1sflwM-JRbjPV1LUF4UoWzhAGJU2epWVDhXoQH9TgkevU5D/exec';
     const FB_CLOUDINARY = {
-        cloudName: 'ldtixrva',
+        cloudName: 'Idtixrva',
         uploadPreset: 'NAKOWA-ABAYAS',
         folder: 'ABAYAS-VIDEO-IMGS',
-        imageUrl: 'https://api.cloudinary.com/v1_1/ldtixrva/image/upload',
-        videoUrl: 'https://api.cloudinary.com/v1_1/ldtixrva/video/upload'
+        imageUrl: 'https://api.cloudinary.com/v1_1/Idtixrva/image/upload',
+        videoUrl: 'https://api.cloudinary.com/v1_1/Idtixrva/video/upload'
     };
     const FB_SUPABASE = {
         url: 'https://yntkbjzvmizssrxwzuoi.supabase.co',
