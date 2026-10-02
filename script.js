@@ -34,7 +34,7 @@ const CLOUDINARY = {
     cloudName: 'ldtixrva',
     uploadPreset: 'NAKOWA-ABAYAS',
     folder: 'ABAYAS-VIDEO-IMGS',
-    baseUrl: 'https://api.cloudinary.com/v1_1/Idtixrva'
+    baseUrl: 'https://api.cloudinary.com/v1_1/ldtixrva'
 };
 
 const SUPABASE = {

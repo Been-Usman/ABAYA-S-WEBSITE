@@ -258,7 +258,7 @@ let cachedUsers = null;
 let uploadFiles = [];
 let currentVariantIndex = 0;
 let currentBatch = [];
-let supabaseBucket = SUPABASE.bucket;
+let supabaseBucket = (typeof SUPABASE !== 'undefined' && SUPABASE.bucket) || 'Product-images';
 let supabaseProbePromise = null;
 let supabaseProbeCachedAt = 0;
 const SUPABASE_PROBE_TTL = 30 * 60 * 1000;
