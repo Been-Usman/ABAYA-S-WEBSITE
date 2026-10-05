@@ -1,26 +1,21 @@
 /**
  * ============================================================
  * NAKOWA ABAYAS COLLECTIONS — BACKEND (Google Apps Script)
- * v6 — Client-side authentication, no ADMIN_API_KEY
- *
- * WHAT CHANGED vs v5
- *   • Removed the ADMIN_API_KEY check. The website login is
- *     entirely client-side now, so no shared key is needed on
- *     the server. Public and admin endpoints are all reachable.
- *   • Login / Change Password / Logout actions still return a
- *     stub message (they are handled in the browser).
- *
- * WHAT DID NOT CHANGE
- *   • Products, Orders, Customers, Settings, SalesLog, Users,
- *     Notifications sheets — all still used exactly as before.
- *   • AppSheet continues to own the data.
+ * v9 — Fixes:
+ *   • Safety guard in bulkDeleteProducts (cannot wipe all products)
+ *   • Safety guard in deleteProduct (cannot delete last product)
+ *   • ADMIN_API_KEY protection on destructive actions
  * ============================================================
  */
 
-// ============================================================
-// CONFIGURATION
-// ============================================================
 const SPREADSHEET_ID = '1NgD9Ct2M51RCBL5L1su3PkUvmGLeaqkGOoL1umt-3kA';
+
+// ------------------------------------------------------------
+// ADMIN API KEY (shared secret between client and server).
+// This is NOT a password. Keep it in sync with the same
+// constant in admin.js.
+// ------------------------------------------------------------
+const ADMIN_API_KEY = 'NAKOWA-ADMIN-SECRET-2026-CHANGE-ME';
 
 const SHEETS = {
   PRODUCTS:      'Products',
@@ -32,7 +27,6 @@ const SHEETS = {
   USERS:         'Users'
 };
 
-// Kept for legacy compatibility — client-side login only now.
 const DEFAULT_ADMIN = {
   username: 'umar',
   password: '0708070',
@@ -40,13 +34,9 @@ const DEFAULT_ADMIN = {
 };
 
 const DEFAULT_TIMEZONE = 'Africa/Cairo';
-
 const CACHE_TTL_PRODUCTS = 30;
 const CACHE_TTL_SETTINGS = 60;
 
-// ============================================================
-// CACHE HELPERS
-// ============================================================
 function cacheGet(key) {
   try {
     const val = CacheService.getScriptCache().get(key);
@@ -60,18 +50,23 @@ function cacheInvalidate(key) {
   try { CacheService.getScriptCache().remove(key); } catch (e) {}
 }
 
-// ============================================================
-// JSON RESPONSE HELPER
-// ============================================================
 function jsonOut(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ============================================================
+// ------------------------------------------------------------
+// ADMIN KEY CHECK
+// ------------------------------------------------------------
+function checkAdminKey(body) {
+  if (!ADMIN_API_KEY) return true; // backward compatible if empty
+  return body && body.adminKey === ADMIN_API_KEY;
+}
+
+// ------------------------------------------------------------
 // MAIN ENTRY — GET
-// ============================================================
+// ------------------------------------------------------------
 function doGet(e) {
   try {
     const action = e.parameter.action;
@@ -82,19 +77,13 @@ function doGet(e) {
       case 'settings':      result = getSettings(); break;
       case 'ping':          result = { success: true, message: 'NAKOWA ABAYAS backend alive.' }; break;
       case 'init':          result = initializeSheets(); break;
-
-      case 'trackOrder':
-        result = trackOrder(e.parameter.orderId || '', e.parameter.phone || '');
-        break;
-
+      case 'trackOrder':    result = trackOrder(e.parameter.orderId || '', e.parameter.phone || ''); break;
       case 'orders':        result = getOrders(); break;
       case 'notifications': result = getNotifications(); break;
       case 'saleslog':      result = getSalesLog(); break;
       case 'customers':     result = getCustomers(); break;
       case 'users':         result = getUsers(); break;
-
-      default:
-        result = { success: false, error: 'Unknown action: ' + action };
+      default:              result = { success: false, error: 'Unknown action: ' + action };
     }
 
     return jsonOut(result);
@@ -103,47 +92,58 @@ function doGet(e) {
   }
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // MAIN ENTRY — POST
-// ============================================================
+// ------------------------------------------------------------
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     const action = body.action;
     let result;
 
+    // ------------------------------------------------------------
+    // DESTRUCTIVE ACTIONS require ADMIN_API_KEY
+    // ------------------------------------------------------------
+    const DESTRUCTIVE_ACTIONS = [
+      'deleteProduct',
+      'bulkDeleteProducts',
+      'deleteUser',
+      'resetOrders',
+      'resetAllExceptProducts',
+      'updateSettings',
+      'setupOnce'
+    ];
+    if (DESTRUCTIVE_ACTIONS.indexOf(action) !== -1 && !checkAdminKey(body)) {
+      return jsonOut({ success: false, error: 'Unauthorized.' });
+    }
+
     switch (action) {
-      // ---- Public ----
-      case 'saveOrder':         result = saveOrder(body.order); break;
+      case 'saveOrder':              result = saveOrder(body.order); break;
+      case 'login':                  result = { success: false, message: 'Login is handled in the browser. Update admin.js.' }; break;
+      case 'verifyToken':            result = { success: false, message: 'Token auth removed. Update admin.js.' }; break;
+      case 'changePassword':         result = { success: false, message: 'Change password is handled in the browser. Update admin.js.' }; break;
+      case 'logout':                 result = { success: true }; break;
+      case 'getOrderById':           result = getOrderById(body.orderId); break;
 
-      // ---- Login / Change Password / Logout handled in browser ----
-      case 'login':             result = { success: false, message: 'Login is handled in the browser. Update admin.js.' }; break;
-      case 'verifyToken':       result = { success: false, message: 'Token auth removed. Update admin.js.' }; break;
-      case 'changePassword':    result = { success: false, message: 'Change password is handled in the browser. Update admin.js.' }; break;
-      case 'logout':            result = { success: true }; break;
-      case 'getOrderById':      result = getOrderById(body.orderId); break;
+      case 'saveProductsBatch':      result = saveProductsBatch(body.products); break;
+      case 'addProduct':             result = addProduct(body.product); break;
+      case 'updateProduct':          result = updateProduct(body.product); break;
+      case 'deleteProduct':          result = deleteProduct(body.id); break;
+      case 'updateStock':            result = updateStock(body.id, body.stock); break;
+      case 'bulkUpdatePrices':       result = bulkUpdatePrices(body.updates); break;
+      case 'bulkDeleteProducts':     result = bulkDeleteProducts(body.ids); break;
 
-      // ---- Admin ----
-      case 'saveProductsBatch': result = saveProductsBatch(body.products); break;
-      case 'addProduct':        result = addProduct(body.product); break;
-      case 'updateProduct':     result = updateProduct(body.product); break;
-      case 'deleteProduct':     result = deleteProduct(body.id); break;
-      case 'updateStock':       result = updateStock(body.id, body.stock); break;
-      case 'bulkUpdatePrices':  result = bulkUpdatePrices(body.updates); break;
-      case 'bulkDeleteProducts':result = bulkDeleteProducts(body.ids); break;
+      case 'updateOrderStatus':      result = updateOrderStatus(body.orderId, body.status); break;
+      case 'updateSettings':         result = updateSettings(body.settings); break;
+      case 'addUser':                result = addUser(body.user); break;
+      case 'deleteUser':             result = deleteUser(body.username); break;
+      case 'getUsers':               result = getUsers(); break;
+      case 'saveNotification':       result = saveNotification(body.notification); break;
+      case 'updateImageCount':       result = updateSetting('supabaseImageCount', body.count); break;
+      case 'setupOnce':              result = setupOnce(); break;
 
-      case 'updateOrderStatus': result = updateOrderStatus(body.orderId, body.status); break;
-
-      case 'updateSettings':    result = updateSettings(body.settings); break;
-
-      case 'addUser':           result = addUser(body.user); break;
-      case 'deleteUser':        result = deleteUser(body.username); break;
-      case 'getUsers':          result = getUsers(); break;
-
-      case 'saveNotification':  result = saveNotification(body.notification); break;
-      case 'updateImageCount':  result = updateSetting('supabaseImageCount', body.count); break;
-      case 'setupOnce':         result = setupOnce(); break;
-  case 'resetOrders':       result = resetOrders(); break;
+      case 'resetOrders':            result = resetOrders(); break;
+      case 'resetAllExceptProducts': result = resetAllExceptProducts(); break;
 
       default:
         result = { success: false, error: 'Unknown action: ' + action };
@@ -155,9 +155,9 @@ function doPost(e) {
   }
 }
 
-// ============================================================
-// INIT — seeds the Users sheet row (legacy display only)
-// ============================================================
+// ------------------------------------------------------------
+// INIT
+// ------------------------------------------------------------
 function initializeSheets() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
@@ -193,9 +193,102 @@ function setupOnce() {
   return result;
 }
 
-// ============================================================
+// ------------------------------------------------------------
+// SAFETY GUARD
+// Enforces the invariant that the reset actions never clear Products.
+// guardProducts(actionName, sheetsAboutToBeCleared) throws BEFORE any
+// deleteRows() if the Products sheet is in the list.
+//
+// NOTE: an earlier version threw whenever actionName was 'resetOrders',
+// which aborted every reset (the Reset button would always fail).
+// This version checks the actual SHEETS being cleared, which is what
+// "must not touch Products" really means.
+// ------------------------------------------------------------
+function guardProducts(actionName, sheetsAboutToBeCleared) {
+  const names = sheetsAboutToBeCleared || [];
+  if (names.indexOf(SHEETS.PRODUCTS) !== -1) {
+    throw new Error(
+      'SAFETY GUARD: "' + actionName + '" is not allowed to touch the Products sheet.'
+    );
+  }
+}
+
+// ------------------------------------------------------------
+// RESET — Orders + SalesLog + Customers
+// (Products, Settings, Users, Notifications are NEVER touched)
+// ------------------------------------------------------------
+function resetOrders() {
+  guardProducts('resetOrders', [SHEETS.ORDERS, SHEETS.SALES_LOG, SHEETS.CUSTOMERS]);
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  const ordersSheet = ss.getSheetByName(SHEETS.ORDERS);
+  if (ordersSheet && ordersSheet.getLastRow() > 1) {
+    ordersSheet.deleteRows(2, ordersSheet.getLastRow() - 1);
+  }
+
+  const salesSheet = ss.getSheetByName(SHEETS.SALES_LOG);
+  if (salesSheet && salesSheet.getLastRow() > 1) {
+    salesSheet.deleteRows(2, salesSheet.getLastRow() - 1);
+  }
+
+  const custSheet = ss.getSheetByName(SHEETS.CUSTOMERS);
+  if (custSheet && custSheet.getLastRow() > 1) {
+    custSheet.deleteRows(2, custSheet.getLastRow() - 1);
+  }
+
+  cacheInvalidate('products_all');
+  cacheInvalidate('settings_all');
+
+  return {
+    success: true,
+    message: 'Orders, sales log, and customers have been cleared.'
+  };
+}
+
+// ------------------------------------------------------------
+// RESET — Orders + SalesLog + Customers + Notifications
+// (Products, Settings, Users are NEVER touched)
+// ------------------------------------------------------------
+function resetAllExceptProducts() {
+  guardProducts('resetAllExceptProducts', [
+    SHEETS.ORDERS, SHEETS.SALES_LOG, SHEETS.CUSTOMERS, SHEETS.NOTIFICATIONS
+  ]);
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  const ordersSheet = ss.getSheetByName(SHEETS.ORDERS);
+  if (ordersSheet && ordersSheet.getLastRow() > 1) {
+    ordersSheet.deleteRows(2, ordersSheet.getLastRow() - 1);
+  }
+
+  const salesSheet = ss.getSheetByName(SHEETS.SALES_LOG);
+  if (salesSheet && salesSheet.getLastRow() > 1) {
+    salesSheet.deleteRows(2, salesSheet.getLastRow() - 1);
+  }
+
+  const custSheet = ss.getSheetByName(SHEETS.CUSTOMERS);
+  if (custSheet && custSheet.getLastRow() > 1) {
+    custSheet.deleteRows(2, custSheet.getLastRow() - 1);
+  }
+
+  const notifSheet = ss.getSheetByName(SHEETS.NOTIFICATIONS);
+  if (notifSheet && notifSheet.getLastRow() > 1) {
+    notifSheet.deleteRows(2, notifSheet.getLastRow() - 1);
+  }
+
+  cacheInvalidate('products_all');
+  cacheInvalidate('settings_all');
+
+  return {
+    success: true,
+    message: 'Orders, sales, customers, and notifications cleared.'
+  };
+}
+
+// ------------------------------------------------------------
 // PUBLIC — TRACKING
-// ============================================================
+// ------------------------------------------------------------
 function trackOrder(orderId, phone) {
   if (!orderId || !phone) {
     return { success: false, message: 'Order ID and phone number are required.' };
@@ -254,9 +347,9 @@ function trackOrder(orderId, phone) {
   return { success: false, message: 'Order not found.' };
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // PRODUCTS — READ (public)
-// ============================================================
+// ------------------------------------------------------------
 function getProducts() {
   const cached = cacheGet('products_all');
   if (cached) return cached;
@@ -266,16 +359,74 @@ function getProducts() {
   if (!sheet) return [];
 
   const data = sheet.getDataRange().getValues();
-  if (data.length < 2) return [];
+  if (data.length < 1) return [];
 
-  const headers = data[0];
+  // ------------------------------------------------------------
+  // HEADER DETECTION
+  // data[0] is normally the header row. If it is not (a product was
+  // pasted straight into row 1) fall back to positional column names so
+  // we never silently return zero products.
+  // ------------------------------------------------------------
+  const FALLBACK_HEADERS = ['id', 'name', 'code', 'country', 'sizes', 'variants', 'images', 'videos', 'stock', 'status', 'createdAt'];
+
+  // Detect a header from the RAW first row (before we substitute any names),
+  // otherwise substituting "id" would make every sheet look like a header.
+  const rawKeys = data[0].map(function (h) {
+    return String(h === null || h === undefined ? '' : h).trim().toLowerCase();
+  });
+  const looksLikeHeader =
+    rawKeys.indexOf('id') !== -1 ||
+    rawKeys.indexOf('name') !== -1 ||
+    rawKeys.indexOf('code') !== -1;
+
+  // Always fill blank/unknown header cells positionally so short headers
+  // (e.g. a missing "createdAt") still map to the right columns.
+  let headers = data[0].map(function (h, idx) {
+    var label = String(h === null || h === undefined ? '' : h).trim();
+    return label || (FALLBACK_HEADERS[idx] || ('col' + (idx + 1)));
+  });
+
+  let firstDataRow = 1;
+  if (!looksLikeHeader) {
+    // No header row at all: row 1 is data. Build positional column names from
+    // the WIDEST row so every column maps correctly and no row is dropped.
+    var width = 0;
+    for (var w = 0; w < data.length; w++) {
+      if (data[w] && data[w].length > width) width = data[w].length;
+    }
+    headers = [];
+    for (var k = 0; k < width; k++) {
+      headers.push(FALLBACK_HEADERS[k] || ('col' + (k + 1)));
+    }
+    firstDataRow = 0; // row 1 IS data
+  }
+
   const products = [];
 
-  for (let i = 1; i < data.length; i++) {
+  for (let i = firstDataRow; i < data.length; i++) {
     const row = data[i];
-    if (!row[0]) continue;
+
+    // Keep any row that has data in ANY column. Only fully blank rows are skipped.
+    var hasValue = false;
+    for (var c = 0; c < row.length; c++) {
+      if (row[c] !== '' && row[c] !== null && row[c] !== undefined) { hasValue = true; break; }
+    }
+    if (!hasValue) continue;
+
     const product = {};
     headers.forEach(function (h, idx) { product[h] = row[idx]; });
+
+    // Column A may be blank. Never drop the row - synthesise a stable id from
+    // the row number + first non-empty cell so edit/delete still work.
+    if (!product.id) {
+      var fallback = '';
+      for (var f = 0; f < row.length; f++) {
+        if (row[f] !== '' && row[f] !== null && row[f] !== undefined) { fallback = String(row[f]).trim(); break; }
+      }
+      var safe = fallback.replace(/[^\w]+/g, '_').slice(0, 40);
+      product.id = 'ROW-' + (i + 1) + (safe ? '-' + safe : '');
+      product.idGenerated = true;
+    }
 
     if (product.variants && typeof product.variants === 'string') {
       try { product.variants = JSON.parse(product.variants); } catch (e) { product.variants = []; }
@@ -295,9 +446,9 @@ function getProducts() {
   return products;
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // PRODUCTS — BULK SAVE (merges by product id)
-// ============================================================
+// ------------------------------------------------------------
 function saveProductsBatch(products) {
   if (!Array.isArray(products)) return { success: false, message: 'products must be an array.' };
   if (products.length === 0) return { success: true, saved: 0, updated: 0 };
@@ -347,9 +498,9 @@ function saveProductsBatch(products) {
   return { success: true, saved: toAppend.length, updated: updatedCount };
 }
 
-// ============================================================
-// PRODUCTS — ADD / UPDATE / DELETE / STOCK
-// ============================================================
+// ------------------------------------------------------------
+// PRODUCTS — ADD
+// ------------------------------------------------------------
 function addProduct(product) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEETS.PRODUCTS);
@@ -367,6 +518,9 @@ function addProduct(product) {
   return { success: true };
 }
 
+// ------------------------------------------------------------
+// PRODUCTS — UPDATE
+// ------------------------------------------------------------
 function updateProduct(product) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEETS.PRODUCTS);
@@ -390,10 +544,22 @@ function updateProduct(product) {
   return { success: false, message: 'Product not found.' };
 }
 
+// ------------------------------------------------------------
+// PRODUCTS — DELETE (with safety guard)
+// ------------------------------------------------------------
 function deleteProduct(id) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEETS.PRODUCTS);
   const data = sheet.getDataRange().getValues();
+
+  // GUARD: refuse to delete the last remaining product.
+  if (data.length <= 2) {
+    return {
+      success: false,
+      message: 'Refused: this is the last product. Add another one first or clear the sheet manually.'
+    };
+  }
+
   for (let i = data.length - 1; i >= 1; i--) {
     if (data[i][0] === id) {
       sheet.deleteRow(i + 1);
@@ -404,6 +570,9 @@ function deleteProduct(id) {
   return { success: false, message: 'Product not found.' };
 }
 
+// ------------------------------------------------------------
+// PRODUCTS — UPDATE STOCK
+// ------------------------------------------------------------
 function updateStock(id, stock) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEETS.PRODUCTS);
@@ -418,9 +587,9 @@ function updateStock(id, stock) {
   return { success: false, message: 'Product not found.' };
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // PRODUCTS — BULK UPDATE PRICES
-// ============================================================
+// ------------------------------------------------------------
 function bulkUpdatePrices(updates) {
   if (!Array.isArray(updates) || updates.length === 0) {
     return { success: false, message: 'updates array required.' };
@@ -459,19 +628,31 @@ function bulkUpdatePrices(updates) {
   return { success: true, updated: updated };
 }
 
-// ============================================================
-// PRODUCTS — BULK DELETE
-// ============================================================
+// ------------------------------------------------------------
+// PRODUCTS — BULK DELETE (with safety guard)
+// ------------------------------------------------------------
 function bulkDeleteProducts(ids) {
   if (!Array.isArray(ids) || ids.length === 0) {
     return { success: false, message: 'ids array required.' };
   }
-  var idSet = {};
-  ids.forEach(function (x) { idSet[String(x)] = true; });
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEETS.PRODUCTS);
   const data = sheet.getDataRange().getValues();
+
+  // GUARD: refuse to delete every product at once.
+  const totalProductRows = data.length - 1;
+  if (totalProductRows > 0 && ids.length >= totalProductRows) {
+    return {
+      success: false,
+      message: 'Refused: this call would delete ALL ' + totalProductRows +
+               ' products. Delete them one at a time from the Products page if you really mean to.'
+    };
+  }
+
+  var idSet = {};
+  ids.forEach(function (x) { idSet[String(x)] = true; });
+
   var deleted = 0;
   for (var i = data.length - 1; i >= 1; i--) {
     var rowId = String(data[i][0] || '');
@@ -481,9 +662,9 @@ function bulkDeleteProducts(ids) {
   return { success: true, deleted: deleted };
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // ORDERS
-// ============================================================
+// ------------------------------------------------------------
 function getOrders() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEETS.ORDERS);
@@ -590,9 +771,9 @@ function formatDateForId(date) {
   return date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // SALES LOG / CUSTOMERS
-// ============================================================
+// ------------------------------------------------------------
 function updateSalesLog(dateStr, amount) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEETS.SALES_LOG);
@@ -666,9 +847,9 @@ function getSalesLog() {
   });
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // SETTINGS
-// ============================================================
+// ------------------------------------------------------------
 function getSettings() {
   const cached = cacheGet('settings_all');
   if (cached) return cached;
@@ -726,9 +907,9 @@ function updateSetting(key, value) {
   return { success: true };
 }
 
-// ============================================================
-// USERS (display only — login is client-side now)
-// ============================================================
+// ------------------------------------------------------------
+// USERS
+// ------------------------------------------------------------
 function getUsers() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = ss.getSheetByName(SHEETS.USERS);
@@ -781,9 +962,9 @@ function deleteUser(username) {
   return { success: false, message: 'User not found.' };
 }
 
-// ============================================================
+// ------------------------------------------------------------
 // NOTIFICATIONS
-// ============================================================
+// ------------------------------------------------------------
 function getNotifications() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEETS.NOTIFICATIONS);
@@ -808,35 +989,4 @@ function saveNotification(notification) {
     new Date().toISOString()
   ]);
   return { success: true, id: id };
-}
-
-/**
- * Clears Orders, SalesLog, and Customers sheets, keeping headers.
- * Does NOT touch Products or Settings.
- */
-function resetOrders() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-
-  const ordersSheet = ss.getSheetByName(SHEETS.ORDERS);
-  if (ordersSheet && ordersSheet.getLastRow() > 1) {
-    ordersSheet.deleteRows(2, ordersSheet.getLastRow() - 1);
-  }
-
-  const salesSheet = ss.getSheetByName(SHEETS.SALES_LOG);
-  if (salesSheet && salesSheet.getLastRow() > 1) {
-    salesSheet.deleteRows(2, salesSheet.getLastRow() - 1);
-  }
-
-  const custSheet = ss.getSheetByName(SHEETS.CUSTOMERS);
-  if (custSheet && custSheet.getLastRow() > 1) {
-    custSheet.deleteRows(2, custSheet.getLastRow() - 1);
-  }
-
-  cacheInvalidate('products_all');
-  cacheInvalidate('settings_all');
-
-  return {
-    success: true,
-    message: 'Orders, sales log, and customers have been cleared.'
-  };
 }

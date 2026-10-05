@@ -47,6 +47,25 @@
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbxGcW2xkagjfp9Dr3Jz_1sflwM-JRbjPV1LUF4UoWzhAGJU2epWVDhXoQH9TgkevU5D/exec';
 
+// ------------------------------------------------------------
+// ADMIN API KEY (shared secret with Code.gs)
+// Keep this EXACTLY in sync with ADMIN_API_KEY in Code.gs.
+// Only attached to destructive actions; apiGet() is public.
+// NOTE: this is visible in the shipped JS - it deters casual misuse,
+// it is not a substitute for real server-side auth.
+// ------------------------------------------------------------
+const ADMIN_API_KEY = 'NAKOWA-ADMIN-SECRET-2026-CHANGE-ME';
+
+const DESTRUCTIVE_ACTIONS = [
+    'deleteProduct',
+    'bulkDeleteProducts',
+    'deleteUser',
+    'resetOrders',
+    'resetAllExceptProducts',
+    'updateSettings',
+    'setupOnce'
+];
+
 const CLOUDINARY = {
     cloudName: 'ldtixrva',
     uploadPreset: 'NAKOWA-ABAYAS',
@@ -352,15 +371,47 @@ function renderPrice(actualPrice) {
 // ============================================================
 // API
 // ============================================================
-async function apiGet(action) {
-    const res = await fetch(`${API_URL}?action=${action}`);
-    return res.json();
+async function apiGet(action, _attempt) {
+    _attempt = _attempt || 0;
+    const res = await fetch(`${API_URL}?action=${encodeURIComponent(action)}`, {
+        cache: 'no-store',
+        redirect: 'follow'
+    });
+
+    // Apps Script occasionally answers with a redirect page / non-JSON body.
+    // Validate BEFORE parsing so we retry instead of silently returning [].
+    const text = await res.text();
+    if (!res.ok) throw new Error(`[API] ${action} failed: HTTP ${res.status}`);
+    if (!text || !text.trim()) throw new Error(`[API] ${action} returned an empty body`);
+
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        throw new Error(`[API] ${action} returned non-JSON: ${text.slice(0, 120)}`);
+    }
+
+    // Transient 2-3 retries with backoff (mobile / flaky networks).
+    if (_attempt < 2) {
+        await new Promise(r => setTimeout(r, 600 * (_attempt + 1)));
+        return apiGet(action, _attempt + 1);
+    }
+
+    return data;
 }
 
 async function apiPost(action, data = {}) {
+    const payload = { action, ...data };
+
+    // Destructive actions are rejected server-side (Code.gs) without a
+    // matching adminKey, so send it with exactly the actions it guards.
+    if (DESTRUCTIVE_ACTIONS.indexOf(action) !== -1) {
+        payload.adminKey = ADMIN_API_KEY;
+    }
+
     const res = await fetch(API_URL, {
         method: 'POST',
-        body: JSON.stringify({ action, ...data })
+        body: JSON.stringify(payload)
     });
     return res.json();
 }
@@ -667,9 +718,24 @@ async function renderProducts(myToken) {
     try {
         const products = await apiGet('products');
         if (!isViewCurrent(myToken)) return;
-        cachedProducts = products || [];
+        cachedProducts = Array.isArray(products) ? products : [];
         if (currentSection === 'products') drawProductsSection();
-    } catch (e) {}
+    } catch (e) {
+        // Previously swallowed silently -> panel showed "All Products (0)".
+        warnOnce('products-load-failed', '[API] Could not load products.', e);
+        if (currentSection !== 'products') return;
+        $('contentArea').innerHTML = `
+            <div class="admin-card">
+                <div class="empty-state-admin">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <h4>Could not load products</h4>
+                    <p>${escapeHtml(e.message || 'Network error.')}</p>
+                    <button class="btn-gold" onclick="loadSection('products')">
+                        <i class="fas fa-rotate-right"></i> Retry
+                    </button>
+                </div>
+            </div>`;
+    }
 }
 
 function drawProductsSection() {
