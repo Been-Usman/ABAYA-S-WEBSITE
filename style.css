@@ -1514,90 +1514,90 @@ footer {
 }
 
 /* ============================================================
-   PRODUCT VIEW (tap a card image -> full-width enlarged view)
-   Reuses the site theme + modal conventions. The card grid is
-   untouched; this is an additional, separate layer.
+   PRODUCT VIEW (tap a card image -> enlarged preview modal)
+   Single column: image on top, existing title + Order Now below.
+   The circular X is pinned to the TOP-RIGHT of the modal card.
+   Mobile: edge-to-edge full screen. Desktop: centered, ~640px.
+   The card grid is untouched; this is an additional, separate layer.
    ============================================================ */
 .product-view {
     position: fixed;
     inset: 0;
     z-index: 1500;                 /* above header (999), below modals (2000) */
     display: none;
-    flex-direction: column;
-    width: 100%;
-    max-width: 100vw;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
     height: 100dvh;                /* dvh avoids the iOS URL-bar jump */
     max-height: 100vh;
     overflow: hidden;              /* no page scroll while open */
-    background: var(--bg-main);
+    background: rgba(0, 0, 0, 0.85);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     overscroll-behavior: contain;
 }
 
 .product-view.open { display: flex; }
-
-.product-view-bar {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;        /* the circular X sits TOP-LEFT */
-    gap: 10px;
-    padding: 10px 12px;
-    padding-top: calc(10px + env(safe-area-inset-top, 0px));
-    background: var(--bg-nav);
-    border-bottom: 2px solid var(--gold);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-}
 
 /* Holds the single detail card. The picture and the text live in ONE
    bordered card: image on top, title/code/price/button underneath. */
 .product-view-body {
     flex: 1 1 auto;
     min-height: 0;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 14px;
+    padding: 0;
     overflow-y: auto;
     overflow-x: hidden;            /* guard: never scroll sideways */
     -webkit-overflow-scrolling: touch;
 }
 
+/* The modal box. position:relative anchors the X to THIS card, so it
+   stays in the top-right corner of the modal on every screen size. */
 .product-view-card {
+    position: relative;
     width: 100%;
-    max-width: 760px;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
+    max-height: 92vh;
     background: var(--bg-card);
-    border: 1px solid var(--border-gold);
+    border: 2px solid var(--gold);
     border-radius: 16px;
     box-shadow: var(--shadow-dark);
     overflow: hidden;
 }
 
-/* X close button (top-left). Returns the user to the product grid. */
+/* X close button — TOP-RIGHT of the modal. Same id (#productViewClose),
+   so the existing JS click + Escape handlers are untouched. */
 .product-view-close {
-    display: inline-flex;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 5;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
     padding: 0;
-    background: transparent;
-    border: 1.5px solid var(--gold);
     border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid var(--gold);
     color: var(--gold);
     font-family: 'Poppins', sans-serif;
-    font-size: 1.7rem;
+    font-size: 1.3rem;
     font-weight: 400;
     line-height: 1;
     cursor: pointer;
-    transition: var(--transition);
+    transition: transform 0.2s ease, background 0.2s ease;
     -webkit-tap-highlight-color: transparent;
 }
 .product-view-close:hover {
-    background: var(--gold-gradient);
-    color: #000;
-    box-shadow: var(--shadow-gold);
+    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.85);
 }
 
 .product-view-stage {
@@ -1606,35 +1606,39 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
-    background: var(--navy-darker);
+    padding: 0;
+    background: #000;
 }
 
-/* The picture itself: as wide as the card allows, aspect ratio intact.
-   width:100% + height:auto + object-fit:contain = no cropping, no overflow. */
+/* The picture: full width of the modal, aspect ratio intact.
+   width:100% + height:auto + object-fit:contain = no cropping, no
+   overflow. user-select:none / touch-callout:none keep the earlier
+   "no pinch-zoom" rule — enlarging happens by OPENING this view. */
 .product-view-media {
     display: block;
     width: 100%;
     max-width: 100%;
     height: auto;
-    max-height: 100%;
+    max-height: 65vh;
     object-fit: contain;
     object-position: center;
-    margin: 0 auto;
-    border-radius: 10px;
-    background: var(--navy-darker);
+    margin: 0;
+    border-radius: 0;
+    background: #000;
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
     cursor: default;
 }
 
-/* Reuse the EXACT card info styling so title + button look identical. */
+/* Reuse the EXACT card info styling so title + button look identical —
+   only the alignment is centred; text, colour, font and the button
+   itself are unchanged. */
 .product-view-info {
     flex: 0 0 auto;
     width: 100%;
     margin: 0;
-    padding: 12px 16px 16px;
+    padding: 18px 20px 22px;
     background: transparent;
     border: none;
     border-top: 1px solid var(--border-gold);
@@ -1642,14 +1646,15 @@ footer {
     box-shadow: none;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    text-align: left;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
 }
 
 /* Inside the view the name may wrap: the card's ellipsis rule would clip it. */
 .product-view-info .product-name {
     font-family: 'Playfair Display', serif;
-    font-size: 1rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--white);
     line-height: 1.25;
@@ -1660,16 +1665,17 @@ footer {
 }
 
 .product-view-info .product-code {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
     letter-spacing: 0.5px;
     margin: 0;
 }
 
 .product-view-info .product-price {
-    text-align: left;
+    justify-content: center;
     margin: 0;
     line-height: 1.2;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1688,69 +1694,66 @@ footer {
 
 .product-view-info .btn-order {
     width: 100%;
-    margin-top: 6px;
+    margin-top: 10px;
 }
 
-/* ---- DESKTOP: ONE detail card, image large and dominant ----
-   Same single-card structure as mobile, just wider so the picture is
-   visibly large on PC (60% of the viewport, capped at 900px). */
-@media (min-width: 900px) {
-    .product-view-body { padding: 28px 32px; }
-
-    .product-view-card {
-        max-width: 900px;
-        border-radius: 18px;
-    }
-
-    .product-view-stage { padding: 18px; }
-
-    .product-view-media {
-        width: 100%;
-        max-width: 900px;
-        height: auto;
-        max-height: 70vh;
-        object-fit: contain;
-    }
-
-    .product-view-info {
-        padding: 18px 26px 22px;
-        gap: 10px;
+/* ---- MOBILE: full width, full screen, no rounded corners ---- */
+@media (max-width: 767px) {
+    .product-view {
+        padding: 0;
         align-items: flex-start;
     }
 
-    .product-view-info .product-name { font-size: 1.25rem; }
-    .product-view-info .product-code { font-size: 0.8rem; }
-    .product-view-info .product-price .price-actual { font-size: 1.3rem; }
-    .product-view-info .price-old { font-size: 0.95rem; }
-    .product-view-info .btn-order {
-        width: auto;
-        min-width: 220px;
-        padding: 12px 28px;
-        font-size: 0.8rem;
-        margin-top: 8px;
+    .product-view-body { padding: 0; }
+
+    .product-view-card {
+        width: 100vw;
+        max-width: 100vw;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        max-height: 100vh;
+        min-height: 100vh;
+        min-height: 100dvh;         /* dvh avoids the iOS URL-bar jump */
+    }
+
+    /* Clear the notch / status bar. */
+    .product-view-close {
+        top: calc(10px + env(safe-area-inset-top, 0px));
+        right: 12px;
     }
 }
 
-/* Landscape phones: keep the picture visible beside the info block. */
-@media (max-height: 520px) and (orientation: landscape) {
-    .product-view { flex-direction: row; }
-    .product-view-bar {
-        flex-direction: column;
-        justify-content: flex-start;
-        border-bottom: none;
-        border-right: 2px solid var(--gold);
-        padding: 10px 8px;
+/* ---- DESKTOP: centered, comfortable reading width ----
+   Capped at 640px so the modal does NOT span the whole screen. */
+@media (min-width: 768px) {
+    .product-view-body { padding: 16px; }
+
+    .product-view-card {
+        width: auto;
+        max-width: 640px;
+        min-width: 480px;
     }
-    .product-view-body { padding: 10px; }
-    .product-view-card { max-width: 100%; flex-direction: row; }
-    .product-view-stage { width: 55%; padding: 8px; }
-    .product-view-media { max-height: 100%; }
+
+    .product-view-media {
+        max-height: 70vh;
+    }
+
     .product-view-info {
-        width: 45%;
-        border-top: none;
-        border-left: 1px solid var(--border-gold);
-        padding: 12px 16px;
+        padding: 22px 28px 26px;
+        gap: 8px;
     }
+
+    .product-view-info .price-actual { font-size: 1.3rem; }
+    .product-view-info .price-old { font-size: 0.95rem; }
+}
+
+/* Landscape phones: stay SINGLE column, just cap the picture height so
+   the title + Order Now button are visible without scrolling. */
+@media (max-height: 520px) and (orientation: landscape) {
+    .product-view-card { max-height: 100%; }
+    .product-view-media { max-height: 52vh; }
+    .product-view-info { padding: 12px 16px 14px; gap: 6px; }
 }
 
 .modal-box h3 {
