@@ -31,10 +31,10 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbxGcW2xkagjfp9Dr3Jz_1sflwM-JRbjPV1LUF4UoWzhAGJU2epWVDhXoQH9TgkevU5D/exec';
 
 const CLOUDINARY = {
-    cloudName: 'Idtixrva',
+    cloudName: 'ldtixrva',
     uploadPreset: 'NAKOWA-ABAYAS',
     folder: 'ABAYAS-VIDEO-IMGS',
-    baseUrl: 'https://api.cloudinary.com/v1_1/Idtixrva'
+    baseUrl: 'https://api.cloudinary.com/v1_1/ldtixrva'
 };
 
 const SUPABASE = {
@@ -702,6 +702,8 @@ function attachProductListeners() {
             if (Math.abs(dx) > SWIPE_THRESHOLD) {
                 // Suppress the click that would fire after this swipe.
                 suppressClickUntil = Date.now() + 400;
+                // Also block the product view from opening on a swipe.
+                card._suppressViewUntil = suppressClickUntil;
 
                 if (dx < 0) updateToIndex(currentIndex + 1);
                 else updateToIndex(currentIndex - 1);
@@ -726,12 +728,32 @@ function attachProductListeners() {
             if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20) {
                 e.preventDefault();
                 suppressClickUntil = Date.now() + 400;
+                card._suppressViewUntil = suppressClickUntil;
                 if (e.deltaX > 0) updateToIndex(currentIndex + 1);
                 else updateToIndex(currentIndex - 1);
             }
         }, { passive: false });
 
         updateToIndex(0);
+    });
+
+    // Tap the image -> open the dedicated full-width product view.
+    // Wired in its own loop so it also works on cards with no colour
+    // variants (those return early above). Zoom is deliberately NOT
+    // offered here: the tap always opens the enlarged view instead.
+    document.querySelectorAll('.product-card').forEach(card => {
+        const imageWrap = card.querySelector('.product-image');
+        if (!imageWrap) return;
+
+        imageWrap.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            // A recent swipe means the user was changing colour, not tapping.
+            if (Date.now() < (card._suppressViewUntil || 0)) return;
+
+            const p = products.find(x => String(x.id) === String(card.dataset.id));
+            if (!p) return;
+            openProductView(p, card);
+        });
     });
 
     document.querySelectorAll('.btn-order').forEach(btn => {
@@ -763,6 +785,105 @@ function attachProductListeners() {
         });
     });
 }
+
+// ============================================================
+// PRODUCT VIEW — full-width enlarged product
+// Opened by tapping a product image in the grid. Shows the picture
+// as large as the screen allows (aspect ratio preserved) with the
+// EXISTING product name and the EXISTING Order Now button below it.
+// No card text, button text, colour or styling is altered.
+// ============================================================
+
+// Resolve which variant the card is currently showing, so the enlarged
+// view matches what the user tapped. Mirrors the btn-order logic.
+function resolveCardVariant(product, card) {
+    const variants = dedupeVariants(product.variants || []);
+    const selectedColor = card && card.dataset ? card.dataset.selectedColor : '';
+    if (selectedColor && variants.length > 0) {
+        const found = variants.find(v => v.colorName === selectedColor);
+        if (found) return found;
+    }
+    if (variants.length > 0) return variants[0];
+    return {
+        image: getFirstImage(product),
+        colorName: 'Default',
+        colorValue: '#d4af37',
+        price: product.price || 0,
+        code: product.code || ''
+    };
+}
+
+function openProductView(product, card) {
+    const view = document.getElementById('productView');
+    const stage = document.getElementById('productViewStage');
+    const info = document.getElementById('productViewInfo');
+    if (!view || !stage || !info) return;
+
+    const variant = resolveCardVariant(product, card);
+
+    // Use the selected colour image if there is one; otherwise fall back
+    // to the product's first image, then the first video.
+    const imageSrc = variant.image || '';
+    const videoSrc = (product.videos && Array.isArray(product.videos) && product.videos.length > 0) ? product.videos[0] : '';
+
+    if (imageSrc) {
+        stage.innerHTML = `<img class="product-view-media"
+            src="${escapeHtml(optimizeImage(imageSrc, 1200, 1200))}"
+            alt="${escapeHtml(product.name)}" onerror="imgFallback(this)" />`;
+    } else if (videoSrc) {
+        stage.innerHTML = `<video class="product-view-media" src="${escapeHtml(videoSrc)}"
+            controls playsinline preload="metadata"></video>`;
+    } else {
+        stage.innerHTML = `<img class="product-view-media" src="${DEFAULT_IMG}"
+            alt="${escapeHtml(product.name)}" />`;
+    }
+
+    // Same title, same code, same price, same button as the card.
+    info.innerHTML = `
+        <div class="product-name">${escapeHtml(product.name)}</div>
+        <div class="product-code">${escapeHtml(variant.code || product.code || '')}</div>
+        <div class="product-price" data-product-id="${escapeHtml(product.id)}">${getPriceHTML(variant.price || product.price || 0)}</div>
+        <button class="btn-order" data-id="${escapeHtml(product.id)}">
+            <i class="fas fa-shopping-cart"></i> Order Now
+        </button>
+    `;
+
+    // Reuse the existing order flow untouched.
+    const orderBtn = info.querySelector('.btn-order');
+    if (orderBtn) {
+        orderBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openOrderModal(product, variant);
+        });
+    }
+
+    view.classList.add('open');
+    stage.scrollTop = 0;
+    // Stop the page behind from scrolling while the view is open.
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProductView() {
+    const view = document.getElementById('productView');
+    if (!view) return;
+    view.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Back button and the Escape key both return to the product grid.
+function setupProductView() {
+    const view = document.getElementById('productView');
+    const back = document.getElementById('productViewBack');
+    if (!view) return;
+
+    if (back) back.addEventListener('click', closeProductView);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && view.classList.contains('open')) closeProductView();
+    });
+}
+
+window.closeProductView = closeProductView;
 
 // ============================================================
 // ORDER MODAL
@@ -1633,6 +1754,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupLogoTrigger();
     setupNewsletter();
     setupModalCloses();
+    setupProductView();
     setupQueueWiring();
     loadCart();
 

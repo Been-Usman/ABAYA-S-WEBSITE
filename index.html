@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <!-- Main stylesheet -->
-    <link rel="stylesheet" href="style.css?v=76" />
+    <link rel="stylesheet" href="style.css?v=78" />
 
     <!-- ============================================================
          EMERGENCY HEADER FIX — Inline styles that override everything.
@@ -785,6 +785,17 @@
         </div>
     </div>
 
+    <!-- ===== PRODUCT VIEW (full-width enlarged product) ===== -->
+    <div id="productView" class="product-view" role="dialog" aria-modal="true" aria-label="Product image">
+        <div class="product-view-bar">
+            <button class="product-view-back" id="productViewBack" type="button" aria-label="Back to products">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+        <div class="product-view-stage" id="productViewStage"></div>
+        <div class="product-view-info" id="productViewInfo"></div>
+    </div>
+
     <!-- ===== CART SIDEBAR ===== -->
     <div class="cart-sidebar-overlay" id="cartOverlay"></div>
     <div class="cart-sidebar" id="cartSidebar">
@@ -831,14 +842,14 @@
         })();
     </script>
 
-    <script src="queue.js?v=2"></script>
+    <script src="queue.js?v=3"></script>
     <script>
         setTimeout(function () {
             var s = document.getElementById('splashScreen');
             if (s) { s.style.display = 'none'; s.style.visibility = 'hidden'; s.style.opacity = '0'; }
         }, 3000);
     </script>
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=4"></script>
 
     <!-- ===== PWA: service worker registration ===== -->
     <script>

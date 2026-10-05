@@ -406,6 +406,12 @@ nav {
     overflow: visible;
 }
 
+/* Nav background per theme.
+   Dark  = pure black (#000000).
+   Light = the site navy (#080e33), which is the theme's own --bg-nav. */
+html[data-theme="dark"] nav { background: #000000 !important; }
+html[data-theme="light"] nav { background: #080e33 !important; }
+
 /* ---- LOGO + BRAND (LEFT) ---- */
 .nav-logo {
     cursor: pointer;
@@ -942,6 +948,9 @@ nav {
     .product-card .product-image { max-height: 380px; }
 }
 
+/* Zoom is disabled on card images on purpose: the picture must NOT be
+   enlargable while it sits in the grid. Tapping it opens the dedicated
+   full-width product view instead (see .product-view below). */
 .product-card .product-image img,
 .product-card .product-image video {
     width: 100%;
@@ -950,11 +959,16 @@ nav {
     object-position: center top;
     display: block;
     transition: transform 0.4s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
 }
 
 .product-card:hover .product-image img,
 .product-card:hover .product-image video {
-    transform: scale(1.05);
+    transform: none;
 }
 
 .product-card .country-badge {
@@ -1497,6 +1511,172 @@ footer {
     max-height: 380px;
     object-fit: contain;
     background: var(--navy-darker);
+}
+
+/* ============================================================
+   PRODUCT VIEW (tap a card image -> full-width enlarged view)
+   Reuses the site theme + modal conventions. The card grid is
+   untouched; this is an additional, separate layer.
+   ============================================================ */
+.product-view {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;                 /* above header (999), below modals (2000) */
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100vw;
+    height: 100dvh;                /* dvh avoids the iOS URL-bar jump */
+    max-height: 100vh;
+    overflow: hidden;              /* no page scroll while open */
+    background: var(--bg-main);
+    overscroll-behavior: contain;
+}
+
+.product-view.open { display: flex; }
+
+.product-view-bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    background: var(--bg-nav);
+    border-bottom: 2px solid var(--gold);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.product-view-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 14px;
+    min-height: 40px;
+    background: transparent;
+    border: 1.5px solid var(--gold);
+    border-radius: var(--radius-pill);
+    color: var(--gold);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+.product-view-back:hover {
+    background: var(--gold-gradient);
+    color: #000;
+    box-shadow: var(--shadow-gold);
+}
+.product-view-back i { font-size: 0.85rem; }
+
+.product-view-stage {
+    flex: 1 1 auto;
+    min-height: 0;                 /* lets the child scroll inside flex */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;            /* guard: never scroll sideways */
+    -webkit-overflow-scrolling: touch;
+    background: var(--bg-main);
+}
+
+/* The picture itself: as wide as the screen allows, aspect ratio intact.
+   width:100% + height:auto + object-fit:contain = no cropping, no overflow. */
+.product-view-media {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center;
+    margin: 0 auto;
+    border-radius: 12px;
+    border: 1px solid var(--border-gold);
+    background: var(--navy-darker);
+    box-shadow: var(--shadow-dark);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    cursor: default;
+}
+
+/* Reuse the EXACT card info styling so title + button look identical. */
+.product-view-info {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 10px 14px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg-card);
+    border: 1px solid var(--border-gold);
+    border-radius: 14px;
+    box-shadow: var(--shadow-gold);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+/* Inside the view the name may wrap: the card's ellipsis rule would clip it. */
+.product-view-info .product-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.25;
+    margin: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.product-view-info .product-code {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.product-view-info .product-price {
+    text-align: left;
+    margin: 0;
+    line-height: 1.2;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.product-view-info .btn-order {
+    width: 100%;
+    margin-top: 6px;
+}
+
+@media (min-width: 640px) {
+    .product-view-media { max-width: 720px; }
+    .product-view-info { padding: 12px 18px; }
+}
+
+/* Landscape phones: keep the picture visible beside the info block. */
+@media (max-height: 520px) and (orientation: landscape) {
+    .product-view { flex-direction: row; }
+    .product-view-bar {
+        flex-direction: column;
+        border-bottom: none;
+        border-right: 2px solid var(--gold);
+        padding: 10px 8px;
+    }
+    .product-view-back { writing-mode: vertical-rl; }
+    .product-view-info { max-width: 280px; margin: 12px; }
 }
 
 .modal-box h3 {
