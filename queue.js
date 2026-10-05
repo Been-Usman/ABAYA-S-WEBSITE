@@ -53,7 +53,7 @@
         videoUrl: 'https://api.cloudinary.com/v1_1/ldtixrva/video/upload'
     };
     const FB_SUPABASE = {
-        url: 'https://vtrvfbvbulfvlhguctej.supabase.co',
+        url: 'https://vtvrfbvbulflvhguctej.supabase.co',
         key: 'sb_publishable_A35YZF-EKyOvJAdK2flkkw_3lJoDYjI',
         bucket: 'product-images',
         bucketAliases: ['product-images', 'Product-images', 'PRODUCT-IMAGES', 'Product-Images', 'products-images', 'nakowa-images'],
