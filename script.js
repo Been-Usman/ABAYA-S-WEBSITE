@@ -1555,6 +1555,63 @@ function setupSearch() {
 }
 
 // ============================================================
+// INTERNET NOTICE
+// ============================================================
+function setupInternetNotice() {
+    const notice = document.getElementById('internetNotice');
+    if (!notice) return;
+
+    let failCount = 0;
+    let failTimer = null;
+    let offline = !navigator.onLine;
+
+    function showNotice() {
+        notice.style.display = 'flex';
+    }
+    function hideNotice() {
+        notice.style.display = 'none';
+    }
+    function refresh() {
+        if (offline || failCount >= 3) showNotice();
+        else hideNotice();
+    }
+
+    // 1. Track online / offline
+    window.addEventListener('online', function () {
+        offline = false;
+        failCount = 0;
+        refresh();
+    });
+    window.addEventListener('offline', function () {
+        offline = true;
+        refresh();
+    });
+
+    // 2. Track image load failures (only inside the product grid)
+    window.addEventListener('error', function (e) {
+        const t = e.target;
+        if (!t || t.tagName !== 'IMG') return;
+        if (!t.closest('#productGrid')) return;
+        failCount++;
+        if (failTimer) clearTimeout(failTimer);
+        failTimer = setTimeout(function () { failCount = 0; refresh(); }, 5000);
+        refresh();
+    }, true);
+
+    // 3. Track successful image loads — reset the failure counter
+    window.addEventListener('load', function (e) {
+        const t = e.target;
+        if (!t || t.tagName !== 'IMG') return;
+        if (!t.closest('#productGrid')) return;
+        failCount = 0;
+        offline = false;
+        refresh();
+    }, true);
+
+    refresh();
+}
+
+// ============================================================
 // LOGO 5x → Admin
 // ============================================================
 function setupLogoTrigger() {
@@ -1799,6 +1856,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupChat();
     setupPriceFilters();
     setupSearch();
+    setupInternetNotice();
     setupLogoTrigger();
     setupNewsletter();
     setupModalCloses();
