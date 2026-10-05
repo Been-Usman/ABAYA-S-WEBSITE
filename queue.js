@@ -53,10 +53,10 @@
         videoUrl: 'https://api.cloudinary.com/v1_1/ldtixrva/video/upload'
     };
     const FB_SUPABASE = {
-        url: 'https://yntkbjzvmizssrxwzuoi.supabase.co',
-        key: 'sb_publishable_CFyA2zonltT81jFRMyAQpg_kx5vLA_u',
-        bucket: 'Product-images',
-        bucketAliases: ['Product-images', 'product-images', 'PRODUCT-IMAGES', 'Product-Images', 'products-images', 'nakowa-images'],
+        url: 'https://vtrvfbvbulfvlhguctej.supabase.co',
+        key: 'sb_publishable_A35YZF-EKyOvJAdK2flkkw_3lJoDYjI',
+        bucket: 'product-images',
+        bucketAliases: ['product-images', 'Product-images', 'PRODUCT-IMAGES', 'Product-Images', 'products-images', 'nakowa-images'],
         maxImages: 200,
         maxSizeMB: 900
     };
