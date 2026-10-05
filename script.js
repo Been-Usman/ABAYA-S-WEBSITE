@@ -182,8 +182,10 @@ function applyVideo10sLoop(container) {
 }
 
 // ============================================================
-// PRICE RENDERER — actual stored price only
-// (No fake price, no +5000, no strikethrough. Final decision.)
+// PRICE RENDERER — real (actual) price only.
+// The struck-through old price (real + 5) is rendered separately by
+// getOldPriceHTML() and appears ONLY inside the opened product view,
+// never on the normal product card.
 // ============================================================
 function renderPrice(actualPrice) {
     const actual = parseFloat(actualPrice) || 0;
@@ -604,6 +606,10 @@ function renderProductCard(p) {
                     : `<img src="${escapeHtml(mainImage)}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="imgFallback(this)" />`
                 }
                 ${flag ? `<span class="country-badge">${flag} ${escapeHtml(country)}</span>` : ''}
+                <button class="card-heart" data-product-id="${escapeHtml(p.id)}" aria-label="Like this product">
+                    <i class="far fa-heart"></i>
+                    <span class="card-heart-count">0</span>
+                </button>
             </div>
             <div class="product-info">
                 <div class="product-name">${escapeHtml(p.name)}</div>
@@ -784,6 +790,32 @@ function attachProductListeners() {
             }
         });
     });
+
+    // Like / unlike heart on the card image. stopPropagation keeps the
+    // tap from opening the enlarged product view.
+    document.querySelectorAll('.card-heart').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const heartIcon = this.querySelector('i');
+            const countEl = this.querySelector('.card-heart-count');
+            const count = parseInt(countEl.textContent, 10) || 0;
+
+            if (this.classList.contains('liked')) {
+                // Unlike
+                this.classList.remove('liked');
+                heartIcon.classList.remove('fas');
+                heartIcon.classList.add('far');
+                countEl.textContent = Math.max(0, count - 1);
+            } else {
+                // Like
+                this.classList.add('liked');
+                heartIcon.classList.remove('far');
+                heartIcon.classList.add('fas');
+                countEl.textContent = count + 1;
+            }
+        });
+    });
 }
 
 // ============================================================
@@ -811,6 +843,22 @@ function resolveCardVariant(product, card) {
         price: product.price || 0,
         code: product.code || ''
     };
+}
+
+// ============================================================
+// PRODUCT VIEW — OLD (FAKE) PRICE
+// The struck-through price is derived automatically from the real
+// price (real + 5). It is NEVER stored on the product and never
+// hard-coded per product, so it follows the real price everywhere.
+// Used ONLY inside the opened product view — never on the card.
+// ============================================================
+const OLD_PRICE_OFFSET = 5;
+
+function getOldPriceHTML(actualPrice) {
+    const real = parseFloat(actualPrice) || 0;
+    if (real <= 0) return '';
+    const old = real + OLD_PRICE_OFFSET;
+    return `<span class="price-old">₦${old.toLocaleString()}</span>`;
 }
 
 function openProductView(product, card) {
@@ -842,7 +890,7 @@ function openProductView(product, card) {
     info.innerHTML = `
         <div class="product-name">${escapeHtml(product.name)}</div>
         <div class="product-code">${escapeHtml(variant.code || product.code || '')}</div>
-        <div class="product-price" data-product-id="${escapeHtml(product.id)}">${getPriceHTML(variant.price || product.price || 0)}</div>
+        <div class="product-price" data-product-id="${escapeHtml(product.id)}">${getPriceHTML(variant.price || product.price || 0)}${getOldPriceHTML(variant.price || product.price || 0)}</div>
         <button class="btn-order" data-id="${escapeHtml(product.id)}">
             <i class="fas fa-shopping-cart"></i> Order Now
         </button>
@@ -870,13 +918,13 @@ function closeProductView() {
     document.body.style.overflow = '';
 }
 
-// Back button and the Escape key both return to the product grid.
+// The X close button and the Escape key both return to the product grid.
 function setupProductView() {
     const view = document.getElementById('productView');
-    const back = document.getElementById('productViewBack');
+    const close = document.getElementById('productViewClose');
     if (!view) return;
 
-    if (back) back.addEventListener('click', closeProductView);
+    if (close) close.addEventListener('click', closeProductView);
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && view.classList.contains('open')) closeProductView();

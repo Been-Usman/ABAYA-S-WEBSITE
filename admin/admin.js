@@ -1912,6 +1912,21 @@ function drawSettingsSection() {
                 <div class="form-group"><label>Hero Image URL</label><input type="text" id="setHero" value="${escapeHtml(s.hero || '')}" placeholder="https://..." /></div>
                 <div class="form-group"><label>Logo URL</label><input type="text" id="setLogo" value="${escapeHtml(s.logo || '')}" placeholder="https://..." /></div>
                 <div class="form-actions"><button type="submit" class="btn-gold"><i class="fas fa-save"></i> Save Settings</button></div>
+
+                <div style="margin-top:30px;padding:16px;border:2px solid #e74c3c;border-radius:10px;background:rgba(231,76,60,0.05);">
+                    <div style="color:#e74c3c;font-weight:700;font-size:1rem;margin-bottom:8px;">
+                        <i class="fas fa-exclamation-triangle"></i> Danger Zone
+                    </div>
+                    <p style="color:rgba(255,255,255,0.7);font-size:0.85rem;margin-bottom:12px;">
+                        This will permanently delete ALL orders, sales history, and
+                        customers. Products and settings will NOT be affected.
+                        This action cannot be undone.
+                    </p>
+                    <button type="button" id="resetOrdersBtn"
+                        style="background:#e74c3c;color:#fff;border:none;padding:12px 24px;border-radius:24px;font-weight:700;cursor:pointer;font-size:0.9rem;">
+                        <i class="fas fa-trash"></i> Reset All Orders &amp; Customers
+                    </button>
+                </div>
             </form>
         </div>
     `;
@@ -1934,6 +1949,31 @@ function drawSettingsSection() {
             } else showToast(res.message || 'Failed', '❌');
         } catch (err) { showToast('Error: ' + err.message, '❌'); }
     });
+
+    const resetBtn = document.getElementById('resetOrdersBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+            showConfirm(
+                'Reset all orders and customers?',
+                'This will permanently delete ALL orders, sales history, and customers. Products and settings will NOT be affected. This cannot be undone.',
+                async function () {
+                    try {
+                        const res = await apiPost('resetOrders', {});
+                        if (res && res.success) {
+                            showToast('Orders, sales, and customers have been cleared.', '✅');
+                            cachedOrders = [];
+                            cachedCustomers = [];
+                            if (currentSection === 'settings') drawSettingsSection();
+                        } else {
+                            showToast((res && res.message) || 'Reset failed', '❌');
+                        }
+                    } catch (err) {
+                        showToast('Error: ' + err.message, '❌');
+                    }
+                }
+            );
+        });
+    }
 }
 
 // ============================================================

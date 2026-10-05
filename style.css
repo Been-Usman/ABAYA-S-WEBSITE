@@ -1539,6 +1539,7 @@ footer {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
+    justify-content: flex-start;        /* the circular X sits TOP-LEFT */
     gap: 10px;
     padding: 10px 12px;
     padding-top: calc(10px + env(safe-area-inset-top, 0px));
@@ -1547,32 +1548,41 @@ footer {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
 }
 
-.product-view-back {
+/* Holds the picture + info block. Stacked on mobile, side-by-side
+   on desktop (see the min-width: 900px block below). */
+.product-view-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* X close button (top-left). Returns the user to the product grid. */
+.product-view-close {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 8px 14px;
-    min-height: 40px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
     background: transparent;
     border: 1.5px solid var(--gold);
-    border-radius: var(--radius-pill);
+    border-radius: 50%;
     color: var(--gold);
     font-family: 'Poppins', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    font-size: 1.7rem;
+    font-weight: 400;
+    line-height: 1;
     cursor: pointer;
     transition: var(--transition);
     -webkit-tap-highlight-color: transparent;
 }
-.product-view-back:hover {
+.product-view-close:hover {
     background: var(--gold-gradient);
     color: #000;
     box-shadow: var(--shadow-gold);
 }
-.product-view-back i { font-size: 0.85rem; }
 
 .product-view-stage {
     flex: 1 1 auto;
@@ -1651,9 +1661,19 @@ footer {
     margin: 0;
     line-height: 1.2;
     display: flex;
-    align-items: baseline;
-    gap: 5px;
+    align-items: center;
+    gap: 8px;
     flex-wrap: wrap;
+}
+
+/* Struck-through "old" price — automatically real price + 5.
+   Gray, NOT bold, line-through. Shown only in the product view. */
+.product-view-info .price-old {
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 400;
+    font-size: 0.85rem;
+    text-decoration: line-through;
+    white-space: nowrap;
 }
 
 .product-view-info .btn-order {
@@ -1661,22 +1681,70 @@ footer {
     margin-top: 6px;
 }
 
-@media (min-width: 640px) {
-    .product-view-media { max-width: 720px; }
-    .product-view-info { padding: 12px 18px; }
+/* ---- DESKTOP: picture LEFT, info card RIGHT ----
+   The picture is large and dominant (60% of the viewport, capped at
+   900px). The info card takes roughly a third of the width. */
+@media (min-width: 900px) {
+    .product-view-body {
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: center;
+        gap: 32px;
+        padding: 28px 32px;
+        overflow-y: auto;
+    }
+
+    .product-view-stage {
+        flex: 0 1 auto;
+        width: 60%;
+        max-width: 900px;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .product-view-media {
+        width: 100%;
+        max-width: 900px;
+        height: auto;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* Right-hand information card: ~30-35% of the content width,
+       never narrower than a comfortable reading size. */
+    .product-view-info {
+        flex: 0 0 32%;
+        width: 32%;
+        min-width: 300px;
+        max-width: 420px;
+        margin: 0;
+        align-self: center;
+        padding: 22px 24px;
+        gap: 10px;
+    }
+
+    .product-view-info .product-name { font-size: 1.25rem; }
+    .product-view-info .product-price .price-actual { font-size: 1.3rem; }
+    .product-view-info .price-old { font-size: 0.95rem; }
+    .product-view-info .btn-order {
+        padding: 12px;
+        font-size: 0.8rem;
+        margin-top: 10px;
+    }
 }
 
 /* Landscape phones: keep the picture visible beside the info block. */
 @media (max-height: 520px) and (orientation: landscape) {
-    .product-view { flex-direction: row; }
+    .product-view-body { flex-direction: row; gap: 14px; padding: 12px; }
     .product-view-bar {
         flex-direction: column;
+        justify-content: flex-start;
         border-bottom: none;
         border-right: 2px solid var(--gold);
         padding: 10px 8px;
     }
-    .product-view-back { writing-mode: vertical-rl; }
-    .product-view-info { max-width: 280px; margin: 12px; }
+    .product-view-stage { width: 55%; padding: 0; overflow: visible; }
+    .product-view-info { flex: 0 0 320px; width: 320px; max-width: 320px; margin: 0; padding: 14px 16px; }
 }
 
 .modal-box h3 {
@@ -2313,4 +2381,67 @@ footer {
     .product-content .product-name { font-size: 0.7rem; }
     .price-actual { font-size: 0.85rem; }
     .btn-order { font-size: 0.6rem; padding: 6px; }
+}
+
+/* ============================================================
+   SCROLLBAR — hidden visually, page still scrolls normally
+   ============================================================ */
+html, body {
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE / Edge */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    display: none;               /* Chrome / Safari / Edge */
+    width: 0;
+    height: 0;
+}
+
+/* ============================================================
+   CARD HEART — like button over the product image
+   Placed TOP-LEFT because the country badge already owns the
+   top-right corner.
+   ============================================================ */
+.product-card .product-image {
+    position: relative;
+}
+
+.card-heart {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 0.75rem;
+    cursor: pointer;
+    z-index: 3;
+    transition: background 0.25s ease, transform 0.15s ease;
+}
+
+.card-heart:hover {
+    background: rgba(0, 0, 0, 0.75);
+    transform: scale(1.05);
+}
+
+.card-heart i {
+    font-size: 0.85rem;
+    color: #fff;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.card-heart.liked i {
+    color: #e74c3c;
+    transform: scale(1.15);
+}
+
+.card-heart .card-heart-count {
+    font-weight: 600;
+    color: #fff;
+    line-height: 1;
 }
