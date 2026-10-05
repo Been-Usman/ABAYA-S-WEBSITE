@@ -1548,13 +1548,29 @@ footer {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
 }
 
-/* Holds the picture + info block. Stacked on mobile, side-by-side
-   on desktop (see the min-width: 900px block below). */
+/* Holds the single detail card. The picture and the text live in ONE
+   bordered card: image on top, title/code/price/button underneath. */
 .product-view-body {
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    overflow-y: auto;
+    overflow-x: hidden;            /* guard: never scroll sideways */
+    -webkit-overflow-scrolling: touch;
+}
+
+.product-view-card {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
     flex-direction: column;
+    background: var(--bg-card);
+    border: 1px solid var(--border-gold);
+    border-radius: 16px;
+    box-shadow: var(--shadow-dark);
     overflow: hidden;
 }
 
@@ -1585,19 +1601,16 @@ footer {
 }
 
 .product-view-stage {
-    flex: 1 1 auto;
-    min-height: 0;                 /* lets the child scroll inside flex */
+    flex: 0 0 auto;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;
-    overflow-y: auto;
-    overflow-x: hidden;            /* guard: never scroll sideways */
-    -webkit-overflow-scrolling: touch;
-    background: var(--bg-main);
+    padding: 10px;
+    background: var(--navy-darker);
 }
 
-/* The picture itself: as wide as the screen allows, aspect ratio intact.
+/* The picture itself: as wide as the card allows, aspect ratio intact.
    width:100% + height:auto + object-fit:contain = no cropping, no overflow. */
 .product-view-media {
     display: block;
@@ -1608,10 +1621,8 @@ footer {
     object-fit: contain;
     object-position: center;
     margin: 0 auto;
-    border-radius: 12px;
-    border: 1px solid var(--border-gold);
+    border-radius: 10px;
     background: var(--navy-darker);
-    box-shadow: var(--shadow-dark);
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
@@ -1622,14 +1633,13 @@ footer {
 .product-view-info {
     flex: 0 0 auto;
     width: 100%;
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 10px 14px;
-    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-    background: var(--bg-card);
-    border: 1px solid var(--border-gold);
-    border-radius: 14px;
-    box-shadow: var(--shadow-gold);
+    margin: 0;
+    padding: 12px 16px 16px;
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border-gold);
+    border-radius: 0;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -1681,61 +1691,49 @@ footer {
     margin-top: 6px;
 }
 
-/* ---- DESKTOP: picture LEFT, info card RIGHT ----
-   The picture is large and dominant (60% of the viewport, capped at
-   900px). The info card takes roughly a third of the width. */
+/* ---- DESKTOP: ONE detail card, image large and dominant ----
+   Same single-card structure as mobile, just wider so the picture is
+   visibly large on PC (60% of the viewport, capped at 900px). */
 @media (min-width: 900px) {
-    .product-view-body {
-        flex-direction: row;
-        align-items: stretch;
-        justify-content: center;
-        gap: 32px;
-        padding: 28px 32px;
-        overflow-y: auto;
+    .product-view-body { padding: 28px 32px; }
+
+    .product-view-card {
+        max-width: 900px;
+        border-radius: 18px;
     }
 
-    .product-view-stage {
-        flex: 0 1 auto;
-        width: 60%;
-        max-width: 900px;
-        padding: 0;
-        overflow: visible;
-    }
+    .product-view-stage { padding: 18px; }
 
     .product-view-media {
         width: 100%;
         max-width: 900px;
         height: auto;
-        max-height: 100%;
+        max-height: 70vh;
         object-fit: contain;
     }
 
-    /* Right-hand information card: ~30-35% of the content width,
-       never narrower than a comfortable reading size. */
     .product-view-info {
-        flex: 0 0 32%;
-        width: 32%;
-        min-width: 300px;
-        max-width: 420px;
-        margin: 0;
-        align-self: center;
-        padding: 22px 24px;
+        padding: 18px 26px 22px;
         gap: 10px;
+        align-items: flex-start;
     }
 
     .product-view-info .product-name { font-size: 1.25rem; }
+    .product-view-info .product-code { font-size: 0.8rem; }
     .product-view-info .product-price .price-actual { font-size: 1.3rem; }
     .product-view-info .price-old { font-size: 0.95rem; }
     .product-view-info .btn-order {
-        padding: 12px;
+        width: auto;
+        min-width: 220px;
+        padding: 12px 28px;
         font-size: 0.8rem;
-        margin-top: 10px;
+        margin-top: 8px;
     }
 }
 
 /* Landscape phones: keep the picture visible beside the info block. */
 @media (max-height: 520px) and (orientation: landscape) {
-    .product-view-body { flex-direction: row; gap: 14px; padding: 12px; }
+    .product-view { flex-direction: row; }
     .product-view-bar {
         flex-direction: column;
         justify-content: flex-start;
@@ -1743,8 +1741,16 @@ footer {
         border-right: 2px solid var(--gold);
         padding: 10px 8px;
     }
-    .product-view-stage { width: 55%; padding: 0; overflow: visible; }
-    .product-view-info { flex: 0 0 320px; width: 320px; max-width: 320px; margin: 0; padding: 14px 16px; }
+    .product-view-body { padding: 10px; }
+    .product-view-card { max-width: 100%; flex-direction: row; }
+    .product-view-stage { width: 55%; padding: 8px; }
+    .product-view-media { max-height: 100%; }
+    .product-view-info {
+        width: 45%;
+        border-top: none;
+        border-left: 1px solid var(--border-gold);
+        padding: 12px 16px;
+    }
 }
 
 .modal-box h3 {

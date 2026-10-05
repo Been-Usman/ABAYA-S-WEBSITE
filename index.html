@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <!-- Main stylesheet -->
-    <link rel="stylesheet" href="style.css?v=80" />
+    <link rel="stylesheet" href="style.css?v=83" />
 
     <!-- ============================================================
          EMERGENCY HEADER FIX — Inline styles that override everything.
@@ -788,12 +788,14 @@
     <!-- ===== PRODUCT VIEW (full-width enlarged product) ===== -->
     <div id="productView" class="product-view" role="dialog" aria-modal="true" aria-label="Product image">
         <div class="product-view-bar">
-            <button class="product-view-back" id="productViewBack" type="button" aria-label="Back to products">
-                <i class="fas fa-arrow-left"></i> Back
-            </button>
+            <button class="product-view-close" id="productViewClose" type="button" aria-label="Close product view">&times;</button>
         </div>
-        <div class="product-view-stage" id="productViewStage"></div>
-        <div class="product-view-info" id="productViewInfo"></div>
+        <div class="product-view-body">
+            <div class="product-view-card">
+                <div class="product-view-stage" id="productViewStage"></div>
+                <div class="product-view-info" id="productViewInfo"></div>
+            </div>
+        </div>
     </div>
 
     <!-- ===== CART SIDEBAR ===== -->
@@ -849,7 +851,7 @@
             if (s) { s.style.display = 'none'; s.style.visibility = 'hidden'; s.style.opacity = '0'; }
         }, 3000);
     </script>
-    <script src="script.js?v=6"></script>
+    <script src="script.js?v=7"></script>
 
     <!-- ===== PWA: service worker registration ===== -->
     <script>
